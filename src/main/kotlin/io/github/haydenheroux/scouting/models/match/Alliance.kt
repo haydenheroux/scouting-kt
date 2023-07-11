@@ -1,4 +1,4 @@
-package io.github.haydenheroux.scouting.models
+package io.github.haydenheroux.scouting.models.match
 
 /**
  * An alliance of robots in an FRC match.

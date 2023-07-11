@@ -1,4 +1,4 @@
-package io.github.haydenheroux.scouting.models
+package io.github.haydenheroux.scouting.models.team
 
 /**
  * A robot is a robot that is built for FRC.

@@ -1,4 +1,4 @@
-package io.github.haydenheroux.scouting.models
+package io.github.haydenheroux.scouting.models.match
 
 /**
  * A match played at an FRC event.

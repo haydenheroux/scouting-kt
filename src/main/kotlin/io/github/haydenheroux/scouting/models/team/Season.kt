@@ -1,4 +1,6 @@
-package io.github.haydenheroux.scouting.models
+package io.github.haydenheroux.scouting.models.team
+
+import io.github.haydenheroux.scouting.models.event.Event
 
 /**
  * A season is one year of competition for an FRC team.
