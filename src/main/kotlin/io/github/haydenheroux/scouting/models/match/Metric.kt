@@ -4,4 +4,4 @@ import io.github.haydenheroux.scouting.models.team.Robot
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class RobotMetric(val robot: Robot, val gameMetrics: MutableList<GameSpecificMetric>)
+data class Metric(val robot: Robot, val alliance: AllianceColor, val gameMetrics: MutableList<GameMetric>)
