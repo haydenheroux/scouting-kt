@@ -13,12 +13,11 @@ import kotlinx.serialization.Serializable
  * @property type the type of the match.
  * @property alliances the alliances playing in the match.
  * @see MatchType
- * @see AllianceColor
  * @see Alliance
  */
 @Serializable
 data class Match(
     val number: Int,
     val type: MatchType,
-    val alliances: MutableMap<AllianceColor, Alliance>
+    val alliances: MutableList<Alliance>
 )
