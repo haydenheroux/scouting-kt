@@ -1,5 +1,7 @@
 package io.github.haydenheroux.scouting.models.team
 
+import kotlinx.serialization.Serializable
+
 /**
  * An FRC team.
  *
@@ -13,4 +15,5 @@ package io.github.haydenheroux.scouting.models.team
  * @property seasons the seasons that the FRC team has participated in.
  * @see Season
  */
+@Serializable
 data class Team(val number: Int, val name: String, val location: String, val seasons: MutableMap<Int, Season>)

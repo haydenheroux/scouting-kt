@@ -1,5 +1,7 @@
 package io.github.haydenheroux.scouting.models.match
 
+import kotlinx.serialization.Serializable
+
 /**
  * A match played at an FRC event.
  *
@@ -14,6 +16,7 @@ package io.github.haydenheroux.scouting.models.match
  * @see AllianceColor
  * @see Alliance
  */
+@Serializable
 data class Match(
     val number: Int,
     val type: MatchType,

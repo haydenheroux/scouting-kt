@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.models.event.Event
+import kotlinx.serialization.Serializable
 
 /**
  * A season is one year of competition for an FRC team.
@@ -17,4 +18,5 @@ import io.github.haydenheroux.scouting.models.event.Event
  * @see Robot
  * @see Event
  */
+@Serializable
 data class Season(val team: Team, val year: Int, val robots: MutableList<Robot>, val events: MutableList<Event>)

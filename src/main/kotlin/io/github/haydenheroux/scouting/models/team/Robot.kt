@@ -1,5 +1,7 @@
 package io.github.haydenheroux.scouting.models.team
 
+import kotlinx.serialization.Serializable
+
 /**
  * A robot is a robot that is built for FRC.
  *
@@ -11,4 +13,5 @@ package io.github.haydenheroux.scouting.models.team
  * @property name the name of the robot.
  * @see Season
  */
+@Serializable
 data class Robot(val season: Season, val name: String) // Add additional properties

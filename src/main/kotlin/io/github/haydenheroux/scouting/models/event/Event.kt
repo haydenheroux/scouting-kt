@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.event
 
 import io.github.haydenheroux.scouting.models.match.Match
+import kotlinx.serialization.Serializable
 
 /**
  * An event is an FRC competition event.
@@ -18,6 +19,7 @@ import io.github.haydenheroux.scouting.models.match.Match
  * @property matches the matches that were played at the event.
  * @see Match
  */
+@Serializable
 data class Event(
     val name: String,
     val location: String,
