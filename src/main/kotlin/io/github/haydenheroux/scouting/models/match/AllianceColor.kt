@@ -1,5 +1,8 @@
 package io.github.haydenheroux.scouting.models.match
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 /**
  * A color of an alliance.
  *
@@ -7,8 +10,12 @@ package io.github.haydenheroux.scouting.models.match
  * Other alliances are typically practice alliances or non-competition
  * matches.
  */
+@Serializable
 enum class AllianceColor {
+    @SerialName("red")
     RED,
+    @SerialName("blue")
     BLUE,
+    @SerialName("other")
     OTHER
 }

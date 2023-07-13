@@ -1,5 +1,8 @@
 package io.github.haydenheroux.scouting.models.match
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 /**
  * A type of match.
  *
@@ -9,8 +12,12 @@ package io.github.haydenheroux.scouting.models.match
  *
  * @see Match
  */
+@Serializable
 enum class MatchType {
+    @SerialName("qualification")
     QUALIFICATION,
+    @SerialName("playoff")
     PLAYOFF,
+    @SerialName("other")
     OTHER
 }
