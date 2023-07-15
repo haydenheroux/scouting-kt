@@ -1,8 +1,12 @@
 package io.github.haydenheroux.scouting.database
 
-import io.github.haydenheroux.scouting.models.match.Alliance
-import io.github.haydenheroux.scouting.models.match.MatchType
+import io.github.haydenheroux.scouting.models.event.Event
+import io.github.haydenheroux.scouting.models.match.*
+import io.github.haydenheroux.scouting.models.team.Robot
+import io.github.haydenheroux.scouting.models.team.Season
+import io.github.haydenheroux.scouting.models.team.Team
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.ResultRow
 
 object Teams : IntIdTable() {
     val number = integer("number")
@@ -42,4 +46,62 @@ object Events : IntIdTable() {
     val location = varchar("location", 255)
     val year = integer("year")
     val week = integer("week")
+}
+
+fun ResultRow.toTeam(): Team {
+    val teamId = this[Teams.id].value
+    val number = this[Teams.number]
+    val name = this[Teams.name]
+    val location = this[Teams.location]
+    val seasons = fetchSeasonsByTeamId(teamId)
+    return Team(number, name, location, seasons)
+}
+
+fun ResultRow.toSeason(): Season {
+    val seasonId = this[Seasons.id].value
+    val teamId = this[Seasons.team].value
+    val team = fetchTeamById(teamId)
+    val year = this[Seasons.year]
+    val robots = fetchRobotsBySeasonId(seasonId)
+    val events = fetchEventsBySeasonId(seasonId)
+    return Season(team, year, robots, events)
+}
+
+fun ResultRow.toRobot(): Robot {
+    val seasonId = this[Robots.season].value
+    val season = fetchSeasonById(seasonId)
+    val name = this[Robots.name]
+    return Robot(season, name)
+}
+
+fun ResultRow.toMetric(): Metric {
+    val metricId = this[Metrics.id].value
+    val robotId = this[Metrics.robot].value
+    val robot = fetchRobotById(robotId)
+    val alliance = this[Metrics.alliance]
+    val gameMetrics = fetchGameMetricsByMetricId(metricId)
+    return Metric(robot, alliance, gameMetrics)
+}
+
+fun ResultRow.toMatch(): Match {
+    val matchId = this[Matches.id].value
+    val number = this[Matches.number]
+    val type = this[Matches.type]
+    val metrics = fetchMetricsByMatchId(matchId)
+    return Match(number, type, metrics)
+}
+
+fun ResultRow.toGameMetric(): GameMetric {
+    val key = this[GameMetrics.key]
+    val value = this[GameMetrics.value]
+    return GameMetric(key, value)
+}
+
+fun ResultRow.toEvent(): Event {
+    val name = this[Events.name]
+    val location = this[Events.location]
+    val year = this[Events.year]
+    val week = this[Events.week]
+    val matches = emptyList<Match>() // Fetch matches from database based on event ID
+    return Event(name, location, year, week, matches)
 }
