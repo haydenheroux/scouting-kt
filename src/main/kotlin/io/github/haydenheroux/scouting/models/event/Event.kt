@@ -25,5 +25,5 @@ data class Event(
     val location: String,
     val year: Int,
     val week: Int,
-    val matches: MutableList<Match>
+    val matches: List<Match>
 )

@@ -20,5 +20,5 @@ import kotlinx.serialization.Serializable
 data class Match(
     val number: Int,
     val type: MatchType,
-    val metrics: MutableList<Metric>
+    val metrics: List<Metric>
 )

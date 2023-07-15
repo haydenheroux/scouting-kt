@@ -16,4 +16,4 @@ import kotlinx.serialization.Serializable
  * @see Season
  */
 @Serializable
-data class Team(val number: Int, val name: String, val location: String, val seasons: MutableList<Season>)
+data class Team(val number: Int, val name: String, val location: String, val seasons: List<Season>)

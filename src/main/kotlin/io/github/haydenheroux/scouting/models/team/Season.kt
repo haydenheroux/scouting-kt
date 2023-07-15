@@ -19,4 +19,4 @@ import kotlinx.serialization.Serializable
  * @see Event
  */
 @Serializable
-data class Season(val team: Team, val year: Int, val robots: MutableList<Robot>, val events: MutableList<Event>)
+data class Season(val team: Team, val year: Int, val robots: List<Robot>, val events: List<Event>)
