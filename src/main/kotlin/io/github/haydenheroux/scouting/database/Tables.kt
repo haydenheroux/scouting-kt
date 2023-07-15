@@ -48,7 +48,7 @@ object Events : IntIdTable() {
     val week = integer("week")
 }
 
-fun ResultRow.toTeam(): Team {
+suspend fun ResultRow.toTeam(): Team {
     val teamId = this[Teams.id].value
     val number = this[Teams.number]
     val name = this[Teams.name]
@@ -57,7 +57,7 @@ fun ResultRow.toTeam(): Team {
     return Team(number, name, location, seasons)
 }
 
-fun ResultRow.toSeason(): Season {
+suspend fun ResultRow.toSeason(): Season {
     val seasonId = this[Seasons.id].value
     val teamId = this[Seasons.team].value
     val team = db.fetchTeamById(teamId)
@@ -67,14 +67,14 @@ fun ResultRow.toSeason(): Season {
     return Season(team, year, robots, events)
 }
 
-fun ResultRow.toRobot(): Robot {
+suspend fun ResultRow.toRobot(): Robot {
     val seasonId = this[Robots.season].value
     val season = db.fetchSeasonById(seasonId)
     val name = this[Robots.name]
     return Robot(season, name)
 }
 
-fun ResultRow.toMetric(): Metric {
+suspend fun ResultRow.toMetric(): Metric {
     val metricId = this[Metrics.id].value
     val robotId = this[Metrics.robot].value
     val robot = db.fetchRobotById(robotId)
@@ -83,7 +83,7 @@ fun ResultRow.toMetric(): Metric {
     return Metric(robot, alliance, gameMetrics)
 }
 
-fun ResultRow.toMatch(): Match {
+suspend fun ResultRow.toMatch(): Match {
     val matchId = this[Matches.id].value
     val number = this[Matches.number]
     val type = this[Matches.type]

@@ -9,14 +9,14 @@ import io.github.haydenheroux.scouting.models.team.Season
 import io.github.haydenheroux.scouting.models.team.Team
 
 interface DatabaseInterface {
-    fun fetchTeamById(teamId: Int): Team
-    fun fetchSeasonById(seasonId: Int): Season
-    fun fetchRobotById(robotId: Int): Robot
+    suspend fun fetchTeamById(teamId: Int): Team
+    suspend fun fetchSeasonById(seasonId: Int): Season
+    suspend fun fetchRobotById(robotId: Int): Robot
 
-    fun fetchSeasonsByTeamId(teamId: Int): List<Season>
-    fun fetchRobotsBySeasonId(seasonId: Int): List<Robot>
-    fun fetchEventsBySeasonId(seasonId: Int): List<Event>
-    fun fetchMatchesByEventId(eventId: Int): List<Match>
-    fun fetchMetricsByMatchId(matchId: Int): List<Metric>
-    fun fetchGameMetricsByMetricId(metricId: Int): List<GameMetric>
+    suspend fun fetchSeasonsByTeamId(teamId: Int): List<Season>
+    suspend fun fetchRobotsBySeasonId(seasonId: Int): List<Robot>
+    suspend fun fetchEventsBySeasonId(seasonId: Int): List<Event>
+    suspend fun fetchMatchesByEventId(eventId: Int): List<Match>
+    suspend fun fetchMetricsByMatchId(matchId: Int): List<Metric>
+    suspend fun fetchGameMetricsByMetricId(metricId: Int): List<GameMetric>
 }
