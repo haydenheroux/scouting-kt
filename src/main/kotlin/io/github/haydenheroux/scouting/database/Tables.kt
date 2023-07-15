@@ -53,23 +53,23 @@ fun ResultRow.toTeam(): Team {
     val number = this[Teams.number]
     val name = this[Teams.name]
     val location = this[Teams.location]
-    val seasons = fetchSeasonsByTeamId(teamId)
+    val seasons = db.fetchSeasonsByTeamId(teamId)
     return Team(number, name, location, seasons)
 }
 
 fun ResultRow.toSeason(): Season {
     val seasonId = this[Seasons.id].value
     val teamId = this[Seasons.team].value
-    val team = fetchTeamById(teamId)
+    val team = db.fetchTeamById(teamId)
     val year = this[Seasons.year]
-    val robots = fetchRobotsBySeasonId(seasonId)
-    val events = fetchEventsBySeasonId(seasonId)
+    val robots = db.fetchRobotsBySeasonId(seasonId)
+    val events = db.fetchEventsBySeasonId(seasonId)
     return Season(team, year, robots, events)
 }
 
 fun ResultRow.toRobot(): Robot {
     val seasonId = this[Robots.season].value
-    val season = fetchSeasonById(seasonId)
+    val season = db.fetchSeasonById(seasonId)
     val name = this[Robots.name]
     return Robot(season, name)
 }
@@ -77,9 +77,9 @@ fun ResultRow.toRobot(): Robot {
 fun ResultRow.toMetric(): Metric {
     val metricId = this[Metrics.id].value
     val robotId = this[Metrics.robot].value
-    val robot = fetchRobotById(robotId)
+    val robot = db.fetchRobotById(robotId)
     val alliance = this[Metrics.alliance]
-    val gameMetrics = fetchGameMetricsByMetricId(metricId)
+    val gameMetrics = db.fetchGameMetricsByMetricId(metricId)
     return Metric(robot, alliance, gameMetrics)
 }
 
@@ -87,7 +87,7 @@ fun ResultRow.toMatch(): Match {
     val matchId = this[Matches.id].value
     val number = this[Matches.number]
     val type = this[Matches.type]
-    val metrics = fetchMetricsByMatchId(matchId)
+    val metrics = db.fetchMetricsByMatchId(matchId)
     return Match(number, type, metrics)
 }
 
