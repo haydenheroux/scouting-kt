@@ -11,11 +11,13 @@ import kotlinx.serialization.Serializable
  * matches.
  */
 @Serializable
-enum class AllianceColor {
+enum class Alliance {
     @SerialName("red")
     RED,
+
     @SerialName("blue")
     BLUE,
+
     @SerialName("other")
     OTHER
 }

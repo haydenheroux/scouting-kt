@@ -1,6 +1,6 @@
 package io.github.haydenheroux.scouting.database
 
-import io.github.haydenheroux.scouting.models.match.AllianceColor
+import io.github.haydenheroux.scouting.models.match.Alliance
 import io.github.haydenheroux.scouting.models.match.MatchType
 import org.jetbrains.exposed.dao.id.IntIdTable
 
@@ -22,7 +22,7 @@ object Robots : IntIdTable() {
 
 object Metrics : IntIdTable() {
     val robot = reference("robot_id", Robots)
-    val alliance = enumerationByName<AllianceColor>("alliance", 255)
+    val alliance = enumerationByName<Alliance>("alliance", 255)
 }
 
 object GameMetrics : IntIdTable() {
