@@ -12,7 +12,7 @@ object Database {
         val driver = "org.sqlite.JDBC"
         val database = Database.connect(url, driver)
         transaction(database) {
-            SchemaUtils.create(Teams, Seasons, Robots, Metrics, GameMetrics, Matches, Events)
+            SchemaUtils.create(Teams, Seasons, Robots, Metrics, GameMetrics, Matches, Events, SeasonEvents)
         }
     }
 

@@ -87,11 +87,16 @@ fun insertTestData() {
         }
 
         // Insert events
-        Events.insert {
+        val eventId = Events.insertAndGetId {
             it[name] = "Event A"
             it[location] = "Location X"
             it[year] = 2021
             it[week] = 1
+        }
+
+        SeasonEvents.insert {
+            it[season] = seasonId
+            it[event] = eventId
         }
     }
 }

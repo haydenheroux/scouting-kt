@@ -7,6 +7,7 @@ import io.github.haydenheroux.scouting.models.team.Season
 import io.github.haydenheroux.scouting.models.team.Team
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.Table
 
 object Teams : IntIdTable() {
     val number = integer("number")
@@ -48,6 +49,13 @@ object Events : IntIdTable() {
     val week = integer("week")
 }
 
+object SeasonEvents : Table() {
+    val season = reference("season_id", Seasons)
+    val event = reference("event_id", Events)
+
+    override val primaryKey = PrimaryKey(season, event, name = "seasonEvent")
+}
+
 suspend fun ResultRow.toTeam(): Team {
     val teamId = this[Teams.id].value
     val number = this[Teams.number]
@@ -59,19 +67,15 @@ suspend fun ResultRow.toTeam(): Team {
 
 suspend fun ResultRow.toSeason(): Season {
     val seasonId = this[Seasons.id].value
-    val teamId = this[Seasons.team].value
-    val team = db.fetchTeamById(teamId)
     val year = this[Seasons.year]
     val robots = db.fetchRobotsBySeasonId(seasonId)
     val events = db.fetchEventsBySeasonId(seasonId)
-    return Season(team, year, robots, events)
+    return Season(year, robots, events)
 }
 
-suspend fun ResultRow.toRobot(): Robot {
-    val seasonId = this[Robots.season].value
-    val season = db.fetchSeasonById(seasonId)
+fun ResultRow.toRobot(): Robot {
     val name = this[Robots.name]
-    return Robot(season, name)
+    return Robot(name)
 }
 
 suspend fun ResultRow.toMetric(): Metric {

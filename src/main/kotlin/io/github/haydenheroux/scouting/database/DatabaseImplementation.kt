@@ -42,7 +42,9 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun fetchEventsBySeasonId(seasonId: Int): List<Event> {
-        TODO("FUCK #1")
+        return query {
+            SeasonEvents.select { SeasonEvents.season eq seasonId }.map { it.toEvent() }
+        }
     }
 
     override suspend fun fetchMatchesByEventId(eventId: Int): List<Match> {

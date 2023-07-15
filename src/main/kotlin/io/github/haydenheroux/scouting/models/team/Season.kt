@@ -10,7 +10,6 @@ import kotlinx.serialization.Serializable
  * FRC team must build a number of robots, and participate in a number of
  * events.
  *
- * @property team the team that the season belongs to.
  * @property year the year that the season takes place in.
  * @property robots the robots that the team built during the season.
  * @property events the events that the team participated in during the
@@ -19,4 +18,4 @@ import kotlinx.serialization.Serializable
  * @see Event
  */
 @Serializable
-data class Season(val team: Team, val year: Int, val robots: List<Robot>, val events: List<Event>)
+data class Season(val year: Int, val robots: List<Robot>, val events: List<Event>)
