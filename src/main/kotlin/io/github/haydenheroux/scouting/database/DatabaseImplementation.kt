@@ -23,37 +23,37 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    override suspend fun fetchTeamById(teamId: Int): Team {
+    override suspend fun findTeam(teamId: Int): Team {
         return query {
             Teams.select { Teams.id eq teamId }.map { it.toTeam() }[0]
         }
     }
 
-    override suspend fun fetchSeasonById(seasonId: Int): Season {
+    override suspend fun findSeason(seasonId: Int): Season {
         return query {
             Seasons.select { Seasons.id eq seasonId }.map { it.toSeason() }[0]
         }
     }
 
-    override suspend fun fetchRobotById(robotId: Int): Robot {
+    override suspend fun findRobot(robotId: Int): Robot {
         return query {
             Robots.select { Robots.id eq robotId }.map { it.toRobot() }[0]
         }
     }
 
-    override suspend fun fetchSeasonsByTeamId(teamId: Int): List<Season> {
+    override suspend fun findSeasons(teamId: Int): List<Season> {
         return query {
             Seasons.select { Seasons.team eq teamId }.map { it.toSeason() }
         }
     }
 
-    override suspend fun fetchRobotsBySeasonId(seasonId: Int): List<Robot> {
+    override suspend fun findRobots(seasonId: Int): List<Robot> {
         return query {
             Robots.select { Robots.season eq seasonId }.map { it.toRobot() }
         }
     }
 
-    override suspend fun fetchEventsBySeasonId(seasonId: Int): List<Event> {
+    override suspend fun findEvents(seasonId: Int): List<Event> {
         return getEventIdsBySeasonId(seasonId).map { fetchEventById(it) }
     }
 
@@ -69,17 +69,17 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    override suspend fun fetchMatchesByEventId(eventId: Int): List<Match> {
+    override suspend fun findMatches(eventId: Int): List<Match> {
         return query {
             Matches.select { Matches.event eq eventId }.map { it.toMatch() }
         }
     }
 
-    override suspend fun fetchMetricsByMatchId(matchId: Int): List<Metric> {
+    override suspend fun findMetrics(matchId: Int): List<Metric> {
         TODO("FUCK #2")
     }
 
-    override suspend fun fetchGameMetricsByMetricId(metricId: Int): List<GameMetric> {
+    override suspend fun findGameMetrics(metricId: Int): List<GameMetric> {
         return query {
             GameMetrics.select { GameMetrics.metric eq metricId }.map { it.toGameMetric() }
         }

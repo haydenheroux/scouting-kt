@@ -12,14 +12,14 @@ interface DatabaseInterface {
     suspend fun getTeams(): List<Team>
     suspend fun getTeamByNumber(number: Int): Team
 
-    suspend fun fetchTeamById(teamId: Int): Team
-    suspend fun fetchSeasonById(seasonId: Int): Season
-    suspend fun fetchRobotById(robotId: Int): Robot
+    suspend fun findTeam(teamId: Int): Team
+    suspend fun findSeason(seasonId: Int): Season
+    suspend fun findRobot(robotId: Int): Robot
 
-    suspend fun fetchSeasonsByTeamId(teamId: Int): List<Season>
-    suspend fun fetchRobotsBySeasonId(seasonId: Int): List<Robot>
-    suspend fun fetchEventsBySeasonId(seasonId: Int): List<Event>
-    suspend fun fetchMatchesByEventId(eventId: Int): List<Match>
-    suspend fun fetchMetricsByMatchId(matchId: Int): List<Metric>
-    suspend fun fetchGameMetricsByMetricId(metricId: Int): List<GameMetric>
+    suspend fun findSeasons(teamId: Int): List<Season>
+    suspend fun findRobots(seasonId: Int): List<Robot>
+    suspend fun findEvents(seasonId: Int): List<Event>
+    suspend fun findMatches(eventId: Int): List<Match>
+    suspend fun findMetrics(matchId: Int): List<Metric>
+    suspend fun findGameMetrics(metricId: Int): List<GameMetric>
 }

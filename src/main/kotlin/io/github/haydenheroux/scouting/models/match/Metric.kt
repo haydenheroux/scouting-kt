@@ -19,9 +19,9 @@ suspend fun ResultRow.toMetric(): Metric {
     val metricId: Int = this[Metrics.id].value
     val robotId: Int = this[Metrics.robot].value
 
-    val robot = db.fetchRobotById(robotId)
+    val robot = db.findRobot(robotId)
     val alliance = this[Metrics.alliance]
-    val gameMetrics = db.fetchGameMetricsByMetricId(metricId)
+    val gameMetrics = db.findGameMetrics(metricId)
 
     return Metric(robot, alliance, gameMetrics)
 }

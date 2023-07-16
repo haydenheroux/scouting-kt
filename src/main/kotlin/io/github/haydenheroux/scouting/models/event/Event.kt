@@ -54,7 +54,7 @@ suspend fun ResultRow.toEvent(): Event {
     val location = this[Events.location]
     val year = this[Events.year]
     val week = this[Events.week]
-    val matches = db.fetchMatchesByEventId(eventId)
+    val matches = db.findMatches(eventId)
 
     return Event(name, location, year, week, matches)
 }

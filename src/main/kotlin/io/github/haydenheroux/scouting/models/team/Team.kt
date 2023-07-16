@@ -33,7 +33,7 @@ suspend fun ResultRow.toTeam(): Team {
     val number = this[Teams.number]
     val name = this[Teams.name]
     val location = this[Teams.location]
-    val seasons = db.fetchSeasonsByTeamId(teamId)
+    val seasons = db.findSeasons(teamId)
 
     return Team(number, name, location, seasons)
 }

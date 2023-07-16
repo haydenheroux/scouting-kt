@@ -38,7 +38,7 @@ suspend fun ResultRow.toMatch(): Match {
 
     val number = this[Matches.number]
     val type = this[Matches.type]
-    val metrics = db.fetchMetricsByMatchId(matchId)
+    val metrics = db.findMetrics(matchId)
 
     return Match(number, type, metrics)
 }

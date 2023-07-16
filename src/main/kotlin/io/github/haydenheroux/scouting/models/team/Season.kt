@@ -32,8 +32,8 @@ suspend fun ResultRow.toSeason(): Season {
     val seasonId: Int = this[Seasons.id].value
 
     val year = this[Seasons.year]
-    val robots = db.fetchRobotsBySeasonId(seasonId)
-    val events = db.fetchEventsBySeasonId(seasonId)
+    val robots = db.findRobots(seasonId)
+    val events = db.findEvents(seasonId)
 
     return Season(year, robots, events)
 }
