@@ -9,6 +9,9 @@ import io.github.haydenheroux.scouting.models.team.Season
 import io.github.haydenheroux.scouting.models.team.Team
 
 interface DatabaseInterface {
+    suspend fun getTeams(): List<Team>
+    suspend fun getTeamByNumber(number: Int): Team
+
     suspend fun fetchTeamById(teamId: Int): Team
     suspend fun fetchSeasonById(seasonId: Int): Season
     suspend fun fetchRobotById(robotId: Int): Robot

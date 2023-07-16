@@ -2,13 +2,27 @@ package io.github.haydenheroux.scouting.database
 
 import io.github.haydenheroux.scouting.database.Database.query
 import io.github.haydenheroux.scouting.models.event.Event
+import io.github.haydenheroux.scouting.models.event.Events
 import io.github.haydenheroux.scouting.models.event.SeasonEvents
 import io.github.haydenheroux.scouting.models.event.toEvent
 import io.github.haydenheroux.scouting.models.match.*
 import io.github.haydenheroux.scouting.models.team.*
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 
 class DatabaseImplementation : DatabaseInterface {
+    override suspend fun getTeams(): List<Team> {
+        return query {
+            Teams.selectAll().map { it.toTeam() }
+        }
+    }
+
+    override suspend fun getTeamByNumber(number: Int): Team {
+        return query {
+            Teams.select() { Teams.number eq number }.map { it.toTeam() }[0]
+        }
+    }
+
     override suspend fun fetchTeamById(teamId: Int): Team {
         return query {
             Teams.select { Teams.id eq teamId }.map { it.toTeam() }[0]
@@ -40,8 +54,18 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun fetchEventsBySeasonId(seasonId: Int): List<Event> {
+        return getEventIdsBySeasonId(seasonId).map { fetchEventById(it) }
+    }
+
+    private suspend fun fetchEventById(eventId: Int): Event {
         return query {
-            SeasonEvents.select { SeasonEvents.season eq seasonId }.map { it.toEvent() }
+            Events.select { Events.id eq eventId }.map { it.toEvent() }[0]
+        }
+    }
+
+    private suspend fun getEventIdsBySeasonId(seasonId: Int): List<Int> {
+        return query {
+            SeasonEvents.select { SeasonEvents.season eq seasonId }.map { it[SeasonEvents.event].value }
         }
     }
 

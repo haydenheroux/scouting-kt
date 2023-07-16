@@ -1,6 +1,5 @@
 package io.github.haydenheroux.scouting.routes
 
-import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.event.Events
 import io.github.haydenheroux.scouting.models.event.SeasonEvents
 import io.github.haydenheroux.scouting.models.match.*
@@ -18,11 +17,7 @@ fun Route.root() {
     route("/") {
         get {
             insertTestData()
-
-            val teamId = 1
-            val seasons = db.fetchSeasonsByTeamId(teamId)
-
-            call.respond(seasons)
+            call.respondText("Inserted test data.")
         }
     }
 }
