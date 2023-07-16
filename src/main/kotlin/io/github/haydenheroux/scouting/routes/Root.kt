@@ -20,31 +20,9 @@ fun Route.root() {
             insertTestData()
 
             val teamId = 1
-            val team = db.fetchTeamById(teamId)
             val seasons = db.fetchSeasonsByTeamId(teamId)
 
-            // Display the retrieved data
-            println("Team: ${team.name} (${team.number})")
-            for (season in seasons) {
-                println("Season ${season.year}:")
-                for (robot in season.robots) {
-                    println("  Robot: ${robot.name}")
-                }
-                for (event in season.events) {
-                    println("  Event: ${event.name} (${event.location})")
-                    for (match in event.matches) {
-                        println("    Match ${match.number}:")
-                        for (metric in match.metrics) {
-                            println("      Metric: ${metric.alliance}")
-                            for (gameMetric in metric.gameMetrics) {
-                                println("        ${gameMetric.key}: ${gameMetric.value}")
-                            }
-                        }
-                    }
-                }
-            }
-
-            call.respondText("Done!")
+            call.respond(seasons)
         }
     }
 }
