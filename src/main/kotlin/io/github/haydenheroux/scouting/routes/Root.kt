@@ -1,8 +1,12 @@
 package io.github.haydenheroux.scouting.routes
 
-import io.github.haydenheroux.scouting.database.*
-import io.github.haydenheroux.scouting.models.match.Alliance
-import io.github.haydenheroux.scouting.models.match.MatchType
+import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.models.event.Events
+import io.github.haydenheroux.scouting.models.event.SeasonEvents
+import io.github.haydenheroux.scouting.models.match.*
+import io.github.haydenheroux.scouting.models.team.Robots
+import io.github.haydenheroux.scouting.models.team.Seasons
+import io.github.haydenheroux.scouting.models.team.Teams
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*

@@ -2,12 +2,10 @@ package io.github.haydenheroux.scouting.database
 
 import io.github.haydenheroux.scouting.database.Database.query
 import io.github.haydenheroux.scouting.models.event.Event
-import io.github.haydenheroux.scouting.models.match.GameMetric
-import io.github.haydenheroux.scouting.models.match.Match
-import io.github.haydenheroux.scouting.models.match.Metric
-import io.github.haydenheroux.scouting.models.team.Robot
-import io.github.haydenheroux.scouting.models.team.Season
-import io.github.haydenheroux.scouting.models.team.Team
+import io.github.haydenheroux.scouting.models.event.SeasonEvents
+import io.github.haydenheroux.scouting.models.event.toEvent
+import io.github.haydenheroux.scouting.models.match.*
+import io.github.haydenheroux.scouting.models.team.*
 import org.jetbrains.exposed.sql.select
 
 class DatabaseImplementation : DatabaseInterface {

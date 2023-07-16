@@ -1,7 +1,12 @@
 package io.github.haydenheroux.scouting.models.event
 
+import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.match.Match
+import io.github.haydenheroux.scouting.models.team.Seasons
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.Table
 
 /**
  * An event is an FRC competition event.
@@ -27,3 +32,29 @@ data class Event(
     val week: Int,
     val matches: List<Match>
 )
+
+object Events : IntIdTable() {
+    val name = varchar("name", 255)
+    val location = varchar("location", 255)
+    val year = integer("year")
+    val week = integer("week")
+}
+
+object SeasonEvents : Table() {
+    val season = reference("season_id", Seasons)
+    val event = reference("event_id", Events)
+
+    override val primaryKey = PrimaryKey(season, event, name = "seasonEvent")
+}
+
+suspend fun ResultRow.toEvent(): Event {
+    val eventId: Int = this[Events.id].value
+
+    val name = this[Events.name]
+    val location = this[Events.location]
+    val year = this[Events.year]
+    val week = this[Events.week]
+    val matches = db.fetchMatchesByEventId(eventId)
+
+    return Event(name, location, year, week, matches)
+}

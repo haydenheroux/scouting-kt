@@ -1,6 +1,8 @@
 package io.github.haydenheroux.scouting.models.team
 
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.ResultRow
 
 /**
  * A robot is a robot that is built for FRC.
@@ -13,3 +15,14 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Robot(val name: String) // Add additional properties
+
+object Robots : IntIdTable() {
+    val season = reference("season_id", Seasons)
+    val name = varchar("name", 255)
+}
+
+fun ResultRow.toRobot(): Robot {
+    val name = this[Robots.name]
+
+    return Robot(name)
+}

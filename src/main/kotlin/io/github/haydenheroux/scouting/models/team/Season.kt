@@ -1,7 +1,10 @@
 package io.github.haydenheroux.scouting.models.team
 
+import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.event.Event
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.ResultRow
 
 /**
  * A season is one year of competition for an FRC team.
@@ -19,3 +22,18 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Season(val year: Int, val robots: List<Robot>, val events: List<Event>)
+
+object Seasons : IntIdTable() {
+    val team = reference("team_id", Teams)
+    val year = integer("year")
+}
+
+suspend fun ResultRow.toSeason(): Season {
+    val seasonId: Int = this[Seasons.id].value
+
+    val year = this[Seasons.year]
+    val robots = db.fetchRobotsBySeasonId(seasonId)
+    val events = db.fetchEventsBySeasonId(seasonId)
+
+    return Season(year, robots, events)
+}
