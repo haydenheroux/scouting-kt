@@ -76,7 +76,9 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun findMetrics(matchId: Int): List<Metric> {
-        TODO("FUCK #2")
+        return query {
+            Metrics.select { Metrics.match eq matchId }.map { it.toMetric() }
+        }
     }
 
     override suspend fun findGameMetrics(metricId: Int): List<GameMetric> {

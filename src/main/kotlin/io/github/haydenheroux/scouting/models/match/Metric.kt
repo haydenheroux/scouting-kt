@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.ResultRow
 data class Metric(val robot: Robot, val alliance: Alliance, val gameMetrics: List<GameMetric>)
 
 object Metrics : IntIdTable() {
+    val match = reference("match_id", Matches)
     val robot = reference("robot_id", Robots)
     val alliance = enumerationByName<Alliance>("alliance", 255)
 }

@@ -38,29 +38,9 @@ fun insertTestData() {
         }
 
         // Insert robots
-        Robots.insert {
+        val robotId = Robots.insertAndGetId {
             it[season] = seasonId
             it[name] = "Robot A1"
-        }
-
-        // Insert metrics
-        val metricId = Metrics.insertAndGetId {
-            it[robot] = 1
-            it[alliance] = Alliance.RED
-        }
-
-        // Insert game metrics
-        GameMetrics.insert {
-            it[metric] = metricId
-            it[key] = "Score"
-            it[value] = "100"
-        }
-
-        // Insert matches
-        Matches.insert {
-            it[number] = 1
-            it[type] = MatchType.QUALIFICATION
-            it[event] = 1
         }
 
         // Insert events
@@ -74,6 +54,27 @@ fun insertTestData() {
         SeasonEvents.insert {
             it[season] = seasonId
             it[event] = eventId
+        }
+
+        // Insert matches
+        val matchId = Matches.insertAndGetId {
+            it[number] = 1
+            it[type] = MatchType.QUALIFICATION
+            it[event] = eventId
+        }
+
+        // Insert metrics
+        val metricId = Metrics.insertAndGetId {
+            it[match] = matchId
+            it[robot] = robotId
+            it[alliance] = Alliance.RED
+        }
+
+        // Insert game metrics
+        GameMetrics.insert {
+            it[metric] = metricId
+            it[key] = "Score"
+            it[value] = "100"
         }
     }
 }
