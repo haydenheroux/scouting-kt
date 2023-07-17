@@ -9,7 +9,23 @@ import io.github.haydenheroux.scouting.models.team.Season
 import io.github.haydenheroux.scouting.models.team.Team
 
 interface DatabaseInterface {
+    /**
+     * Gets all teams stored in the database.
+     *
+     * @return the list representing all teams stored in the database.
+     */
     suspend fun getTeams(): List<Team>
+
+    /**
+     * Gets the team with the specified team number.
+     *
+     * If the team with the specified team number does not exist, the behavior
+     * is undefined.
+     *
+     * @param number the number of the team.
+     * @return the team with the specified team number.
+     * @see Team.number
+     */
     suspend fun getTeamByNumber(number: Int): Team
 
     suspend fun findTeam(teamId: Int): Team
