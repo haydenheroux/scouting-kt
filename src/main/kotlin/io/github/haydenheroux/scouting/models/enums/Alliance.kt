@@ -1,4 +1,4 @@
-package io.github.haydenheroux.scouting.models.match
+package io.github.haydenheroux.scouting.models.enums
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

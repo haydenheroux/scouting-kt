@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.event
 
 import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.match.Match
 import io.github.haydenheroux.scouting.models.team.Seasons
 import kotlinx.serialization.Serializable
@@ -27,7 +28,7 @@ import org.jetbrains.exposed.sql.Table
 @Serializable
 data class Event(
     val name: String,
-    val region: String,
+    val region: Region,
     val year: Int,
     val week: Int,
     val matches: List<Match>
@@ -35,7 +36,7 @@ data class Event(
 
 object Events : IntIdTable() {
     val name = varchar("name", 255)
-    val region = varchar("region", 255)
+    val region = enumerationByName<Region>("region", 255)
     val year = integer("year")
     val week = integer("week")
 }

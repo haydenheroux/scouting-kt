@@ -1,8 +1,13 @@
 package io.github.haydenheroux.scouting.routes
 
+import io.github.haydenheroux.scouting.models.enums.Alliance
+import io.github.haydenheroux.scouting.models.enums.MatchType
+import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.event.Events
 import io.github.haydenheroux.scouting.models.event.SeasonEvents
-import io.github.haydenheroux.scouting.models.match.*
+import io.github.haydenheroux.scouting.models.match.GameMetrics
+import io.github.haydenheroux.scouting.models.match.Matches
+import io.github.haydenheroux.scouting.models.match.Metrics
 import io.github.haydenheroux.scouting.models.team.Robots
 import io.github.haydenheroux.scouting.models.team.Seasons
 import io.github.haydenheroux.scouting.models.team.Teams
@@ -28,7 +33,7 @@ fun insertTestData() {
         val teamId = Teams.insertAndGetId {
             it[number] = 1
             it[name] = "Team A"
-            it[location] = "Location A"
+            it[region] = Region.NEW_ENGLAND
         }
 
         // Insert seasons
@@ -46,7 +51,7 @@ fun insertTestData() {
         // Insert events
         val eventId = Events.insertAndGetId {
             it[name] = "Event A"
-            it[region] = "Region X"
+            it[region] = Region.NEW_ENGLAND
             it[year] = 2021
             it[week] = 1
         }

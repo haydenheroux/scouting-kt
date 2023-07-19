@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.database
 
 import io.github.haydenheroux.scouting.database.Database.query
+import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.event.Event
 import io.github.haydenheroux.scouting.models.event.Events
 import io.github.haydenheroux.scouting.models.event.SeasonEvents
@@ -29,7 +30,7 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    override suspend fun getEventsByRegion(region: String): List<Event> {
+    override suspend fun getEventsByRegion(region: Region): List<Event> {
         return query {
             Events.select { Events.region eq region }.map { it.toEvent() }
         }

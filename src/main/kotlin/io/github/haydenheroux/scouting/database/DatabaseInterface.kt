@@ -1,5 +1,6 @@
 package io.github.haydenheroux.scouting.database
 
+import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.event.Event
 import io.github.haydenheroux.scouting.models.match.GameMetric
 import io.github.haydenheroux.scouting.models.match.Match
@@ -30,7 +31,7 @@ interface DatabaseInterface {
 
     suspend fun getEvents(): List<Event>
 
-    suspend fun getEventsByRegion(region: String): List<Event>
+    suspend fun getEventsByRegion(region: Region): List<Event>
 
     suspend fun findTeam(teamId: Int): Team
     suspend fun findSeason(seasonId: Int): Season

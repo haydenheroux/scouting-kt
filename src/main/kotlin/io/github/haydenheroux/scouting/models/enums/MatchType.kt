@@ -1,4 +1,4 @@
-package io.github.haydenheroux.scouting.models.match
+package io.github.haydenheroux.scouting.models.enums
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -9,8 +9,6 @@ import kotlinx.serialization.Serializable
  * Each match must be either a qualification match, playoff match, or
  * other match. Other matches are typically practice matches, replays, or
  * non-competition matches.
- *
- * @see Match
  */
 @Serializable
 enum class MatchType {

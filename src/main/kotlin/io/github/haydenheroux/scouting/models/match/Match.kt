@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.models.enums.MatchType
 import io.github.haydenheroux.scouting.models.event.Events
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable

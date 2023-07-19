@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.models.enums.Alliance
 import io.github.haydenheroux.scouting.models.team.Robot
 import io.github.haydenheroux.scouting.models.team.Robots
 import kotlinx.serialization.Serializable
