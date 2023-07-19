@@ -23,6 +23,19 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
+    override suspend fun getEvents(): List<Event> {
+        return query {
+            Events.selectAll().map { it.toEvent() }
+        }
+    }
+
+    override suspend fun getEventsByRegion(region: String): List<Event> {
+        return query {
+            Events.select { Events.region eq region }.map { it.toEvent() }
+        }
+    }
+
+
     override suspend fun findTeam(teamId: Int): Team {
         return query {
             Teams.select { Teams.id eq teamId }.map { it.toTeam() }[0]

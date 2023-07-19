@@ -28,6 +28,10 @@ interface DatabaseInterface {
      */
     suspend fun getTeamByNumber(number: Int): Team
 
+    suspend fun getEvents(): List<Event>
+
+    suspend fun getEventsByRegion(region: String): List<Event>
+
     suspend fun findTeam(teamId: Int): Team
     suspend fun findSeason(seasonId: Int): Season
     suspend fun findRobot(robotId: Int): Robot

@@ -12,13 +12,13 @@ import org.jetbrains.exposed.sql.Table
  * An event is an FRC competition event.
  *
  * Each event has some properties that identify it. For example, the name
- * and location are identifiable properties. Additionally, each event has
+ * and region are identifiable properties. Additionally, each event has
  * the year and week that the event occurred. Weeks are measured according
  * to the FRC schedule, beginning at zero. Finally, each event has matches
  * that are played at the event.
  *
  * @property name the name of the event.
- * @property location the location of the event.
+ * @property region the region of the event.
  * @property year the year that the event occurred.
  * @property week the week that the event occurred.
  * @property matches the matches that were played at the event.
@@ -27,7 +27,7 @@ import org.jetbrains.exposed.sql.Table
 @Serializable
 data class Event(
     val name: String,
-    val location: String,
+    val region: String,
     val year: Int,
     val week: Int,
     val matches: List<Match>
@@ -35,7 +35,7 @@ data class Event(
 
 object Events : IntIdTable() {
     val name = varchar("name", 255)
-    val location = varchar("location", 255)
+    val region = varchar("region", 255)
     val year = integer("year")
     val week = integer("week")
 }
@@ -51,10 +51,10 @@ suspend fun ResultRow.toEvent(): Event {
     val eventId: Int = this[Events.id].value
 
     val name = this[Events.name]
-    val location = this[Events.location]
+    val region = this[Events.region]
     val year = this[Events.year]
     val week = this[Events.week]
     val matches = db.findMatches(eventId)
 
-    return Event(name, location, year, week, matches)
+    return Event(name, region, year, week, matches)
 }

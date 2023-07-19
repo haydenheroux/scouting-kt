@@ -46,7 +46,7 @@ fun insertTestData() {
         // Insert events
         val eventId = Events.insertAndGetId {
             it[name] = "Event A"
-            it[location] = "Location X"
+            it[region] = "Region X"
             it[year] = 2021
             it[week] = 1
         }
