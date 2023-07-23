@@ -1,5 +1,6 @@
 package io.github.haydenheroux.scouting.plugins
 
+import io.github.haydenheroux.scouting.routes.api
 import io.github.haydenheroux.scouting.routes.events
 import io.github.haydenheroux.scouting.routes.root
 import io.github.haydenheroux.scouting.routes.teams
@@ -11,5 +12,6 @@ fun Application.configureRouting() {
         root()
         teams()
         events()
+        api()
     }
 }

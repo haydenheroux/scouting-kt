@@ -33,6 +33,15 @@ interface DatabaseInterface {
 
     suspend fun getEventsByRegion(region: Region): List<Event>
 
+    suspend fun insertTeam(team: Team)
+    suspend fun insertSeason(season: Season, team: Team)
+    suspend fun insertRobot(robot: Robot, season: Season, team: Team)
+    suspend fun insertEvent(event: Event)
+    suspend fun insertSeasonEvent(event: Event, season: Season, team: Team)
+    suspend fun insertMatch(match: Match, event: Event, season: Season, team: Team)
+    suspend fun insertMetric(metric: Metric, match: Match, event: Event, season: Season, team: Team)
+    suspend fun insertGameMetric(gameMetric: GameMetric, metric: Metric)
+
     suspend fun findTeam(teamId: Int): Team
     suspend fun findSeason(seasonId: Int): Season
     suspend fun findRobot(robotId: Int): Robot
