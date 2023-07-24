@@ -2,6 +2,7 @@ package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.models.event.Event
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.jetbrains.exposed.dao.id.IntIdTable
 
 /**
@@ -19,7 +20,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
  * @see Event
  */
 @Serializable
-data class Season(val year: Int, val robots: List<Robot>, val events: List<Event>)
+data class Season(@Transient var parent: Team? = null, val year: Int, val robots: List<Robot>, val events: List<Event>)
 
 object Seasons : IntIdTable() {
     val team = reference("team_id", Teams)

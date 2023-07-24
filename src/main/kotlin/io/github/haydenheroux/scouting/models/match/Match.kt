@@ -1,8 +1,10 @@
 package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.models.enums.MatchType
+import io.github.haydenheroux.scouting.models.event.Event
 import io.github.haydenheroux.scouting.models.event.Events
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.jetbrains.exposed.dao.id.IntIdTable
 
 /**
@@ -21,6 +23,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
  */
 @Serializable
 data class Match(
+    @Transient var parent: Event? = null,
     val number: Int,
     val type: MatchType,
     val metrics: List<Metric>

@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.team
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.jetbrains.exposed.dao.id.IntIdTable
 
 /**
@@ -13,7 +14,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
  * @see Season
  */
 @Serializable
-data class Robot(val name: String) // Add additional properties
+data class Robot(@Transient var parent: Season? = null, val name: String)
 
 object Robots : IntIdTable() {
     val season = reference("season_id", Seasons)
