@@ -345,39 +345,39 @@ class DatabaseImplementation : DatabaseInterface {
         }
 
         for (season in team.seasons) {
-            insertSeason(season, team)
+            insertSeason(season)
         }
     }
 
-    override suspend fun insertSeason(season: Season, team: Team) {
+    override suspend fun insertSeason(season: Season) {
         if (seasonExists(season)) throw Exception("Season exists.")
 
-        val teamId = getTeamId(team)
+        val teamId = getTeamId(season.team!!)
 
         transaction {
             Seasons.insert {
-                it[Seasons.team] = teamId
+                it[team] = teamId
                 it[year] = season.year
             }
         }
 
         for (robot in season.robots) {
-            insertRobot(robot, season, team)
+            insertRobot(robot)
         }
 
         for (event in season.events) {
-            insertSeasonEvent(event, season, team)
+            insertSeasonEvent(event, season)
         }
     }
 
-    override suspend fun insertRobot(robot: Robot, season: Season, team: Team) {
+    override suspend fun insertRobot(robot: Robot) {
         if (robotExists((robot))) throw Exception("Robot exists.")
 
-        val seasonId = findSeasonId(season, team)
+        val seasonId = getSeasonId(robot.season!!)
 
         transaction {
             Robots.insert {
-                it[Robots.season] = seasonId
+                it[season] = seasonId
                 it[name] = robot.name
             }
         }
@@ -400,12 +400,11 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    override suspend fun insertSeasonEvent(event: Event, season: Season, team: Team) {
+    override suspend fun insertSeasonEvent(event: Event, season: Season) {
         if (!eventExists(event)) insertEvent(event)
-        if (seasonEventExists(event, season, team)) throw Exception("Season event exists.")
 
-        val eventId = findEventId(event)
-        val seasonId = findSeasonId(season, team)
+        val eventId = getEventId(event)
+        val seasonId = getSeasonId(season)
 
         transaction {
             SeasonEvents.insert {
@@ -415,16 +414,7 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    private suspend fun seasonEventExists(event: Event, season: Season, team: Team): Boolean {
-        val eventId = findEventId(event)
-        val seasonId = findSeasonId(season, team)
-
-        return query {
-            !SeasonEvents.select { (SeasonEvents.event eq eventId) and (SeasonEvents.season eq seasonId) }.empty()
-        }
-    }
-
-    override suspend fun insertMatch(match: Match, event: Event, season: Season, team: Team) {
+    override suspend fun insertMatch(match: Match) {
         if (matchExists(match)) throw Exception("Match exists.")
 
         transaction {
@@ -435,60 +425,23 @@ class DatabaseImplementation : DatabaseInterface {
         }
 
         for (metric in match.metrics) {
-            insertMetric(metric, match, event, season, team)
+            insertMetric(metric)
         }
     }
 
-    override suspend fun insertMetric(metric: Metric, match: Match, event: Event, season: Season, team: Team) {
+    override suspend fun insertMetric(metric: Metric) {
         if (metricExists(metric)) throw Exception("Metric exists.")
 
         TODO()
     }
 
-    override suspend fun insertGameMetric(gameMetric: GameMetric, metric: Metric) {
-        val metricId = findMetricId(metric)
+    override suspend fun insertGameMetric(gameMetric: GameMetric) {
+        val metricId = getMetricId(gameMetric.metric!!)
 
         GameMetrics.insert {
-            it[GameMetrics.metric] = metricId
+            it[metric] = metricId
             it[key] = gameMetric.key
             it[value] = gameMetric.value
-        }
-    }
-
-    private suspend fun findMetricId(metric: Metric): Int {
-        TODO("")
-    }
-
-    private suspend fun findRobotId(robot: Robot, season: Season, team: Team): Int {
-        val seasonId = findSeasonId(season, team)
-
-        return query {
-            Robots.select { (Robots.name eq robot.name) and (Robots.season eq seasonId) }.map { it[Robots.id].value }[0]
-        }
-    }
-
-    private suspend fun findMatchId(match: Match, event: Event): Int {
-        val eventId = findEventId(event)
-
-        return query {
-            Matches.select { (Matches.event eq eventId) and (Matches.number eq match.number) and (Matches.type eq match.type) }
-                .map { it[Matches.id].value }[0]
-        }
-    }
-
-    private suspend fun findEventId(event: Event): Int {
-        return query {
-            Events.select { (Events.name eq event.name) and (Events.year eq event.year) and (Events.week eq event.week) }
-                .map { it[Events.id].value }[0]
-        }
-    }
-
-    private suspend fun findSeasonId(season: Season, team: Team): Int {
-        val teamId = getTeamId(team)
-
-        return query {
-            Seasons.select { (Seasons.year eq season.year) and (Seasons.team eq teamId) }
-                .map { it[Seasons.id].value }[0]
         }
     }
 }
