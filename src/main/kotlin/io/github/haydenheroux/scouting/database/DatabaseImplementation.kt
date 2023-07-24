@@ -293,8 +293,60 @@ class DatabaseImplementation : DatabaseInterface {
 
     private suspend fun getGameMetricsForMetric(metricId: Int): List<GameMetric> {
         return query {
-            GameMetrics.select { GameMetrics.metric eq metricId }.map { it.toGameMetric() }
+            GameMetrics.select { GameMetrics.metric eq metricId }.map { rowToGameMetric(it) }
         }
+    }
+
+    private suspend fun getGameMetricRow(
+        gameMetric: GameMetric,
+        parentMetric: Metric,
+        parentMatch: Match,
+        parentEvent: Event,
+        parentSeason: Season,
+        parentTeam: Team
+    ): ResultRow? {
+        val metricId = getMetricId(parentMetric, parentMatch, parentEvent, parentSeason, parentTeam)
+
+        return query {
+            GameMetrics.select { GameMetrics.metric eq metricId }.singleOrNull()
+        }
+    }
+
+    private suspend fun getGameMetricRow(gameMetricId: Int): ResultRow? {
+        return query {
+            GameMetrics.select { GameMetrics.id eq gameMetricId }.singleOrNull()
+        }
+    }
+
+    private suspend fun getGameMetricId(
+        gameMetric: GameMetric,
+        parentMetric: Metric,
+        parentMatch: Match,
+        parentEvent: Event,
+        parentSeason: Season,
+        parentTeam: Team
+    ): Int {
+        val row = getGameMetricRow(gameMetric, parentMetric, parentMatch, parentEvent, parentSeason, parentTeam)!!
+        return row[GameMetrics.id].value
+    }
+
+    private suspend fun gameMetricExists(
+        gameMetric: GameMetric,
+        parentMetric: Metric,
+        parentMatch: Match,
+        parentEvent: Event,
+        parentSeason: Season,
+        parentTeam: Team
+    ): Boolean {
+        val row = getGameMetricRow(gameMetric, parentMetric, parentMatch, parentEvent, parentSeason, parentTeam)
+        return row?.let { true } ?: false
+    }
+
+    private fun rowToGameMetric(row: ResultRow): GameMetric {
+        val key = row[GameMetrics.key]
+        val value = row[GameMetrics.value]
+
+        return GameMetric(key, value)
     }
 
     override suspend fun insertTeam(team: Team) {
