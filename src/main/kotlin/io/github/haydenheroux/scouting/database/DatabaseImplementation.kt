@@ -233,7 +233,67 @@ class DatabaseImplementation : DatabaseInterface {
 
     private suspend fun getMetricsForMatch(matchId: Int): List<Metric> {
         return query {
-            Metrics.select { Metrics.match eq matchId }.map { it.toMetric() }
+            Metrics.select { Metrics.match eq matchId }.map { rowToMetric(it) }
+        }
+    }
+
+    private suspend fun getMetricRow(
+        metric: Metric,
+        parentMatch: Match,
+        parentEvent: Event,
+        parentSeason: Season,
+        parentTeam: Team
+    ): ResultRow? {
+        val matchId = getMatchId(parentMatch, parentEvent)
+        val robotId = getRobotId(metric.robot, parentSeason, parentTeam)
+
+        return query {
+            Metrics.select { (Metrics.match eq matchId) and (Metrics.robot eq robotId) }.singleOrNull()
+        }
+    }
+
+    private suspend fun getMetricRow(metricId: Int): ResultRow? {
+        return query {
+            Metrics.select { Metrics.id eq metricId }.singleOrNull()
+        }
+    }
+
+    private suspend fun getMetricId(
+        metric: Metric,
+        parentMatch: Match,
+        parentEvent: Event,
+        parentSeason: Season,
+        parentTeam: Team
+    ): Int {
+        val row = getMetricRow(metric, parentMatch, parentEvent, parentSeason, parentTeam)!!
+        return row[Metrics.id].value
+    }
+
+    private suspend fun metricExists(
+        metric: Metric,
+        parentMatch: Match,
+        parentEvent: Event,
+        parentSeason: Season,
+        parentTeam: Team
+    ): Boolean {
+        val row = getMetricRow(metric, parentMatch, parentEvent, parentSeason, parentTeam)
+        return row?.let { true } ?: false
+    }
+
+    private suspend fun rowToMetric(row: ResultRow): Metric {
+        val metricId = row[Metrics.id].value
+        val robotId = row[Metrics.robot].value
+
+        val robot = rowToRobot(getRobotRow(robotId)!!)
+        val alliance = row[Metrics.alliance]
+        val gameMetrics = getGameMetricsForMetric(metricId)
+
+        return Metric(robot, alliance, gameMetrics)
+    }
+
+    private suspend fun getGameMetricsForMetric(metricId: Int): List<GameMetric> {
+        return query {
+            GameMetrics.select { GameMetrics.metric eq metricId }.map { it.toGameMetric() }
         }
     }
 
@@ -347,17 +407,6 @@ class DatabaseImplementation : DatabaseInterface {
         if (metricExists(metric, match, event, season, team)) throw Exception("Metric exists.")
 
         TODO()
-    }
-
-    private suspend fun metricExists(metric: Metric, match: Match, event: Event, season: Season, team: Team): Boolean {
-        val matchId = findMatchId(match, event)
-        val robotId = findRobotId(metric.robot, season, team)
-
-        val matchingMetrics = query {
-            Metrics.select { (Metrics.match eq matchId) and (Metrics.robot eq robotId) }
-        }
-
-        return !matchingMetrics.empty()
     }
 
     override suspend fun insertGameMetric(gameMetric: GameMetric, metric: Metric) {
