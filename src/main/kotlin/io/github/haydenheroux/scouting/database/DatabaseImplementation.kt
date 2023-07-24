@@ -24,16 +24,6 @@ class DatabaseImplementation : DatabaseInterface {
         return rowToTeam(row)
     }
 
-    private suspend fun getTeamId(team: Team): Int {
-        val row: ResultRow = getTeamRow(team)!!
-        return row[Teams.id].value
-    }
-
-    private suspend fun teamExists(team: Team): Boolean {
-        val row = getTeamRow(team)
-        return row?.let { true } ?: false
-    }
-
     private suspend fun getTeamRow(team: Team): ResultRow? {
         return getTeamRowByNumber(team.number)
     }
@@ -42,6 +32,16 @@ class DatabaseImplementation : DatabaseInterface {
         return query {
             Teams.select { Teams.number eq number }.singleOrNull()
         }
+    }
+
+    private suspend fun getTeamId(team: Team): Int {
+        val row: ResultRow = getTeamRow(team)!!
+        return row[Teams.id].value
+    }
+
+    private suspend fun teamExists(team: Team): Boolean {
+        val row = getTeamRow(team)
+        return row?.let { true } ?: false
     }
 
     private suspend fun rowToTeam(row: ResultRow): Team {
@@ -61,17 +61,22 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    private suspend fun seasonExists(season: Season, parent: Team): Boolean {
-        val row = getSeasonRow(season, parent)
-        return row?.let { true } ?: false
-    }
-
-    private suspend fun getSeasonRow(season: Season, parent: Team): ResultRow? {
-        val teamId = getTeamId(parent)
+    private suspend fun getSeasonRow(season: Season, parentTeam: Team): ResultRow? {
+        val teamId = getTeamId(parentTeam)
 
         return query {
             Seasons.select { (Seasons.year eq season.year) and (Seasons.team eq teamId) }.singleOrNull()
         }
+    }
+
+    private suspend fun getSeasonId(season: Season, parentTeam: Team): Int {
+        val row = getSeasonRow(season, parentTeam)!!
+        return row[Seasons.id].value
+    }
+
+    private suspend fun seasonExists(season: Season, parentTeam: Team): Boolean {
+        val row = getSeasonRow(season, parentTeam)
+        return row?.let { true } ?: false
     }
 
     private suspend fun rowToSeason(row: ResultRow): Season {
@@ -86,12 +91,36 @@ class DatabaseImplementation : DatabaseInterface {
 
     private suspend fun getRobotsForSeason(seasonId: Int): List<Robot> {
         return query {
-            Robots.select { Robots.season eq seasonId }.map { it.toRobot() }
+            Robots.select { Robots.season eq seasonId }.map { rowToRobot(it) }
         }
     }
 
     private suspend fun getEventsForSeason(seasonId: Int): List<Event> {
         return getEventIdsBySeasonId(seasonId).map { fetchEventById(it) }
+    }
+
+    private suspend fun getRobotRow(robot: Robot, parentSeason: Season, parentTeam: Team): ResultRow? {
+        val seasonId = getSeasonId(parentSeason, parentTeam)
+
+        return query {
+            Robots.select { (Robots.name eq robot.name) and (Robots.season eq seasonId) }.singleOrNull()
+        }
+    }
+
+    private suspend fun getRobotId(robot: Robot, parentSeason: Season, parentTeam: Team): Int {
+        val row = getRobotRow(robot, parentSeason, parentTeam)!!
+        return row[Robots.id].value
+    }
+
+    private suspend fun robotExists(robot: Robot, parentSeason: Season, parentTeam: Team): Boolean {
+        val row = getRobotRow(robot, parentSeason, parentTeam)
+        return row?.let { true } ?: false
+    }
+
+    private fun rowToRobot(row: ResultRow): Robot {
+        val name = row[Robots.name]
+
+        return Robot(name)
     }
 
     override suspend fun getEvents(): List<Event> {
@@ -153,14 +182,6 @@ class DatabaseImplementation : DatabaseInterface {
                 it[Robots.season] = seasonId
                 it[name] = robot.name
             }
-        }
-    }
-
-    private suspend fun robotExists(robot: Robot, season: Season, team: Team): Boolean {
-        val seasonId = findSeasonId(season, team)
-
-        return query {
-            !Robots.select { (Robots.name eq robot.name) and (Robots.season eq seasonId) }.empty()
         }
     }
 
@@ -300,12 +321,6 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    override suspend fun findRobot(robotId: Int): Robot {
-        return query {
-            Robots.select { Robots.id eq robotId }.map { it.toRobot() }[0]
-        }
-    }
-
     private suspend fun fetchEventById(eventId: Int): Event {
         return query {
             Events.select { Events.id eq eventId }.map { it.toEvent() }[0]
@@ -315,24 +330,6 @@ class DatabaseImplementation : DatabaseInterface {
     private suspend fun getEventIdsBySeasonId(seasonId: Int): List<Int> {
         return query {
             SeasonEvents.select { SeasonEvents.season eq seasonId }.map { it[SeasonEvents.event].value }
-        }
-    }
-
-    override suspend fun findMatches(eventId: Int): List<Match> {
-        return query {
-            Matches.select { Matches.event eq eventId }.map { it.toMatch() }
-        }
-    }
-
-    override suspend fun findMetrics(matchId: Int): List<Metric> {
-        return query {
-            Metrics.select { Metrics.match eq matchId }.map { it.toMetric() }
-        }
-    }
-
-    override suspend fun findGameMetrics(metricId: Int): List<GameMetric> {
-        return query {
-            GameMetrics.select { GameMetrics.metric eq metricId }.map { it.toGameMetric() }
         }
     }
 }

@@ -41,10 +41,4 @@ interface DatabaseInterface {
     suspend fun insertMatch(match: Match, event: Event, season: Season, team: Team)
     suspend fun insertMetric(metric: Metric, match: Match, event: Event, season: Season, team: Team)
     suspend fun insertGameMetric(gameMetric: GameMetric, metric: Metric)
-
-    suspend fun findRobot(robotId: Int): Robot
-
-    suspend fun findMatches(eventId: Int): List<Match>
-    suspend fun findMetrics(matchId: Int): List<Metric>
-    suspend fun findGameMetrics(metricId: Int): List<GameMetric>
 }
