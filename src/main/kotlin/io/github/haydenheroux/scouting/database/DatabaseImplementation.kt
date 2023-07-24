@@ -396,7 +396,7 @@ class DatabaseImplementation : DatabaseInterface {
         }
 
         for (match in event.matches) {
-            TODO()
+            insertMatch(match)
         }
     }
 
@@ -417,10 +417,13 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun insertMatch(match: Match) {
         if (matchExists(match)) throw Exception("Match exists.")
 
+        val eventId = getEventId(match.event!!)
+
         transaction {
             Matches.insert {
                 it[number] = match.number
                 it[type] = match.type
+                it[event] = eventId
             }
         }
 
@@ -432,7 +435,18 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun insertMetric(metric: Metric) {
         if (metricExists(metric)) throw Exception("Metric exists.")
 
-        TODO()
+        val matchId = getMatchId(metric.match!!)
+        val robotId = getRobotId(metric.robot!!)
+
+        Metrics.insert {
+            it[match] = matchId
+            it[robot] = robotId
+            it[alliance] = metric.alliance
+        }
+
+        for (gameMetric in metric.gameMetrics) {
+            insertGameMetric(gameMetric)
+        }
     }
 
     override suspend fun insertGameMetric(gameMetric: GameMetric) {
