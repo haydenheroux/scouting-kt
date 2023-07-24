@@ -185,7 +185,7 @@ class DatabaseImplementation : DatabaseInterface {
 
     private suspend fun getMatchesForEvent(eventId: Int): List<Match> {
         return query {
-            Matches.select { Matches.event eq eventId }.map { it.toMatch() }
+            Matches.select { Matches.event eq eventId }.map { rowToMatch(it) }
         }
     }
 
@@ -193,6 +193,47 @@ class DatabaseImplementation : DatabaseInterface {
         return query {
             SeasonEvents.select { SeasonEvents.season eq seasonId }
                 .map { rowToEvent(getEventRow(it[SeasonEvents.event].value)!!) }
+        }
+    }
+
+    private suspend fun getMatchRow(match: Match, parentEvent: Event): ResultRow? {
+        val eventId = getEventId(parentEvent)
+
+        return query {
+            Matches.select { (Matches.event eq eventId) and (Matches.number eq match.number) and (Matches.type eq match.type) }
+                .singleOrNull()
+        }
+    }
+
+    private suspend fun getMatchRow(matchId: Int): ResultRow? {
+        return query {
+            Matches.select { Matches.id eq matchId }.singleOrNull()
+        }
+    }
+
+    private suspend fun getMatchId(match: Match, parentEvent: Event): Int {
+        val row = getMatchRow(match, parentEvent)!!
+        return row[Matches.id].value
+    }
+
+    private suspend fun matchExists(match: Match, parentEvent: Event): Boolean {
+        val row = getMatchRow(match, parentEvent)
+        return row?.let { true } ?: false
+    }
+
+    private suspend fun rowToMatch(row: ResultRow): Match {
+        val matchId: Int = row[Matches.id].value
+
+        val number = row[Matches.number]
+        val type = row[Matches.type]
+        val metrics = getMetricsForMatch(matchId)
+
+        return Match(number, type, metrics)
+    }
+
+    private suspend fun getMetricsForMatch(matchId: Int): List<Metric> {
+        return query {
+            Metrics.select { Metrics.match eq matchId }.map { it.toMetric() }
         }
     }
 
@@ -299,15 +340,6 @@ class DatabaseImplementation : DatabaseInterface {
 
         for (metric in match.metrics) {
             insertMetric(metric, match, event, season, team)
-        }
-    }
-
-    private suspend fun matchExists(match: Match, event: Event): Boolean {
-        val eventId = findEventId(event)
-
-        return query {
-            !Matches.select { (Matches.event eq eventId) and (Matches.number eq match.number) and (Matches.type eq match.type) }
-                .empty()
         }
     }
 
