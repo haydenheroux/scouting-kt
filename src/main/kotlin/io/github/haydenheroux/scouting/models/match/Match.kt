@@ -23,7 +23,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
  */
 @Serializable
 data class Match(
-    @Transient var parent: Event? = null,
+    @Transient var event: Event? = null,
     val number: Int,
     val type: MatchType,
     val metrics: List<Metric>

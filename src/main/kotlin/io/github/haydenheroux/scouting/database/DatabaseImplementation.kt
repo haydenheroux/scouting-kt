@@ -66,8 +66,8 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    private suspend fun getSeasonRow(season: Season, parentTeam: Team): ResultRow? {
-        val teamId = getTeamId(parentTeam)
+    private suspend fun getSeasonRow(season: Season): ResultRow? {
+        val teamId = getTeamId(season.team!!)
 
         return query {
             Seasons.select { (Seasons.year eq season.year) and (Seasons.team eq teamId) }.singleOrNull()
@@ -80,13 +80,13 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    private suspend fun getSeasonId(season: Season, parentTeam: Team): Int {
-        val row = getSeasonRow(season, parentTeam)!!
+    private suspend fun getSeasonId(season: Season): Int {
+        val row = getSeasonRow(season)!!
         return row[Seasons.id].value
     }
 
-    private suspend fun seasonExists(season: Season, parentTeam: Team): Boolean {
-        val row = getSeasonRow(season, parentTeam)
+    private suspend fun seasonExists(season: Season): Boolean {
+        val row = getSeasonRow(season)
         return row?.let { true } ?: false
     }
 
@@ -107,8 +107,8 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    private suspend fun getRobotRow(robot: Robot, parentSeason: Season, parentTeam: Team): ResultRow? {
-        val seasonId = getSeasonId(parentSeason, parentTeam)
+    private suspend fun getRobotRow(robot: Robot): ResultRow? {
+        val seasonId = getSeasonId(robot.season!!)
 
         return query {
             Robots.select { (Robots.name eq robot.name) and (Robots.season eq seasonId) }.singleOrNull()
@@ -121,13 +121,13 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    private suspend fun getRobotId(robot: Robot, parentSeason: Season, parentTeam: Team): Int {
-        val row = getRobotRow(robot, parentSeason, parentTeam)!!
+    private suspend fun getRobotId(robot: Robot): Int {
+        val row = getRobotRow(robot)!!
         return row[Robots.id].value
     }
 
-    private suspend fun robotExists(robot: Robot, parentSeason: Season, parentTeam: Team): Boolean {
-        val row = getRobotRow(robot, parentSeason, parentTeam)
+    private suspend fun robotExists(robot: Robot): Boolean {
+        val row = getRobotRow(robot)
         return row?.let { true } ?: false
     }
 
@@ -200,8 +200,8 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    private suspend fun getMatchRow(match: Match, parentEvent: Event): ResultRow? {
-        val eventId = getEventId(parentEvent)
+    private suspend fun getMatchRow(match: Match): ResultRow? {
+        val eventId = getEventId(match.event!!)
 
         return query {
             Matches.select { (Matches.event eq eventId) and (Matches.number eq match.number) and (Matches.type eq match.type) }
@@ -215,13 +215,13 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    private suspend fun getMatchId(match: Match, parentEvent: Event): Int {
-        val row = getMatchRow(match, parentEvent)!!
+    private suspend fun getMatchId(match: Match): Int {
+        val row = getMatchRow(match)!!
         return row[Matches.id].value
     }
 
-    private suspend fun matchExists(match: Match, parentEvent: Event): Boolean {
-        val row = getMatchRow(match, parentEvent)
+    private suspend fun matchExists(match: Match): Boolean {
+        val row = getMatchRow(match)
         return row?.let { true } ?: false
     }
 
@@ -245,13 +245,9 @@ class DatabaseImplementation : DatabaseInterface {
 
     private suspend fun getMetricRow(
         metric: Metric,
-        parentMatch: Match,
-        parentEvent: Event,
-        parentSeason: Season,
-        parentTeam: Team
     ): ResultRow? {
-        val matchId = getMatchId(parentMatch, parentEvent)
-        val robotId = getRobotId(metric.robot!!, parentSeason, parentTeam)
+        val matchId = getMatchId(metric.match!!)
+        val robotId = getRobotId(metric.robot!!)
 
         return query {
             Metrics.select { (Metrics.match eq matchId) and (Metrics.robot eq robotId) }.singleOrNull()
@@ -266,23 +262,15 @@ class DatabaseImplementation : DatabaseInterface {
 
     private suspend fun getMetricId(
         metric: Metric,
-        parentMatch: Match,
-        parentEvent: Event,
-        parentSeason: Season,
-        parentTeam: Team
     ): Int {
-        val row = getMetricRow(metric, parentMatch, parentEvent, parentSeason, parentTeam)!!
+        val row = getMetricRow(metric)!!
         return row[Metrics.id].value
     }
 
     private suspend fun metricExists(
         metric: Metric,
-        parentMatch: Match,
-        parentEvent: Event,
-        parentSeason: Season,
-        parentTeam: Team
     ): Boolean {
-        val row = getMetricRow(metric, parentMatch, parentEvent, parentSeason, parentTeam)
+        val row = getMetricRow(metric)
         return row?.let { true } ?: false
     }
 
@@ -307,13 +295,8 @@ class DatabaseImplementation : DatabaseInterface {
 
     private suspend fun getGameMetricRow(
         gameMetric: GameMetric,
-        parentMetric: Metric,
-        parentMatch: Match,
-        parentEvent: Event,
-        parentSeason: Season,
-        parentTeam: Team
     ): ResultRow? {
-        val metricId = getMetricId(parentMetric, parentMatch, parentEvent, parentSeason, parentTeam)
+        val metricId = getMetricId(gameMetric.metric!!)
 
         return query {
             GameMetrics.select { GameMetrics.metric eq metricId }.singleOrNull()
@@ -328,25 +311,15 @@ class DatabaseImplementation : DatabaseInterface {
 
     private suspend fun getGameMetricId(
         gameMetric: GameMetric,
-        parentMetric: Metric,
-        parentMatch: Match,
-        parentEvent: Event,
-        parentSeason: Season,
-        parentTeam: Team
     ): Int {
-        val row = getGameMetricRow(gameMetric, parentMetric, parentMatch, parentEvent, parentSeason, parentTeam)!!
+        val row = getGameMetricRow(gameMetric)!!
         return row[GameMetrics.id].value
     }
 
     private suspend fun gameMetricExists(
         gameMetric: GameMetric,
-        parentMetric: Metric,
-        parentMatch: Match,
-        parentEvent: Event,
-        parentSeason: Season,
-        parentTeam: Team
     ): Boolean {
-        val row = getGameMetricRow(gameMetric, parentMetric, parentMatch, parentEvent, parentSeason, parentTeam)
+        val row = getGameMetricRow(gameMetric)
         return row?.let { true } ?: false
     }
 
@@ -377,7 +350,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun insertSeason(season: Season, team: Team) {
-        if (seasonExists(season, team)) throw Exception("Season exists.")
+        if (seasonExists(season)) throw Exception("Season exists.")
 
         val teamId = getTeamId(team)
 
@@ -398,7 +371,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun insertRobot(robot: Robot, season: Season, team: Team) {
-        if (robotExists(robot, season, team)) throw Exception("Robot exists.")
+        if (robotExists((robot))) throw Exception("Robot exists.")
 
         val seasonId = findSeasonId(season, team)
 
@@ -452,7 +425,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun insertMatch(match: Match, event: Event, season: Season, team: Team) {
-        if (matchExists(match, event)) throw Exception("Match exists.")
+        if (matchExists(match)) throw Exception("Match exists.")
 
         transaction {
             Matches.insert {
@@ -467,7 +440,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun insertMetric(metric: Metric, match: Match, event: Event, season: Season, team: Team) {
-        if (metricExists(metric, match, event, season, team)) throw Exception("Metric exists.")
+        if (metricExists(metric)) throw Exception("Metric exists.")
 
         TODO()
     }

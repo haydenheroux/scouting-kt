@@ -14,7 +14,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
  * @see Season
  */
 @Serializable
-data class Robot(@Transient var parent: Season? = null, val name: String)
+data class Robot(@Transient var season: Season? = null, val name: String)
 
 object Robots : IntIdTable() {
     val season = reference("season_id", Seasons)

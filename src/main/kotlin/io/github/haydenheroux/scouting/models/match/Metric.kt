@@ -9,7 +9,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 
 @Serializable
 data class Metric(
-    @Transient var parent: Match? = null,
+    @Transient var match: Match? = null,
     @Transient var robot: Robot? = null,
     val alliance: Alliance,
     val gameMetrics: List<GameMetric>
