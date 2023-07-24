@@ -1,10 +1,8 @@
 package io.github.haydenheroux.scouting.models.team
 
-import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Region
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.ResultRow
 
 /**
  * An FRC team.
@@ -26,15 +24,4 @@ object Teams : IntIdTable() {
     val number = integer("number")
     val name = varchar("name", 255)
     val region = enumerationByName<Region>("region", 255)
-}
-
-suspend fun ResultRow.toTeam(): Team {
-    val teamId: Int = this[Teams.id].value
-
-    val number = this[Teams.number]
-    val name = this[Teams.name]
-    val region = this[Teams.region]
-    val seasons = db.findSeasons(teamId)
-
-    return Team(number, name, region, seasons)
 }

@@ -8,22 +8,56 @@ import io.github.haydenheroux.scouting.models.event.SeasonEvents
 import io.github.haydenheroux.scouting.models.event.toEvent
 import io.github.haydenheroux.scouting.models.match.*
 import io.github.haydenheroux.scouting.models.team.*
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class DatabaseImplementation : DatabaseInterface {
+
     override suspend fun getTeams(): List<Team> {
         return query {
-            Teams.selectAll().map { it.toTeam() }
+            Teams.selectAll().map { rowToTeam(it) }
         }
     }
 
     override suspend fun getTeamByNumber(number: Int): Team {
+        val row: ResultRow = getTeamRowByNumber(number)!!
+        return rowToTeam(row)
+    }
+
+    private suspend fun getTeamId(team: Team): Int {
+        val row: ResultRow = getTeamRow(team)!!
+        return row[Teams.id].value
+    }
+
+    private suspend fun teamExists(team: Team): Boolean {
+        val row = getTeamRow(team)
+        return row?.let { true } ?: false
+    }
+
+    private suspend fun getTeamRow(team: Team): ResultRow? {
+        return getTeamRowByNumber(team.number)
+    }
+
+    private suspend fun getTeamRowByNumber(number: Int): ResultRow? {
         return query {
-            Teams.select() { Teams.number eq number }.map { it.toTeam() }[0]
+            Teams.select { Teams.number eq number }.singleOrNull()
+        }
+    }
+
+    private suspend fun rowToTeam(row: ResultRow): Team {
+        val teamId = row[Teams.id].value
+
+        val number = row[Teams.number]
+        val name = row[Teams.name]
+        val region = row[Teams.region]
+        val seasons = getSeasonsForTeam(teamId)
+
+        return Team(number, name, region, seasons)
+    }
+
+    private suspend fun getSeasonsForTeam(teamId: Int): List<Season> {
+        return query {
+            Seasons.select { Seasons.team eq teamId }.map { it.toSeason() }
         }
     }
 
@@ -55,16 +89,10 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    private suspend fun teamExists(team: Team): Boolean {
-        return query {
-            !Teams.select { Teams.number eq team.number }.empty()
-        }
-    }
-
     override suspend fun insertSeason(season: Season, team: Team) {
         if (seasonExists(season, team)) throw Exception("Season exists.")
 
-        val teamId = findTeamId(team)
+        val teamId = getTeamId(team)
 
         transaction {
             Seasons.insert {
@@ -83,7 +111,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     private suspend fun seasonExists(season: Season, team: Team): Boolean {
-        val teamId = findTeamId(team)
+        val teamId = getTeamId(team)
 
         return query {
             !Seasons.select { (Seasons.year eq season.year) and (Seasons.team eq teamId) }.empty()
@@ -239,23 +267,11 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     private suspend fun findSeasonId(season: Season, team: Team): Int {
-        val teamId = findTeamId(team)
+        val teamId = getTeamId(team)
 
         return query {
             Seasons.select { (Seasons.year eq season.year) and (Seasons.team eq teamId) }
                 .map { it[Seasons.id].value }[0]
-        }
-    }
-
-    private suspend fun findTeamId(team: Team): Int {
-        return query {
-            Teams.select { Teams.number eq team.number }.map { it[Teams.id].value }[0]
-        }
-    }
-
-    override suspend fun findTeam(teamId: Int): Team {
-        return query {
-            Teams.select { Teams.id eq teamId }.map { it.toTeam() }[0]
         }
     }
 
@@ -268,12 +284,6 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun findRobot(robotId: Int): Robot {
         return query {
             Robots.select { Robots.id eq robotId }.map { it.toRobot() }[0]
-        }
-    }
-
-    override suspend fun findSeasons(teamId: Int): List<Season> {
-        return query {
-            Seasons.select { Seasons.team eq teamId }.map { it.toSeason() }
         }
     }
 

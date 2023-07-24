@@ -27,7 +27,7 @@ interface DatabaseInterface {
      * @return the team with the specified team number.
      * @see Team.number
      */
-    suspend fun getTeamByNumber(number: Int): Team
+    suspend fun getTeamByNumber(number: Int): Team?
 
     suspend fun getEvents(): List<Event>
 
@@ -42,11 +42,9 @@ interface DatabaseInterface {
     suspend fun insertMetric(metric: Metric, match: Match, event: Event, season: Season, team: Team)
     suspend fun insertGameMetric(gameMetric: GameMetric, metric: Metric)
 
-    suspend fun findTeam(teamId: Int): Team
     suspend fun findSeason(seasonId: Int): Season
     suspend fun findRobot(robotId: Int): Robot
 
-    suspend fun findSeasons(teamId: Int): List<Season>
     suspend fun findRobots(seasonId: Int): List<Robot>
     suspend fun findEvents(seasonId: Int): List<Event>
     suspend fun findMatches(eventId: Int): List<Match>
