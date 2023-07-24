@@ -93,7 +93,7 @@ class DatabaseImplementation : DatabaseInterface {
     private suspend fun rowToSeason(row: ResultRow): Season {
         val seasonId: Int = row[Seasons.id].value
 
-        val team = rowToTeam(getTeamRow(row[Seasons.team].value)!!)
+        val team = null // rowToTeam(getTeamRow(row[Seasons.team].value)!!)
         val year = row[Seasons.year]
         val robots = getRobotsForSeason(seasonId)
         val events = getEventsForSeason(seasonId)
@@ -134,7 +134,7 @@ class DatabaseImplementation : DatabaseInterface {
     private suspend fun rowToRobot(row: ResultRow): Robot {
         val seasonId = row[Robots.season].value
 
-        val season = rowToSeason(getSeasonRow(seasonId)!!)
+        val season = null // rowToSeason(getSeasonRow(seasonId)!!)
         val name = row[Robots.name]
 
         return Robot(season, name)
@@ -227,9 +227,9 @@ class DatabaseImplementation : DatabaseInterface {
 
     private suspend fun rowToMatch(row: ResultRow): Match {
         val eventId = row[Matches.event].value
-        val matchId: Int = row[Matches.id].value
+        val matchId = row[Matches.id].value
 
-        val event = rowToEvent(getEventRow(eventId)!!)
+        val event = null // rowToEvent(getEventRow(eventId)!!)
         val number = row[Matches.number]
         val type = row[Matches.type]
         val metrics = getMetricsForMatch(matchId)
@@ -279,8 +279,8 @@ class DatabaseImplementation : DatabaseInterface {
         val matchId = row[Metrics.match].value
         val robotId = row[Metrics.robot].value
 
-        val match = rowToMatch(getMatchRow(matchId)!!)
-        val robot = rowToRobot(getRobotRow(robotId)!!)
+        val match = null // rowToMatch(getMatchRow(matchId)!!)
+        val robot = null // rowToRobot(getRobotRow(robotId)!!)
         val alliance = row[Metrics.alliance]
         val gameMetrics = getGameMetricsForMetric(metricId)
 
@@ -326,7 +326,7 @@ class DatabaseImplementation : DatabaseInterface {
     private suspend fun rowToGameMetric(row: ResultRow): GameMetric {
         val metricId = row[GameMetrics.metric].value
 
-        val metric = rowToMetric(getMetricRow(metricId)!!)
+        val metric = null // rowToMetric(getMetricRow(metricId)!!)
         val key = row[GameMetrics.key]
         val value = row[GameMetrics.value]
 
@@ -438,10 +438,12 @@ class DatabaseImplementation : DatabaseInterface {
         val matchId = getMatchId(metric.match!!)
         val robotId = getRobotId(metric.robot!!)
 
-        Metrics.insert {
-            it[match] = matchId
-            it[robot] = robotId
-            it[alliance] = metric.alliance
+        transaction {
+            Metrics.insert {
+                it[match] = matchId
+                it[robot] = robotId
+                it[alliance] = metric.alliance
+            }
         }
 
         for (gameMetric in metric.gameMetrics) {
@@ -452,10 +454,12 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun insertGameMetric(gameMetric: GameMetric) {
         val metricId = getMetricId(gameMetric.metric!!)
 
-        GameMetrics.insert {
-            it[metric] = metricId
-            it[key] = gameMetric.key
-            it[value] = gameMetric.value
+        transaction {
+            GameMetrics.insert {
+                it[metric] = metricId
+                it[key] = gameMetric.key
+                it[value] = gameMetric.value
+            }
         }
     }
 }
