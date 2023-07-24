@@ -1,12 +1,10 @@
 package io.github.haydenheroux.scouting.models.event
 
-import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.match.Match
 import io.github.haydenheroux.scouting.models.team.Seasons
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 
 /**
@@ -46,16 +44,4 @@ object SeasonEvents : Table() {
     val event = reference("event_id", Events)
 
     override val primaryKey = PrimaryKey(season, event, name = "seasonEvent")
-}
-
-suspend fun ResultRow.toEvent(): Event {
-    val eventId: Int = this[Events.id].value
-
-    val name = this[Events.name]
-    val region = this[Events.region]
-    val year = this[Events.year]
-    val week = this[Events.week]
-    val matches = db.findMatches(eventId)
-
-    return Event(name, region, year, week, matches)
 }
