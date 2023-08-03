@@ -159,7 +159,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getEvent(eventQuery: EventQuery): Event {
-        val row = getEventRow(eventQuery)!!
+        val row = getEventRow(eventQuery)!! // TODO
         return rowToEvent(row)
     }
 

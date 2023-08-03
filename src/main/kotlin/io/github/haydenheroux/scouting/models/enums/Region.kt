@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class Region {
     @SerialName("ne")
-    NEW_ENGLAND, ;
+    NEW_ENGLAND
 }
 
 /** Returns the correct region for a given string. */

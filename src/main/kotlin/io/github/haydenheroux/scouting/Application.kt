@@ -3,6 +3,7 @@ package io.github.haydenheroux.scouting
 import io.github.haydenheroux.scouting.database.Database
 import io.github.haydenheroux.scouting.plugins.configureRouting
 import io.github.haydenheroux.scouting.plugins.configureSerialization
+import io.github.haydenheroux.scouting.plugins.configureTemplating
 import io.ktor.server.application.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -11,4 +12,5 @@ fun Application.module() {
     Database.init()
     configureRouting()
     configureSerialization()
+    configureTemplating()
 }

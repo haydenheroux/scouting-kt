@@ -2,6 +2,7 @@ package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
 import io.ktor.server.application.*
+import io.ktor.server.freemarker.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
@@ -10,7 +11,7 @@ fun Route.teams() {
         get {
             val teams = db.getTeams()
 
-            call.respond(teams)
+            call.respond(FreeMarkerContent("teams.ftl", mapOf("teams" to teams)))
         }
 
         get("/{number}") {
