@@ -116,6 +116,15 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
+    override suspend fun getRobotByNumberYearName(number: Int, year: Int, name: String): Robot {
+        val season = getSeasonByNumberYear(number, year)
+
+        val robot = season.robots.single { it.name == name }
+        robot.season = season
+
+        return robot
+    }
+
     private suspend fun getRobotRow(robot: Robot): ResultRow? {
         val seasonId = getSeasonId(robot.season!!)
 
@@ -224,6 +233,21 @@ class DatabaseImplementation : DatabaseInterface {
             SeasonEvents.select { SeasonEvents.season eq seasonId }
                 .map { rowToEvent(getEventRow(it[SeasonEvents.event].value)!!) }
         }
+    }
+
+    override suspend fun getMatchByNameRegionYearWeekNumber(
+        name: String,
+        region: Region,
+        year: Int,
+        week: Int,
+        number: Int
+    ): Match {
+        val event = getEventByNameRegionYearWeek(name, region, year, week)
+
+        val match = event.matches.single { it.number == number }
+        match.event = event
+
+        return match
     }
 
     private suspend fun getMatchRow(match: Match): ResultRow? {

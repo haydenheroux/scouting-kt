@@ -4,6 +4,7 @@ import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.regionOf
 import io.github.haydenheroux.scouting.models.event.Event
 import io.github.haydenheroux.scouting.models.match.Match
+import io.github.haydenheroux.scouting.models.match.Metric
 import io.github.haydenheroux.scouting.models.team.Robot
 import io.github.haydenheroux.scouting.models.team.Season
 import io.github.haydenheroux.scouting.models.team.Team
@@ -41,11 +42,26 @@ fun Route.api() {
             call.respond(HttpStatusCode.OK)
         }
 
+        post("/add-event") {
+            val name = call.request.queryParameters["event"]!!
+            val region = regionOf[call.request.queryParameters["region"]]!!
+            val year = call.request.queryParameters["year"]!!.toInt()
+            val week = call.request.queryParameters["week"]!!.toInt()
+            val event = db.getEventByNameRegionYearWeek(name, region, year, week)
+
+            val number = call.request.queryParameters["team"]!!.toInt()
+            val season = db.getSeasonByNumberYear(number, year)
+
+            db.insertSeasonEvent(event, season)
+
+            call.respond(HttpStatusCode.OK)
+        }
+
         post("/new-robot") {
             val robot = call.receive<Robot>()
 
             val number = call.request.queryParameters["team"]!!.toInt()
-            val year = call.request.queryParameters["season"]!!.toInt()
+            val year = call.request.queryParameters["year"]!!.toInt()
             val season = db.getSeasonByNumberYear(number, year)
 
             robot.season = season
@@ -79,6 +95,31 @@ fun Route.api() {
             match.event = event
 
             db.insertMatch(match)
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/new-metric") {
+            val metric = call.receive<Metric>()
+
+            val eventName = call.request.queryParameters["event"]!!
+            val region = regionOf[call.request.queryParameters["region"]]!!
+            val year = call.request.queryParameters["year"]!!.toInt()
+            val week = call.request.queryParameters["week"]!!.toInt()
+            val matchNumber = call.request.queryParameters["match"]!!.toInt()
+            val match = db.getMatchByNameRegionYearWeekNumber(eventName, region, year, week, matchNumber)
+            metric.match = match
+
+            val teamNumber = call.request.queryParameters["team"]!!.toInt()
+            val robotName = call.request.queryParameters["robot"]!!
+            val robot = db.getRobotByNumberYearName(teamNumber, year, robotName)
+            metric.robot = robot
+
+            for (gameMetric in metric.gameMetrics) {
+                gameMetric.metric = metric
+            }
+
+            db.insertMetric(metric)
 
             call.respond(HttpStatusCode.OK)
         }

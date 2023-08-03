@@ -37,6 +37,16 @@ interface DatabaseInterface {
     suspend fun getSeasonByNumberYear(number: Int, year: Int): Season
 
     /**
+     * Gets the robot in the specified season with the specified name.
+     *
+     * @param number the number of the team.
+     * @param year the year of the season.
+     * @param name the name of the robot.
+     * @return the robot in the specified season with the specified name.
+     */
+    suspend fun getRobotByNumberYearName(number: Int, year: Int, name: String): Robot
+
+    /**
      * Gets all events.
      *
      * @return the list containing all teams.
@@ -61,6 +71,24 @@ interface DatabaseInterface {
      * @return the event with the specified properties.
      */
     suspend fun getEventByNameRegionYearWeek(name: String, region: Region, year: Int, week: Int): Event
+
+    /**
+     * Gets the match with the specified properties.
+     *
+     * @param name the name of the event.
+     * @param region the region the event is in.
+     * @param year the year of the event.
+     * @param week the week of the event.
+     * @param number the number of the match.
+     * @return the match with the specified properties.
+     */
+    suspend fun getMatchByNameRegionYearWeekNumber(
+        name: String,
+        region: Region,
+        year: Int,
+        week: Int,
+        number: Int
+    ): Match
 
     suspend fun insertTeam(team: Team)
     suspend fun insertSeason(season: Season)
