@@ -11,27 +11,45 @@ import io.github.haydenheroux.scouting.models.team.Team
 
 interface DatabaseInterface {
     /**
-     * Gets all teams stored in the database.
+     * Gets all teams.
      *
-     * @return the list representing all teams stored in the database.
+     * @return the list containing all teams.
      */
     suspend fun getTeams(): List<Team>
 
     /**
      * Gets the team with the specified team number.
      *
-     * If the team with the specified team number does not exist, the behavior
-     * is undefined.
-     *
      * @param number the number of the team.
      * @return the team with the specified team number.
-     * @see Team.number
      */
-    suspend fun getTeamByNumber(number: Int): Team?
+    suspend fun getTeamByNumber(number: Int): Team
 
+    /**
+     * Gets all events.
+     *
+     * @return the list containing all teams.
+     */
     suspend fun getEvents(): List<Event>
 
+    /**
+     * Gets all stored events with the specified region.
+     *
+     * @param region the region of the events.
+     * @return the list containing events all events in the specified region.
+     */
     suspend fun getEventsByRegion(region: Region): List<Event>
+
+    /**
+     * Gets the event with the specified properties.
+     *
+     * @param name the name of the event.
+     * @param region the region the event is in.
+     * @param year the year of the event.
+     * @param week the week of the event.
+     * @return the event with the specified properties.
+     */
+    suspend fun getEventByNameRegionYearWeek(name: String, region: Region, year: Int, week: Int): Event
 
     suspend fun insertTeam(team: Team)
     suspend fun insertSeason(season: Season)

@@ -152,9 +152,14 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
+    override suspend fun getEventByNameRegionYearWeek(name: String, region: Region, year: Int, week: Int): Event {
+        val row = getEventRowByNameRegionYearWeek(name, region, year, week)!!
+        return rowToEvent(row)
+    }
+
     private suspend fun getEventRow(event: Event): ResultRow? {
         return query {
-            Events.select { (Events.name eq event.name) and (Events.year eq event.year) and (Events.week eq event.week) }
+            Events.select { (Events.name eq event.name) and (Events.region eq event.region) and (Events.year eq event.year) and (Events.week eq event.week) }
                 .singleOrNull()
         }
     }
@@ -162,6 +167,18 @@ class DatabaseImplementation : DatabaseInterface {
     private suspend fun getEventRow(eventId: Int): ResultRow? {
         return query {
             Events.select { Events.id eq eventId }.singleOrNull()
+        }
+    }
+
+    private suspend fun getEventRowByNameRegionYearWeek(
+        name: String,
+        region: Region,
+        year: Int,
+        week: Int
+    ): ResultRow? {
+        return query {
+            Events.select { (Events.name eq name) and (Events.region eq region) and (Events.year eq year) and (Events.week eq week) }
+                .singleOrNull()
         }
     }
 
