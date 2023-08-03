@@ -1,7 +1,9 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.models.enums.regionOf
 import io.github.haydenheroux.scouting.models.event.Event
+import io.github.haydenheroux.scouting.models.match.Match
 import io.github.haydenheroux.scouting.models.team.Robot
 import io.github.haydenheroux.scouting.models.team.Season
 import io.github.haydenheroux.scouting.models.team.Team
@@ -59,6 +61,24 @@ fun Route.api() {
             assert(event.matches.isEmpty())
 
             db.insertEvent(event)
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/new-match") {
+            val match = call.receive<Match>()
+
+            assert(match.metrics.isEmpty())
+
+            val name = call.request.queryParameters["event"]!!
+            val region = regionOf[call.request.queryParameters["region"]]!!
+            val year = call.request.queryParameters["year"]!!.toInt()
+            val week = call.request.queryParameters["week"]!!.toInt()
+            val event = db.getEventByNameRegionYearWeek(name, region, year, week)
+
+            match.event = event
+
+            db.insertMatch(match)
 
             call.respond(HttpStatusCode.OK)
         }
