@@ -2,12 +2,14 @@
 <#import "_layout.ftl" as layout />
 <@layout.header>
     <table border=1>
-        <tr>
-            <th>Name</th>
-            <th>Region</th>
-            <th>Year</th>
-            <th>Week</th>
-        </tr>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Region</th>
+                <th>Year</th>
+                <th>Week</th>
+            </tr>
+        </thead>
         <#list events as event>
         <tr>
             <td>${event.name}</td>

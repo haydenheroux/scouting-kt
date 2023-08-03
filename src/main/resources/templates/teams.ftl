@@ -2,11 +2,13 @@
 <#import "_layout.ftl" as layout />
 <@layout.header>
     <table border=1>
-        <tr>
-            <th>Number</th>
-            <th>Name</th>
-            <th>Region</th>
-        </tr>
+        <thead>
+            <tr>
+                <th>Number</th>
+                <th>Name</th>
+                <th>Region</th>
+            </tr>
+        </thead>
         <#list teams as team>
         <tr>
             <td><a href="/teams/${team.number?c}">${team.number?c}</a></td>
