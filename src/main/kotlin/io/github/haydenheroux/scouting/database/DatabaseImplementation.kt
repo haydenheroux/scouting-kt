@@ -66,6 +66,15 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
+    override suspend fun getSeasonByNumberYear(number: Int, year: Int): Season {
+        val team = getTeamByNumber(number)
+
+        val season = team.seasons.single { it.year == year }
+        season.team = team
+
+        return season
+    }
+
     private suspend fun getSeasonRow(season: Season): ResultRow? {
         val teamId = getTeamId(season.team!!)
 

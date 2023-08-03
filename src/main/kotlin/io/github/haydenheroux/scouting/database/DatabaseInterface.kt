@@ -26,6 +26,17 @@ interface DatabaseInterface {
     suspend fun getTeamByNumber(number: Int): Team
 
     /**
+     * Gets the season in the specified year that belongs to the team with the
+     * specified number.
+     *
+     * @param number the number of the team.
+     * @param year the year of the season.
+     * @return the season in the specified year that belongs to the team with
+     *     the specified number.
+     */
+    suspend fun getSeasonByNumberYear(number: Int, year: Int): Season
+
+    /**
      * Gets all events.
      *
      * @return the list containing all teams.

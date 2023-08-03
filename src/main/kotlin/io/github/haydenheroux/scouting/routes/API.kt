@@ -43,12 +43,8 @@ fun Route.api() {
             val robot = call.receive<Robot>()
 
             val number = call.request.queryParameters["team"]!!.toInt()
-            val team = db.getTeamByNumber(number)
-
-            // TODO Refactor to avoid back-linking the team here, do entirely in DB instead?
             val year = call.request.queryParameters["season"]!!.toInt()
-            val season = team.seasons.single { it.year == year }
-            season.team = team
+            val season = db.getSeasonByNumberYear(number, year)
 
             robot.season = season
 
