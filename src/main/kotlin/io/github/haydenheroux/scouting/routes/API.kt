@@ -2,6 +2,7 @@ package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.event.Event
+import io.github.haydenheroux.scouting.models.team.Robot
 import io.github.haydenheroux.scouting.models.team.Season
 import io.github.haydenheroux.scouting.models.team.Team
 import io.ktor.http.*
@@ -19,7 +20,7 @@ fun Route.api() {
 
             db.insertTeam(team)
 
-            call.respond(HttpStatusCode.fromValue(200))
+            call.respond(HttpStatusCode.OK)
         }
 
         post("/new-season") {
@@ -28,14 +29,32 @@ fun Route.api() {
             assert(season.robots.isEmpty())
             assert(season.events.isEmpty())
 
-            val teamNumber: Int = call.request.queryParameters["team"]!!.toInt()
-            val team = db.getTeamByNumber(teamNumber)
+            val number = call.request.queryParameters["team"]!!.toInt()
+            val team = db.getTeamByNumber(number)
 
             season.team = team
 
             db.insertSeason(season)
 
-            call.respond(HttpStatusCode.fromValue(200))
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/new-robot") {
+            val robot = call.receive<Robot>()
+
+            val number = call.request.queryParameters["team"]!!.toInt()
+            val team = db.getTeamByNumber(number)
+
+            // TODO Refactor to avoid back-linking the team here, do entirely in DB instead?
+            val year = call.request.queryParameters["season"]!!.toInt()
+            val season = team.seasons.single { it.year == year }
+            season.team = team
+
+            robot.season = season
+
+            db.insertRobot(robot)
+
+            call.respond(HttpStatusCode.OK)
         }
 
         post("/new-event") {
@@ -45,7 +64,7 @@ fun Route.api() {
 
             db.insertEvent(event)
 
-            call.respond(HttpStatusCode.fromValue(200))
+            call.respond(HttpStatusCode.OK)
         }
     }
 }
