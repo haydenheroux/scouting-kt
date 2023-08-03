@@ -1,9 +1,7 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
-import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.enums.regionOf
-import io.github.haydenheroux.scouting.models.event.Event
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -17,18 +15,18 @@ fun Route.events() {
         }
 
         get("/{region}") {
-            val region: Region = regionOf[call.parameters["region"]]!!
+            val region = regionOf[call.parameters["region"]]!!
 
-            val events: List<Event> = db.getEventsByRegion(region)
+            val events = db.getEvents().filter { it.region == region }
 
             call.respond(events)
         }
 
         get("/{region}/{year}") {
-            val region: Region = regionOf[call.parameters["region"]]!!
-            val year: Int = call.parameters["year"]!!.toInt()
+            val region = regionOf[call.parameters["region"]]!!
+            val year = call.parameters["year"]!!.toInt()
 
-            val events = db.getEventsByRegion(region).filter { it.year == year }
+            val events = db.getEvents().filter { it.region == region && it.year == year }
 
             call.respond(events)
         }

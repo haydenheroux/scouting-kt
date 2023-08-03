@@ -1,13 +1,13 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
-import io.github.haydenheroux.scouting.models.enums.regionOf
 import io.github.haydenheroux.scouting.models.event.Event
 import io.github.haydenheroux.scouting.models.match.Match
 import io.github.haydenheroux.scouting.models.match.Metric
 import io.github.haydenheroux.scouting.models.team.Robot
 import io.github.haydenheroux.scouting.models.team.Season
 import io.github.haydenheroux.scouting.models.team.Team
+import io.github.haydenheroux.scouting.query.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -32,8 +32,7 @@ fun Route.api() {
             assert(season.robots.isEmpty())
             assert(season.events.isEmpty())
 
-            val number = call.request.queryParameters["team"]!!.toInt()
-            val team = db.getTeamByNumber(number)
+            val team = db.getTeam(teamQueryFromParameters(call.request.queryParameters))
 
             season.team = team
 
@@ -42,31 +41,24 @@ fun Route.api() {
             call.respond(HttpStatusCode.OK)
         }
 
-        post("/add-event") {
-            val name = call.request.queryParameters["event"]!!
-            val region = regionOf[call.request.queryParameters["region"]]!!
-            val year = call.request.queryParameters["year"]!!.toInt()
-            val week = call.request.queryParameters["week"]!!.toInt()
-            val event = db.getEventByNameRegionYearWeek(name, region, year, week)
-
-            val number = call.request.queryParameters["team"]!!.toInt()
-            val season = db.getSeasonByNumberYear(number, year)
-
-            db.insertSeasonEvent(event, season)
-
-            call.respond(HttpStatusCode.OK)
-        }
-
         post("/new-robot") {
             val robot = call.receive<Robot>()
 
-            val number = call.request.queryParameters["team"]!!.toInt()
-            val year = call.request.queryParameters["year"]!!.toInt()
-            val season = db.getSeasonByNumberYear(number, year)
+            val season = db.getSeason(seasonQueryFromParameters(call.request.queryParameters))
 
             robot.season = season
 
             db.insertRobot(robot)
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/add-event") {
+            val event = db.getEvent(eventQueryFromParameters(call.request.queryParameters))
+
+            val season = db.getSeason(seasonQueryFromParameters(call.request.queryParameters))
+
+            db.insertSeasonEvent(event, season)
 
             call.respond(HttpStatusCode.OK)
         }
@@ -86,11 +78,7 @@ fun Route.api() {
 
             assert(match.metrics.isEmpty())
 
-            val name = call.request.queryParameters["event"]!!
-            val region = regionOf[call.request.queryParameters["region"]]!!
-            val year = call.request.queryParameters["year"]!!.toInt()
-            val week = call.request.queryParameters["week"]!!.toInt()
-            val event = db.getEventByNameRegionYearWeek(name, region, year, week)
+            val event = db.getEvent(eventQueryFromParameters(call.request.queryParameters))
 
             match.event = event
 
@@ -102,17 +90,10 @@ fun Route.api() {
         post("/new-metric") {
             val metric = call.receive<Metric>()
 
-            val eventName = call.request.queryParameters["event"]!!
-            val region = regionOf[call.request.queryParameters["region"]]!!
-            val year = call.request.queryParameters["year"]!!.toInt()
-            val week = call.request.queryParameters["week"]!!.toInt()
-            val matchNumber = call.request.queryParameters["match"]!!.toInt()
-            val match = db.getMatchByNameRegionYearWeekNumber(eventName, region, year, week, matchNumber)
+            val match = db.getMatch(matchQueryFromParameters(call.request.queryParameters))
             metric.match = match
 
-            val teamNumber = call.request.queryParameters["team"]!!.toInt()
-            val robotName = call.request.queryParameters["robot"]!!
-            val robot = db.getRobotByNumberYearName(teamNumber, year, robotName)
+            val robot = db.getRobot(robotQueryFromParameters(call.request.queryParameters))
             metric.robot = robot
 
             for (gameMetric in metric.gameMetrics) {
