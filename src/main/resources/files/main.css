@@ -1,30 +1,111 @@
+:root {
+    --bg: #FFFFFF;
+    --di: #F3F3F3;
+    --gr: #DDDDDD;
+    --fg: #000000;
+    --hi: #00A74A;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+h1, h2, h3 {
+    font-weight: 500;
+}
+
+body {
+    background-color: var(--bg):
+    color: var(--fg);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+
+    margin: 0;
+}
+
+header {
+    background-color: var(--hi);
+    color: var(--bg);
+
+    width: 100%;
+
+    margin-bottom: 20px;
+    min-height: 50px;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+nav ul li {
+    float: left;
+}
+
+nav ul li a {
+    display: block;
+
+    min-width: 60px;
+
+    color: var(--bg);
+    text-decoration: none;
+    text-align: center;
+
+    font-size: small;
+    font-weight: bold;
+
+    padding: 15px 5px;
+}
+
+.container {
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+@media (min-width: 768px) {
+    .container {
+        width: 750px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        width: 970px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        width: 1170px;
+    }
+}
+
 table {
     border-collapse: collapse;
     margin: 25px 0px;
-    font-size: 0.9em;
-    font-family; sans-serif;
+    font-size: small;
     min-width: 400px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
 }
 
-table thead tr {
-    background-color: #00A74A;
-    color: #FFFFFF;
-    text-align: left;
+thead tr {
+    font-weight: bold;
+    background-color: var(--hi);
+    color: var(--bg);
 }
 
-table th, table td {
+th, td {
     padding: 12px 15px;
 }
 
-table tbody tr {
-    border-bottom: 1px solid #dddddd;
+tbody tr {
+    border-bottom: 1px solid var(--gr);
 }
 
-table tbody tr:nth-of-type(even) {
-    background-color: #f3f3f3;
-}
-
-table tbody tr:last-of-type {
-    border-bottom: 2px solid #00A74A;
+tbody tr:nth-child(even) {
+    background-color: var(--di);
 }

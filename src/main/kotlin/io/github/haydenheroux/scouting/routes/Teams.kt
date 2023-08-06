@@ -24,8 +24,9 @@ fun Route.teams() {
 
         get("/{team}/{year}") {
             val season = db.getSeason(seasonQueryFromParameters(call.parameters))
+            val team = db.getTeam(season.team!!)
 
-            call.respond(FreeMarkerContent("season.ftl", mapOf("season" to season)))
+            call.respond(FreeMarkerContent("season.ftl", mapOf("season" to season, "team" to team)))
         }
     }
 }

@@ -1,8 +1,9 @@
 <#-- @ftlvariable name="team" type="io.github.haydenheroux.scouting.models.team.Team" -->
 <#import "_layout.ftl" as layout />
 <@layout.header>
-    <h2>${team.name} - ${team.number?c}</h2>
+    <h1>${team.name} - ${team.number?c}</h1>
     <#list team.seasons as season>
-        <a href="/teams/${team.number?c}/${season.year?c}">${season.year?c}</a>
+        <@layout.season_section season=season>
+        </@layout.season_section>
     </#list>
 </@layout.header>

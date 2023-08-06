@@ -1,9 +1,8 @@
 <#-- @ftlvariable name="season" type="io.github.haydenheroux.scouting.models.team.Season" -->
+<#-- @ftlvariable name="team" type="io.github.haydenheroux.scouting.models.team.Team" -->
 <#import "_layout.ftl" as layout />
 <@layout.header>
-    <h2>${season.year?c}</h2>
-    <#list season.events as event>
-    <@layout.event_section event=event>
-    </@layout.event_section>
-    </#list>
+    <h1>${team.name} - ${team.number?c}</h1>
+    <@layout.season_section season=season>
+    </@layout.season_section>
 </@layout.header>
