@@ -19,8 +19,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getTeam(teamQuery: TeamQuery): Team {
-        val row = getTeamRow(teamQuery)!!
-        return rowToTeam(row)
+        return rowToTeam(getTeamRow(teamQuery)!!)
     }
 
     private suspend fun getTeamRow(teamQuery: TeamQuery): ResultRow? {
@@ -65,7 +64,7 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun getSeason(seasonQuery: SeasonQuery): Season {
         val team = getTeam(seasonQuery.team)
 
-        val season = team.seasons.single { it.year == seasonQuery.year }
+        val season = rowToSeason(getSeasonRow(seasonQuery)!!)
         season.team = team
 
         return season
@@ -115,7 +114,7 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun getRobot(robotQuery: RobotQuery): Robot {
         val season = getSeason(robotQuery.season)
 
-        val robot = season.robots.single { it.name == robotQuery.robotName }
+        val robot = rowToRobot(getRobotRow(robotQuery)!!)
         robot.season = season
 
         return robot
@@ -159,8 +158,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getEvent(eventQuery: EventQuery): Event {
-        val row = getEventRow(eventQuery)!! // TODO
-        return rowToEvent(row)
+        return rowToEvent(getEventRow(eventQuery)!!)
     }
 
     private suspend fun getEventRow(eventQuery: EventQuery): ResultRow? {
@@ -214,7 +212,7 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun getMatch(matchQuery: MatchQuery): Match {
         val event = getEvent(matchQuery.event)
 
-        val match = event.matches.single { it.number == matchQuery.matchNumber }
+        val match = rowToMatch(getMatchRow(matchQuery)!!)
         match.event = event
 
         return match
@@ -263,9 +261,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getMetric(metricQuery: MetricQuery): Metric {
-        val row = getMetricRow(metricQuery)!!
-
-        return rowToMetric(row)
+        return rowToMetric(getMetricRow(metricQuery)!!)
     }
 
     private suspend fun getMetricRow(metricQuery: MetricQuery): ResultRow? {
