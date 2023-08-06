@@ -19,7 +19,7 @@ fun Route.teams() {
 
             val team = db.getTeams().single { it.number == number }
 
-            call.respond(team)
+            call.respond(FreeMarkerContent("team.ftl", mapOf("team" to team)))
         }
 
         get("/{number}/{year}") {
@@ -29,7 +29,8 @@ fun Route.teams() {
             val team = db.getTeams().single { it.number == number }
             val season = team.seasons.single { it.year == year }
 
-            call.respond(season)
+            // TODO testme
+            call.respond(FreeMarkerContent("season.ftl", mapOf("season" to season)))
         }
     }
 }

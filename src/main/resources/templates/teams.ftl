@@ -9,6 +9,7 @@
                 <th>Region</th>
             </tr>
         </thead>
+        <tbody>
         <#list teams as team>
         <tr>
             <td><a href="/teams/${team.number?c}">${team.number?c}</a></td>
@@ -16,5 +17,6 @@
             <td>${team.region}</td>
         </tr>
         </#list>
+        </tbody>
     </table>
 </@layout.header>
