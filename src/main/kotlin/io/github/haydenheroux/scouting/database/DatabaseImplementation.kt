@@ -60,10 +60,8 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getSeason(seasonQuery: SeasonQuery): Season {
-        val team = getTeam(seasonQuery.team)
-
         val season = rowToSeason(getSeasonRow(seasonQuery)!!)
-        season.team = team
+        season.team = seasonQuery.team
 
         return season
     }
@@ -108,10 +106,8 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getRobot(robotQuery: RobotQuery): Robot {
-        val season = getSeason(robotQuery.season)
-
         val robot = rowToRobot(getRobotRow(robotQuery)!!)
-        robot.season = season
+        robot.season = robotQuery.season
 
         return robot
     }
@@ -202,10 +198,8 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getMatch(matchQuery: MatchQuery): Match {
-        val event = getEvent(matchQuery.event)
-
         val match = rowToMatch(getMatchRow(matchQuery)!!)
-        match.event = event
+        match.event = matchQuery.event
 
         return match
     }
@@ -295,7 +289,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     private suspend fun getGameMetricRow(gameMetric: GameMetric): ResultRow? {
-        val metricId = getMetricId(metricQueryFromMetric(gameMetric.metric!!))
+        val metricId = getMetricId(gameMetric.metric!!)
 
         return query {
             GameMetrics.select { GameMetrics.metric eq metricId }.singleOrNull()
@@ -343,7 +337,7 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun insertSeason(season: Season) {
         if (seasonExists(seasonQueryFromSeason(season))) throw Exception("Season exists.")
 
-        val teamId = getTeamId(teamQueryFromTeam(season.team!!))
+        val teamId = getTeamId(season.team!!)
 
         transaction {
             Seasons.insert {
@@ -364,7 +358,7 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun insertRobot(robot: Robot) {
         if (robotExists(robotQueryFromRobot(robot))) throw Exception("Robot exists.")
 
-        val seasonId = getSeasonId(seasonQueryFromSeason(robot.season!!))
+        val seasonId = getSeasonId(robot.season!!)
 
         transaction {
             Robots.insert {
@@ -408,7 +402,7 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun insertMatch(match: Match) {
         if (matchExists(matchQueryFromMatch(match))) throw Exception("Match exists.")
 
-        val eventId = getEventId(eventQueryFromEvent(match.event!!))
+        val eventId = getEventId(match.event!!)
 
         transaction {
             Matches.insert {
@@ -426,8 +420,8 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun insertMetric(metric: Metric) {
         if (metricExists(metricQueryFromMetric(metric))) throw Exception("Metric exists.")
 
-        val matchId = getMatchId(matchQueryFromMatch(metric.match!!))
-        val robotId = getRobotId(robotQueryFromRobot(metric.robot!!))
+        val matchId = getMatchId(metric.match!!)
+        val robotId = getRobotId(metric.robot!!)
 
         transaction {
             Metrics.insert {
@@ -443,7 +437,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun insertGameMetric(gameMetric: GameMetric) {
-        val metricId = getMetricId(metricQueryFromMetric(gameMetric.metric!!))
+        val metricId = getMetricId(gameMetric.metric!!)
 
         transaction {
             GameMetrics.insert {

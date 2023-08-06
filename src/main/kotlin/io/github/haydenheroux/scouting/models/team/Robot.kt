@@ -1,5 +1,6 @@
 package io.github.haydenheroux.scouting.models.team
 
+import io.github.haydenheroux.scouting.query.SeasonQuery
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -11,10 +12,9 @@ import org.jetbrains.exposed.dao.id.IntIdTable
  * takes place during each season.
  *
  * @property name the name of the robot.
- * @see Season
  */
 @Serializable
-data class Robot(@Transient var season: Season? = null, val name: String)
+data class Robot(@Transient var season: SeasonQuery? = null, val name: String)
 
 object Robots : IntIdTable() {
     val season = reference("season_id", Seasons)

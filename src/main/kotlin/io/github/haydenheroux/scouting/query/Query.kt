@@ -25,7 +25,7 @@ fun teamQueryFromParameters(parameters: Parameters): TeamQuery {
 data class SeasonQuery(val team: TeamQuery, val year: Int)
 
 fun seasonQueryFromSeason(season: Season): SeasonQuery {
-    val team = teamQueryFromTeam(season.team!!)
+    val team = season.team!!
     val year = season.year
 
     return SeasonQuery(team, year)
@@ -41,7 +41,7 @@ fun seasonQueryFromParameters(parameters: Parameters): SeasonQuery {
 data class RobotQuery(val season: SeasonQuery, val robotName: String)
 
 fun robotQueryFromRobot(robot: Robot): RobotQuery {
-    val season = seasonQueryFromSeason(robot.season!!)
+    val season = robot.season!!
     val robotName = robot.name
 
     return RobotQuery(season, robotName)
@@ -72,7 +72,7 @@ fun eventQueryFromParameters(parameters: Parameters): EventQuery {
 data class MatchQuery(val event: EventQuery, val matchNumber: Int)
 
 fun matchQueryFromMatch(match: Match): MatchQuery {
-    val event = eventQueryFromEvent(match.event!!)
+    val event = match.event!!
     val matchNumber = match.number
 
     return MatchQuery(event, matchNumber)
@@ -88,8 +88,8 @@ fun matchQueryFromParameters(parameters: Parameters): MatchQuery {
 data class MetricQuery(val match: MatchQuery, val robot: RobotQuery)
 
 fun metricQueryFromMetric(metric: Metric): MetricQuery {
-    val match = matchQueryFromMatch(metric.match!!)
-    val robot = robotQueryFromRobot(metric.robot!!)
+    val match = metric.match!!
+    val robot = metric.robot!!
 
     return MetricQuery(match, robot)
 }

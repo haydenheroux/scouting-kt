@@ -1,16 +1,17 @@
 package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.models.enums.Alliance
-import io.github.haydenheroux.scouting.models.team.Robot
 import io.github.haydenheroux.scouting.models.team.Robots
+import io.github.haydenheroux.scouting.query.MatchQuery
+import io.github.haydenheroux.scouting.query.RobotQuery
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.jetbrains.exposed.dao.id.IntIdTable
 
 @Serializable
 data class Metric(
-    @Transient var match: Match? = null,
-    @Transient var robot: Robot? = null,
+    @Transient var match: MatchQuery? = null,
+    @Transient var robot: RobotQuery? = null,
     val alliance: Alliance,
     val gameMetrics: List<GameMetric>
 )

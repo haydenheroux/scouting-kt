@@ -32,9 +32,7 @@ fun Route.api() {
             assert(season.robots.isEmpty())
             assert(season.events.isEmpty())
 
-            val team = db.getTeam(teamQueryFromParameters(call.request.queryParameters))
-
-            season.team = team
+            season.team = teamQueryFromParameters(call.request.queryParameters)
 
             db.insertSeason(season)
 
@@ -44,9 +42,7 @@ fun Route.api() {
         post("/new-robot") {
             val robot = call.receive<Robot>()
 
-            val season = db.getSeason(seasonQueryFromParameters(call.request.queryParameters))
-
-            robot.season = season
+            robot.season = seasonQueryFromParameters(call.request.queryParameters)
 
             db.insertRobot(robot)
 
@@ -78,9 +74,7 @@ fun Route.api() {
 
             assert(match.metrics.isEmpty())
 
-            val event = db.getEvent(eventQueryFromParameters(call.request.queryParameters))
-
-            match.event = event
+            match.event = eventQueryFromParameters(call.request.queryParameters)
 
             db.insertMatch(match)
 
@@ -90,14 +84,12 @@ fun Route.api() {
         post("/new-metric") {
             val metric = call.receive<Metric>()
 
-            val match = db.getMatch(matchQueryFromParameters(call.request.queryParameters))
-            metric.match = match
+            metric.match = matchQueryFromParameters(call.request.queryParameters)
 
-            val robot = db.getRobot(robotQueryFromParameters(call.request.queryParameters))
-            metric.robot = robot
+            metric.robot = robotQueryFromParameters(call.request.queryParameters)
 
             for (gameMetric in metric.gameMetrics) {
-                gameMetric.metric = metric
+                gameMetric.metric = metricQueryFromMetric(metric)
             }
 
             db.insertMetric(metric)
