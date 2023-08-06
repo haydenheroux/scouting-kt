@@ -15,7 +15,7 @@
     <section>
         <h2>${event.name}</h2>
         <p>${event.region}</p>
-        <p>${event.week?c}, ${event.year?c}</p>
+        <p>Week ${event.week?c}, ${event.year?c}</p>
         <hr/>
         <h3>Matches</h3>
         <table>
@@ -26,7 +26,8 @@
                 <tr>
                     <td>${match.type} ${match.number}</td>
                     <#list match.metrics as metric>
-                    <td>${metric.robot.season.team.number?c}</td>
+                    <#local team_number=metric.robot.season.team.teamNumber>
+                    <td><a href="/teams/${team_number?c}/${event.year?c}">${team_number?c}</td>
                     </#list>
                 </tr>
             </#list>
