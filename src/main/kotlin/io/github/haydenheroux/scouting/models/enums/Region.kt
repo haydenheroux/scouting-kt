@@ -11,4 +11,4 @@ enum class Region {
 }
 
 /** Returns the correct region for a given string. */
-val regionOf: Map<String, Region> = mapOf("ne" to Region.NEW_ENGLAND)
+val regionOf = mapOf("ne" to Region.NEW_ENGLAND)

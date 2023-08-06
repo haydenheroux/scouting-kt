@@ -1,9 +1,9 @@
 :root {
-    --bg: #FFFFFF;
-    --di: #F3F3F3;
-    --gr: #DDDDDD;
-    --fg: #000000;
-    --hi: #00A74A;
+    --dark: #FFFFFF;
+    --dim: #F3F3F3;
+    --gray: #DDDDDD;
+    --light: #000000;
+    --accent: #00A74A;
 }
 
 * {
@@ -15,8 +15,8 @@ h1, h2, h3 {
 }
 
 body {
-    background-color: var(--bg):
-    color: var(--fg);
+    background-color: var(--dark):
+    color: var(--light);
     font-family: 'Open Sans', sans-serif;
     font-size: 14px;
     line-height: 1.4;
@@ -25,8 +25,8 @@ body {
 }
 
 header {
-    background-color: var(--hi);
-    color: var(--bg);
+    background-color: var(--accent);
+    color: var(--dark);
 
     width: 100%;
 
@@ -50,7 +50,7 @@ nav ul li a {
 
     min-width: 60px;
 
-    color: var(--bg);
+    color: var(--dark);
     text-decoration: none;
     text-align: center;
 
@@ -94,8 +94,8 @@ table {
 
 thead tr {
     font-weight: bold;
-    background-color: var(--hi);
-    color: var(--bg);
+    background-color: var(--accent);
+    color: var(--dark);
 }
 
 th, td {
@@ -103,9 +103,9 @@ th, td {
 }
 
 tbody tr {
-    border-bottom: 1px solid var(--gr);
+    border-bottom: 1px solid var(--gray);
 }
 
 tbody tr:nth-child(even) {
-    background-color: var(--di);
+    background-color: var(--dim);
 }

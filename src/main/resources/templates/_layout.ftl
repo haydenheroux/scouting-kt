@@ -28,8 +28,10 @@
 <#macro event_section event>
     <section>
         <h2>${event.name}</h2>
-        <p>${event.region}</p>
-        <p>Week ${event.week?c}, ${event.year?c}</p>
+        <p>
+        <@layout.rename_region region=event.region />
+        </p>
+        <p>Week ${event.week?c}</p>
         <hr/>
         <h3>Matches</h3>
         <table>
@@ -42,7 +44,7 @@
             <tbody>
             <#list event.matches as match>
                 <tr>
-                    <td>${match.type} ${match.number}</td>
+                    <td>${match.type[0]}${match.number}</td>
                     <#list match.metrics as metric>
                     <#local team_number=metric.robot.season.team.teamNumber>
                     <td><a href="/teams/${team_number?c}/${event.year?c}">${team_number?c}</td>
@@ -54,13 +56,25 @@
     </section>
 </#macro>
 
+<#macro team_header team>
+    <h1>Team ${team.number?c} - ${team.name}</h1>
+    <p><@layout.rename_region region=team.region /></p>
+</#macro>
+
 <#macro season_section season>
     <section>
-    <h2><a href="/teams/${season.team.teamNumber?c}/${season.year?c}">${season.year?c}</a></h2>
+    <h2>${season.year?c}</h2>
     <hr/>
     <#list season.events as event>
-    <@layout.event_section event=event>
-    </@layout.event_section>
+    <@layout.event_section event=event />
     </#list>
     </section>
+</#macro>
+
+<#macro rename_region region>
+    <#if region == "NEW_ENGLAND">
+    New England
+    <#else>
+    ${region}
+    </#if>
 </#macro>
