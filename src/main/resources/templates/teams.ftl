@@ -12,9 +12,9 @@
         <tbody>
         <#list teams as team>
         <tr>
-            <td><a href="/teams/${team.number?c}">${team.number?c}</a></td>
-            <td>${team.name}</td>
-            <td>${team.region}</td>
+            <td><a href="/teams/${team.teamData.number?c}">${team.teamData.number?c}</a></td>
+            <td>${team.teamData.name}</td>
+            <td>${team.teamData.region}</td>
         </tr>
         </#list>
         </tbody>

@@ -9,9 +9,9 @@ import io.ktor.server.routing.*
 fun Route.events() {
     route("/events") {
         get {
-            val events = db.getEvents()
+            val eventReferences = db.getEvents()
 
-            call.respond(FreeMarkerContent("events.ftl", mapOf("events" to events)))
+            call.respond(FreeMarkerContent("events.ftl", mapOf("eventReferences" to eventReferences)))
         }
     }
 }

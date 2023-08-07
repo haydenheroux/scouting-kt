@@ -27,11 +27,11 @@
 
 <#macro event_section event>
     <section>
-        <h2>${event.name}</h2>
+        <h2>${event.eventData.name}</h2>
         <p>
-        <@layout.rename_region region=event.region />
+        <@layout.rename_region region=event.eventData.region />
         </p>
-        <p>Week ${event.week?c}</p>
+        <p>Week ${event.eventData.week?c}</p>
         <hr/>
         <h3>Matches</h3>
         <table>
@@ -42,12 +42,12 @@
                 </tr>
             </thead>
             <tbody>
-            <#list event.matches as match>
+            <#list event.matchReferences as matchReference>
                 <tr>
-                    <td>${match.type[0]}${match.number}</td>
-                    <#list match.metrics as metric>
-                    <#local team_number=metric.robot.season.team.teamNumber>
-                    <td><a href="/teams/${team_number?c}/${event.year?c}">${team_number?c}</td>
+                    <td>${matchReference.matchData.type[0]}${matchReference.matchData.number}</td>
+                    <#list matchReference.metricReferences as metricReference>
+                    <#local team_number=metricReference.robotReference.seasonReference.teamReference.teamData.number>
+                    <td><a href="/teams/${team_number?c}/${event.eventData.year?c}">${team_number?c}</td>
                     </#list>
                 </tr>
             </#list>
@@ -57,16 +57,16 @@
 </#macro>
 
 <#macro team_header team>
-    <h1>Team ${team.number?c} - ${team.name}</h1>
-    <p><@layout.rename_region region=team.region /></p>
+    <h1>Team ${team.teamData.number?c} - ${team.teamData.name}</h1>
+    <p><@layout.rename_region region=team.teamData.region /></p>
 </#macro>
 
 <#macro season_section season>
     <section>
-    <h2>${season.year?c}</h2>
+    <h2>${season.seasonData.year?c}</h2>
     <hr/>
-    <#list season.events as event>
-    <@layout.event_section event=event />
+    <#list season.eventReferences as eventReference>
+    <@layout.event_section event=eventReference />
     </#list>
     </section>
 </#macro>
