@@ -1,40 +1,27 @@
 package io.github.haydenheroux.scouting.database
 
 import io.github.haydenheroux.scouting.models.event.Event
-import io.github.haydenheroux.scouting.models.match.GameMetric
-import io.github.haydenheroux.scouting.models.match.Match
-import io.github.haydenheroux.scouting.models.match.Metric
-import io.github.haydenheroux.scouting.models.team.Robot
-import io.github.haydenheroux.scouting.models.team.Season
-import io.github.haydenheroux.scouting.models.team.Team
+import io.github.haydenheroux.scouting.models.event.EventReference
+import io.github.haydenheroux.scouting.models.match.*
+import io.github.haydenheroux.scouting.models.team.*
 import io.github.haydenheroux.scouting.query.*
 
 interface DatabaseInterface {
-    /**
-     * Gets all teams.
-     *
-     * @return the list containing all teams.
-     */
-    suspend fun getTeams(): List<Team>
+    suspend fun getTeams(): List<TeamReference>
 
-    suspend fun getTeam(teamQuery: TeamQuery): Team
+    suspend fun getTeam(teamQuery: TeamQuery): TeamReference
 
-    suspend fun getSeason(seasonQuery: SeasonQuery): Season
+    suspend fun getSeason(seasonQuery: SeasonQuery): SeasonReference
 
-    suspend fun getRobot(robotQuery: RobotQuery): Robot
+    suspend fun getRobot(robotQuery: RobotQuery): RobotReference
 
-    /**
-     * Gets all events.
-     *
-     * @return the list containing all teams.
-     */
-    suspend fun getEvents(): List<Event>
+    suspend fun getEvents(): List<EventReference>
 
-    suspend fun getEvent(eventQuery: EventQuery): Event
+    suspend fun getEvent(eventQuery: EventQuery): EventReference
 
-    suspend fun getMatch(matchQuery: MatchQuery): Match
+    suspend fun getMatch(matchQuery: MatchQuery): MatchReference
 
-    suspend fun getMetric(metricQuery: MetricQuery): Metric
+    suspend fun getMetric(metricQuery: MetricQuery): MetricReference
 
     suspend fun insertTeam(team: Team)
     suspend fun insertSeason(season: Season)

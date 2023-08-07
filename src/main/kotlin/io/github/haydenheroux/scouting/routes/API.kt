@@ -7,6 +7,7 @@ import io.github.haydenheroux.scouting.models.match.Metric
 import io.github.haydenheroux.scouting.models.team.Robot
 import io.github.haydenheroux.scouting.models.team.Season
 import io.github.haydenheroux.scouting.models.team.Team
+import io.github.haydenheroux.scouting.models.team.dereference
 import io.github.haydenheroux.scouting.query.*
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -32,8 +33,6 @@ fun Route.api() {
             assert(season.robots.isEmpty())
             assert(season.events.isEmpty())
 
-            season.team = teamQueryFromParameters(call.request.queryParameters)
-
             db.insertSeason(season)
 
             call.respond(HttpStatusCode.OK)
@@ -41,8 +40,6 @@ fun Route.api() {
 
         post("/new-robot") {
             val robot = call.receive<Robot>()
-
-            robot.season = seasonQueryFromParameters(call.request.queryParameters)
 
             db.insertRobot(robot)
 
@@ -54,7 +51,8 @@ fun Route.api() {
 
             val season = db.getSeason(seasonQueryFromParameters(call.request.queryParameters))
 
-            db.insertSeasonEvent(event, season)
+            // TODO
+            // db.insertSeasonEvent(event, season)
 
             call.respond(HttpStatusCode.OK)
         }
@@ -74,8 +72,6 @@ fun Route.api() {
 
             assert(match.metrics.isEmpty())
 
-            match.event = eventQueryFromParameters(call.request.queryParameters)
-
             db.insertMatch(match)
 
             call.respond(HttpStatusCode.OK)
@@ -84,17 +80,15 @@ fun Route.api() {
         post("/new-metric") {
             val metric = call.receive<Metric>()
 
-            metric.match = matchQueryFromParameters(call.request.queryParameters)
-
-            metric.robot = robotQueryFromParameters(call.request.queryParameters)
-
-            for (gameMetric in metric.gameMetrics) {
-                gameMetric.metric = metricQueryFromMetric(metric)
-            }
-
             db.insertMetric(metric)
 
             call.respond(HttpStatusCode.OK)
+        }
+
+        get("/get-teams") {
+            val teams = db.getTeams()
+
+            call.respond(teams[0].dereference())
         }
 
         get("/get-team") {

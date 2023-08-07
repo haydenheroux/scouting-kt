@@ -1,34 +1,62 @@
 package io.github.haydenheroux.scouting.models.team
 
-import io.github.haydenheroux.scouting.models.event.Event
-import io.github.haydenheroux.scouting.query.TeamQuery
+import io.github.haydenheroux.scouting.database.Database.query
+import io.github.haydenheroux.scouting.models.event.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.jetbrains.exposed.dao.id.IntIdTable
-
-/**
- * A season is one year of competition for an FRC team.
- *
- * Each season takes place during a single year. During each season, an
- * FRC team must build a number of robots, and participate in a number of
- * events.
- *
- * @property year the year that the season takes place in.
- * @property robots the robots that the team built during the season.
- * @property events the events that the team participated in during the
- *     season.
- * @see Robot
- * @see Event
- */
-@Serializable
-data class Season(
-    @Transient var team: TeamQuery? = null,
-    val year: Int,
-    val robots: List<Robot>,
-    val events: List<Event>
-)
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.select
 
 object Seasons : IntIdTable() {
     val team = reference("team_id", Teams)
     val year = integer("year")
 }
+
+@Serializable
+data class SeasonData(val year: Int)
+
+fun ResultRow.asSeasonData(): SeasonData {
+    val year = this[Seasons.year]
+
+    return SeasonData(year)
+}
+
+data class SeasonReference(
+    val seasonData: SeasonData,
+    val teamReference: TeamReference?,
+    val eventReferences: List<EventReference>?,
+    val robotReferences: List<RobotReference>?
+)
+
+suspend fun ResultRow.asSeasonReference(orphan: Boolean): SeasonReference {
+    val seasonData = this.asSeasonData()
+
+    val teamId = this[Seasons.team]
+    val teamReference = if (orphan) null else query {
+        Teams.select { Teams.id eq teamId }.map { it.asTeamReference() }.single()
+    }
+
+    val seasonId = this[Seasons.id]
+    val eventReferences = if (true) null else query {
+        SeasonEvents.select { SeasonEvents.season eq seasonId }.map { row ->
+            val eventId = row[SeasonEvents.event]
+
+            Events.select { Events.id eq eventId }.map { it.asEventReference() }.single()
+        }
+    }
+    val robotReferences = if (true) null else query {
+        Robots.select { Robots.season eq seasonId }.map { it.asRobotReference(false) }
+    }
+
+    return SeasonReference(seasonData, teamReference, eventReferences, robotReferences)
+}
+
+fun SeasonReference.dereference(): Season {
+    // TODO
+    // val events = eventReferences!!.map { it.dereference() }
+    // val robots = robotReferences!!.map { it.dereference() }
+    return Season(seasonData, listOf(), listOf())
+}
+
+@Serializable
+data class Season(val seasonData: SeasonData, val events: List<Event>, val robots: List<Robot>)

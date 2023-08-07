@@ -1,36 +1,63 @@
 package io.github.haydenheroux.scouting.models.match
 
+import io.github.haydenheroux.scouting.database.Database.query
 import io.github.haydenheroux.scouting.models.enums.MatchType
+import io.github.haydenheroux.scouting.models.event.EventReference
 import io.github.haydenheroux.scouting.models.event.Events
-import io.github.haydenheroux.scouting.query.EventQuery
+import io.github.haydenheroux.scouting.models.event.asEventReference
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.jetbrains.exposed.dao.id.IntIdTable
-
-/**
- * A match played at an FRC event.
- *
- * Each match is numbered according to its order in the FRC schedule,
- * beginning at one. Each match is a qualification match, a playoff match,
- * or other type of match. Each match has some metrics that are collected
- * to assess the match.
- *
- * @property number the number of the match.
- * @property type the type of the match.
- * @property metrics the metrics collected for the match.
- * @see MatchType
- * @see Metric
- */
-@Serializable
-data class Match(
-    @Transient var event: EventQuery? = null,
-    val number: Int,
-    val type: MatchType,
-    val metrics: List<Metric>
-)
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.select
 
 object Matches : IntIdTable() {
     val event = reference("event_id", Events)
     val number = integer("number")
     val type = enumerationByName<MatchType>("type", 255)
 }
+
+@Serializable
+data class MatchData(
+    val number: Int,
+    val type: MatchType,
+)
+
+fun ResultRow.asMatchData(): MatchData {
+    val number = this[Matches.number]
+    val type = this[Matches.type]
+
+    return MatchData(number, type)
+}
+
+data class MatchReference(
+    val matchData: MatchData,
+    val eventReference: EventReference?,
+    val metricReferences: List<MetricReference>
+)
+
+suspend fun ResultRow.asMatchReference(orphan: Boolean): MatchReference {
+    val matchData = this.asMatchData()
+
+    val eventId = this[Matches.event]
+    val eventReference = if (orphan) null else query {
+        Events.select { Events.id eq eventId }.map { it.asEventReference() }.single()
+    }
+
+    val matchId = this[Matches.id]
+    val metricReferences = query {
+        Metrics.select { Metrics.match eq matchId }.map { it.asMetricReference(true) }
+    }
+
+    return MatchReference(matchData, eventReference, metricReferences)
+}
+
+fun MatchReference.dereference(): Match {
+    val metrics = metricReferences.map { it.dereference() }
+    return Match(matchData, metrics)
+}
+
+@Serializable
+data class Match(
+    val matchData: MatchData,
+    val metrics: List<Metric>
+)

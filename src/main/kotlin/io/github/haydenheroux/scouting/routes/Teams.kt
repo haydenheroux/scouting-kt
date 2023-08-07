@@ -3,6 +3,7 @@ package io.github.haydenheroux.scouting.routes
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.query.seasonQueryFromParameters
 import io.github.haydenheroux.scouting.query.teamQueryFromParameters
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.freemarker.*
 import io.ktor.server.response.*
@@ -24,9 +25,9 @@ fun Route.teams() {
 
         get("/{team}/{year}") {
             val season = db.getSeason(seasonQueryFromParameters(call.parameters))
-            val team = db.getTeam(season.team!!)
 
-            call.respond(FreeMarkerContent("season.ftl", mapOf("season" to season, "team" to team)))
+            // call.respond(FreeMarkerContent("season.ftl", mapOf("season" to season, "team" to team)))
+            call.respond(HttpStatusCode.NotFound)
         }
     }
 }

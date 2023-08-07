@@ -1,22 +1,41 @@
 package io.github.haydenheroux.scouting.models.team
 
-import io.github.haydenheroux.scouting.query.SeasonQuery
+import io.github.haydenheroux.scouting.database.Database.query
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.jetbrains.exposed.dao.id.IntIdTable
-
-/**
- * A robot is a robot that is built for FRC.
- *
- * Each robot has properties, many of which are specific to the game that
- * takes place during each season.
- *
- * @property name the name of the robot.
- */
-@Serializable
-data class Robot(@Transient var season: SeasonQuery? = null, val name: String)
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.select
 
 object Robots : IntIdTable() {
     val season = reference("season_id", Seasons)
     val name = varchar("name", 255)
 }
+
+@Serializable
+data class RobotData(val name: String)
+
+fun ResultRow.asRobotData(): RobotData {
+    val name = this[Robots.name]
+
+    return RobotData(name)
+}
+
+data class RobotReference(val robotData: RobotData, val seasonReference: SeasonReference?)
+
+suspend fun ResultRow.asRobotReference(orphan: Boolean): RobotReference {
+    val robotData = this.asRobotData()
+
+    val seasonId = this[Robots.season]
+    val seasonReference = if (orphan) null else query {
+        Seasons.select { Seasons.id eq seasonId }.map { it.asSeasonReference(false) }.single()
+    }
+
+    return RobotReference(robotData, seasonReference)
+}
+
+fun RobotReference.dereference(): Robot {
+    return Robot(robotData)
+}
+
+@Serializable
+data class Robot(val robotData: RobotData)
