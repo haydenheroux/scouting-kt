@@ -96,5 +96,41 @@ fun Route.api() {
 
             call.respond(HttpStatusCode.OK)
         }
+
+        get("/get-team") {
+            val team = db.getTeam(teamQueryFromParameters(call.request.queryParameters))
+
+            call.respond(team)
+        }
+
+        get("/get-season") {
+            val season = db.getSeason(seasonQueryFromParameters(call.request.queryParameters))
+
+            call.respond(season)
+        }
+
+        get("/get-robot") {
+            val robot = db.getRobot(robotQueryFromParameters(call.request.queryParameters))
+
+            call.respond(robot)
+        }
+
+        get("/get-event") {
+            val event = db.getEvent(eventQueryFromParameters(call.request.queryParameters))
+
+            call.respond(event)
+        }
+
+        get("/get-match") {
+            val match = db.getMatch(matchQueryFromParameters(call.request.queryParameters))
+
+            call.respond(match)
+        }
+
+        get("/get-metric") {
+            val metric = db.getMetric(metricQueryFromParameters(call.request.queryParameters))
+
+            call.respond(metric)
+        }
     }
 }
