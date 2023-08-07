@@ -22,12 +22,12 @@ fun ResultRow.asRobotData(): RobotData {
 
 data class RobotReference(val robotData: RobotData, val seasonReference: SeasonReference?)
 
-suspend fun ResultRow.asRobotReference(orphan: Boolean): RobotReference {
+suspend fun ResultRow.asRobotReference(noParent: Boolean): RobotReference {
     val robotData = this.asRobotData()
 
     val seasonId = this[Robots.season]
-    val seasonReference = if (orphan) null else query {
-        Seasons.select { Seasons.id eq seasonId }.map { it.asSeasonReference(false) }.single()
+    val seasonReference = if (noParent) null else query {
+        Seasons.select { Seasons.id eq seasonId }.map { it.asSeasonReference(false, true) }.single()
     }
 
     return RobotReference(robotData, seasonReference)

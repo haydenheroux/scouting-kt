@@ -35,17 +35,17 @@ data class MatchReference(
     val metricReferences: List<MetricReference>
 )
 
-suspend fun ResultRow.asMatchReference(orphan: Boolean): MatchReference {
+suspend fun ResultRow.asMatchReference(noParent: Boolean, noChildren: Boolean): MatchReference {
     val matchData = this.asMatchData()
 
     val eventId = this[Matches.event]
-    val eventReference = if (orphan) null else query {
-        Events.select { Events.id eq eventId }.map { it.asEventReference() }.single()
+    val eventReference = if (noParent) null else query {
+        Events.select { Events.id eq eventId }.map { it.asEventReference(true) }.single()
     }
 
     val matchId = this[Matches.id]
-    val metricReferences = query {
-        Metrics.select { Metrics.match eq matchId }.map { it.asMetricReference(true) }
+    val metricReferences = if (noChildren) listOf() else query {
+        Metrics.select { Metrics.match eq matchId }.map { it.asMetricReference(false, false) }
     }
 
     return MatchReference(matchData, eventReference, metricReferences)

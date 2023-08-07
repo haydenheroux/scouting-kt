@@ -34,21 +34,21 @@ data class MetricReference(
     val gameMetricReferences: List<GameMetricReference>
 )
 
-suspend fun ResultRow.asMetricReference(orphan: Boolean): MetricReference {
+suspend fun ResultRow.asMetricReference(noParent: Boolean, noChildren: Boolean): MetricReference {
     val metricData = this.asMetricData()
 
     val matchId = this[Metrics.match]
-    val matchReference = if (orphan) null else query {
-        Matches.select { Matches.id eq matchId }.map { it.asMatchReference(false) }.single()
+    val matchReference = if (noParent) null else query {
+        Matches.select { Matches.id eq matchId }.map { it.asMatchReference(false, true) }.single()
     }
     val robotId = this[Metrics.robot]
-    val robotReference = if (orphan) null else query {
+    val robotReference = if (noParent) null else query {
         Robots.select { Robots.id eq robotId }.map { it.asRobotReference(false) }.single()
     }
 
     val metricId = this[Metrics.id]
-    val gameMetricReferences = query {
-        GameMetrics.select { GameMetrics.metric eq metricId }.map { it.asGameMetricReference(orphan) }
+    val gameMetricReferences = if (noChildren) listOf() else query {
+        GameMetrics.select { GameMetrics.metric eq metricId }.map { it.asGameMetricReference(false) }
     }
 
     return MetricReference(metricData, matchReference, robotReference, gameMetricReferences)

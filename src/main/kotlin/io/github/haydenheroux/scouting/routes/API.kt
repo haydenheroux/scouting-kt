@@ -2,8 +2,10 @@ package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.event.Event
+import io.github.haydenheroux.scouting.models.event.dereference
 import io.github.haydenheroux.scouting.models.match.Match
 import io.github.haydenheroux.scouting.models.match.Metric
+import io.github.haydenheroux.scouting.models.match.dereference
 import io.github.haydenheroux.scouting.models.team.Robot
 import io.github.haydenheroux.scouting.models.team.Season
 import io.github.haydenheroux.scouting.models.team.Team
@@ -88,43 +90,49 @@ fun Route.api() {
         get("/get-teams") {
             val teams = db.getTeams()
 
-            call.respond(teams[0].dereference())
+            call.respond(teams.map { it.dereference() })
         }
 
         get("/get-team") {
             val team = db.getTeam(teamQueryFromParameters(call.request.queryParameters))
 
-            call.respond(team)
+            call.respond(team.dereference())
         }
 
         get("/get-season") {
             val season = db.getSeason(seasonQueryFromParameters(call.request.queryParameters))
 
-            call.respond(season)
+            call.respond(season.dereference())
         }
 
         get("/get-robot") {
             val robot = db.getRobot(robotQueryFromParameters(call.request.queryParameters))
 
-            call.respond(robot)
+            call.respond(robot.dereference())
+        }
+
+        get("/get-events") {
+            val events = db.getEvents()
+
+            call.respond(events.map { it.dereference() })
         }
 
         get("/get-event") {
             val event = db.getEvent(eventQueryFromParameters(call.request.queryParameters))
 
-            call.respond(event)
+            call.respond(event.dereference())
         }
 
         get("/get-match") {
             val match = db.getMatch(matchQueryFromParameters(call.request.queryParameters))
 
-            call.respond(match)
+            call.respond(match.dereference())
         }
 
         get("/get-metric") {
             val metric = db.getMetric(metricQueryFromParameters(call.request.queryParameters))
 
-            call.respond(metric)
+            call.respond(metric.dereference())
         }
     }
 }

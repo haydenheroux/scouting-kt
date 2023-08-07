@@ -12,13 +12,13 @@ class DatabaseImplementation : DatabaseInterface {
 
     override suspend fun getTeams(): List<TeamReference> {
         return query {
-            Teams.selectAll().map { it.asTeamReference() }
+            Teams.selectAll().map { it.asTeamReference(false) }
         }
     }
 
     override suspend fun getTeam(teamQuery: TeamQuery): TeamReference {
         println(teamQuery)
-        return getTeamRow(teamQuery)!!.asTeamReference()
+        return getTeamRow(teamQuery)!!.asTeamReference(false)
     }
 
     private suspend fun getTeamRow(teamQuery: TeamQuery): ResultRow? {
@@ -48,7 +48,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getSeason(seasonQuery: SeasonQuery): SeasonReference {
-        return getSeasonRow(seasonQuery)!!.asSeasonReference(false)
+        return getSeasonRow(seasonQuery)!!.asSeasonReference(false, false)
     }
 
     private suspend fun getSeasonRow(seasonQuery: SeasonQuery): ResultRow? {
@@ -115,12 +115,12 @@ class DatabaseImplementation : DatabaseInterface {
 
     override suspend fun getEvents(): List<EventReference> {
         return query {
-            Events.selectAll().map { it.asEventReference() }
+            Events.selectAll().map { it.asEventReference(false) }
         }
     }
 
     override suspend fun getEvent(eventQuery: EventQuery): EventReference {
-        return getEventRow(eventQuery)!!.asEventReference()
+        return getEventRow(eventQuery)!!.asEventReference(false)
     }
 
     private suspend fun getEventRow(eventQuery: EventQuery): ResultRow? {
@@ -154,7 +154,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getMatch(matchQuery: MatchQuery): MatchReference {
-        return getMatchRow(matchQuery)!!.asMatchReference(false)
+        return getMatchRow(matchQuery)!!.asMatchReference(false, false)
     }
 
     private suspend fun getMatchRow(matchQuery: MatchQuery): ResultRow? {
@@ -188,7 +188,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getMetric(metricQuery: MetricQuery): MetricReference {
-        return getMetricRow(metricQuery)!!.asMetricReference(false)
+        return getMetricRow(metricQuery)!!.asMetricReference(false, false)
     }
 
     private suspend fun getMetricRow(metricQuery: MetricQuery): ResultRow? {

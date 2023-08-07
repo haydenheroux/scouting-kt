@@ -24,12 +24,12 @@ fun ResultRow.asGameMetricData(): GameMetricData {
 
 data class GameMetricReference(val gameMetricData: GameMetricData, val metricReference: MetricReference?)
 
-suspend fun ResultRow.asGameMetricReference(orphan: Boolean): GameMetricReference {
+suspend fun ResultRow.asGameMetricReference(noParent: Boolean): GameMetricReference {
     val gameMetricData = this.asGameMetricData()
 
     val metricId = this[GameMetrics.metric]
-    val metricReference = if (orphan) null else query {
-        Metrics.select { Metrics.id eq metricId }.map { it.asMetricReference(false) }.single()
+    val metricReference = if (noParent) null else query {
+        Metrics.select { Metrics.id eq metricId }.map { it.asMetricReference(false, true) }.single()
     }
 
     return GameMetricReference(gameMetricData, metricReference)

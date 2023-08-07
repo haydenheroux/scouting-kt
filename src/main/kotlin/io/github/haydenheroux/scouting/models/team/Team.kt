@@ -26,12 +26,12 @@ fun ResultRow.asTeamData(): TeamData {
 
 data class TeamReference(val teamData: TeamData, val seasonReferences: List<SeasonReference>)
 
-suspend fun ResultRow.asTeamReference(): TeamReference {
+suspend fun ResultRow.asTeamReference(noChildren: Boolean): TeamReference {
     val teamData = this.asTeamData()
 
     val teamId = this[Teams.id]
-    val seasonReferences = query {
-        Seasons.select { Seasons.team eq teamId }.map { it.asSeasonReference(true) }
+    val seasonReferences = if (noChildren) listOf() else query {
+        Seasons.select { Seasons.team eq teamId }.map { it.asSeasonReference(false, false) }
     }
 
     return TeamReference(teamData, seasonReferences)

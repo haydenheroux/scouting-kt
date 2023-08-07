@@ -24,27 +24,27 @@ fun ResultRow.asSeasonData(): SeasonData {
 data class SeasonReference(
     val seasonData: SeasonData,
     val teamReference: TeamReference?,
-    val eventReferences: List<EventReference>?,
-    val robotReferences: List<RobotReference>?
+    val eventReferences: List<EventReference>,
+    val robotReferences: List<RobotReference>
 )
 
-suspend fun ResultRow.asSeasonReference(orphan: Boolean): SeasonReference {
+suspend fun ResultRow.asSeasonReference(noParent: Boolean, noChildren: Boolean): SeasonReference {
     val seasonData = this.asSeasonData()
 
     val teamId = this[Seasons.team]
-    val teamReference = if (orphan) null else query {
-        Teams.select { Teams.id eq teamId }.map { it.asTeamReference() }.single()
+    val teamReference = if (noParent) null else query {
+        Teams.select { Teams.id eq teamId }.map { it.asTeamReference(true) }.single()
     }
 
     val seasonId = this[Seasons.id]
-    val eventReferences = if (true) null else query {
+    val eventReferences = if (noChildren) listOf() else query {
         SeasonEvents.select { SeasonEvents.season eq seasonId }.map { row ->
             val eventId = row[SeasonEvents.event]
 
-            Events.select { Events.id eq eventId }.map { it.asEventReference() }.single()
+            Events.select { Events.id eq eventId }.map { it.asEventReference(false) }.single()
         }
     }
-    val robotReferences = if (true) null else query {
+    val robotReferences = if (noChildren) listOf() else query {
         Robots.select { Robots.season eq seasonId }.map { it.asRobotReference(false) }
     }
 
@@ -52,10 +52,9 @@ suspend fun ResultRow.asSeasonReference(orphan: Boolean): SeasonReference {
 }
 
 fun SeasonReference.dereference(): Season {
-    // TODO
-    // val events = eventReferences!!.map { it.dereference() }
-    // val robots = robotReferences!!.map { it.dereference() }
-    return Season(seasonData, listOf(), listOf())
+    val events = eventReferences.map { it.dereference() }
+    val robots = robotReferences.map { it.dereference() }
+    return Season(seasonData, events, robots)
 }
 
 @Serializable
