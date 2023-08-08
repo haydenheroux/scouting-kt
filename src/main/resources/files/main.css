@@ -5,6 +5,9 @@
     --dim: #a1a1aa;
     --white: #f2f2f2;
     --accent: #22c55e;
+    --red: #e11d48;
+    --blue: #2563eb;
+    --radius: 0.5rem;
 }
 
 * {
@@ -151,12 +154,12 @@ thead tr {
 }
 
 thead tr:first-child th:first-child {
-    border-top-left-radius: 0.5rem;
+    border-top-left-radius: var(--radius);
     background-color: var(--accent);
 }
 
 thead tr:last-child th:last-child {
-    border-top-right-radius: 0.5rem;
+    border-top-right-radius: var(--radius);
     background-color: var(--accent);
 }
 
@@ -167,4 +170,22 @@ th, td {
 section {
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
+}
+
+.pill {
+    background-color: var(--dim);
+    color: var(--gray-dark);
+    width: 8rem;
+    text-align: center;
+    font-weight: 600;
+    border-radius: var(--radius);
+    padding: 12px 15px;
+}
+
+.red {
+    background-color: var(--red);
+}
+
+.blue {
+    background-color: var(--blue);
 }

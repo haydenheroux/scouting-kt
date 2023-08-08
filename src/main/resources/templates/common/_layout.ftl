@@ -41,7 +41,7 @@
             <tbody>
             <#list event.matchReferences as matchReference>
                 <tr>
-                    <td>${matchReference.type[0]}${matchReference.number}</td>
+                    <td><a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}/${matchReference.number}">${matchReference.type[0]}${matchReference.number}</a></td>
                     <#list matchReference.participantReferences as participantReference>
                     <#local team_number=participantReference.robotReference.seasonReference.teamReference.number>
                     <td><a href="/teams/${team_number?c}/${event.year?c}">${team_number?c}</td>
@@ -56,7 +56,6 @@
 
 <#macro team_header team>
     <h1><a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a></h1>
-    <p>${region_to_text(team.region)}</p>
 </#macro>
 
 <#macro season_section season>
@@ -84,3 +83,14 @@
         <#return region>
     </#if>
 </#function>
+
+
+<#macro alliance alliance>
+    <#if alliance == "RED">
+        <p class="red pill">Red Alliance</p>
+    <#elseif alliance == "BLUE">
+        <p class="blue pill">Blue Alliance</p>
+    <#else>
+        <p class="pill">No Alliance</p>
+    </#if>
+</#macro>
