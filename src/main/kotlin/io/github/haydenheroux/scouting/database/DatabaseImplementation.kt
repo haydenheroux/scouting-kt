@@ -338,7 +338,6 @@ class DatabaseImplementation : DatabaseInterface {
                 it[alliance] = metric.alliance
             }
 
-            // TODO Potential bug involving duplication of game metrics
             for (gameMetric in metric.gameMetrics) {
                 GameMetricTable.insert {
                     it[GameMetricTable.metricId] = metricId

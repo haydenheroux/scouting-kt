@@ -54,12 +54,15 @@ suspend fun ResultRow.asMetricReference(noParent: Boolean, noChildren: Boolean):
 }
 
 fun MetricReference.dereference(): Metric {
+    // TODO Handle robotReference == null
+    val robot = robotReference!!.dereference()
     val gameMetrics = gameMetricReferences.map { it.dereference() }
-    return Metric(alliance, gameMetrics)
+    return Metric(robot, alliance, gameMetrics)
 }
 
 @Serializable
 data class Metric(
+    val robot: Robot,
     val alliance: Alliance,
     val gameMetrics: List<GameMetric>
 )
