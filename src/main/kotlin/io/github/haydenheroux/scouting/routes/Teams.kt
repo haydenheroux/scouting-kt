@@ -14,7 +14,7 @@ fun Route.teams() {
         get {
             val teams = db.getTeams()
 
-            call.respond(FreeMarkerContent("teams.ftl", mapOf("teams" to teams)))
+            call.respond(FreeMarkerContent("teams/teams.ftl", mapOf("teams" to teams)))
         }
 
         get("/{team}") {
@@ -23,7 +23,7 @@ fun Route.teams() {
             teamQuery?.let {
                 val teamReference = db.getTeam(teamQuery)
 
-                call.respond(FreeMarkerContent("team.ftl", mapOf("teamReference" to teamReference)))
+                call.respond(FreeMarkerContent("teams/team.ftl", mapOf("teamReference" to teamReference)))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -35,7 +35,7 @@ fun Route.teams() {
             seasonQuery?.let {
                 val seasonReference = db.getSeason(seasonQuery)
 
-                call.respond(FreeMarkerContent("season.ftl", mapOf("seasonReference" to seasonReference)))
+                call.respond(FreeMarkerContent("teams/season.ftl", mapOf("seasonReference" to seasonReference)))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }

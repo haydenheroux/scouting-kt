@@ -1,5 +1,5 @@
 <#-- @ftlvariable name="eventReferences" type="kotlin.collections.List<io.github.haydenheroux.scouting.models.event.EventReference>" -->
-<#import "_layout.ftl" as layout />
+<#import "/common/_layout.ftl" as layout />
 <@layout.header title="Events">
     <h1>Events</h1>
     <hr/>

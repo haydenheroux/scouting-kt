@@ -11,7 +11,7 @@ fun Route.events() {
         get {
             val eventReferences = db.getEvents()
 
-            call.respond(FreeMarkerContent("events.ftl", mapOf("eventReferences" to eventReferences)))
+            call.respond(FreeMarkerContent("events/events.ftl", mapOf("eventReferences" to eventReferences)))
         }
     }
 }
