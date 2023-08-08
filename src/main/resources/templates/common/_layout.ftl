@@ -54,8 +54,14 @@
     <hr/>
 </#macro>
 
-<#macro team_header team>
-    <h1><a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a></h1>
+<#macro team_header team size>
+    <#if size == "large">
+        <h1><a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a></h1>
+    <#elseif size == "small">
+        <h2><a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a></h2>
+    <#else>
+        <p><a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a></p>
+    </#if>
 </#macro>
 
 <#macro season_section season>
@@ -81,6 +87,16 @@
         <#return "ne">
     <#else>
         <#return region>
+    </#if>
+</#function>
+
+<#function match_type_to_text match_type>
+    <#if match_type == "QUALIFICATION">
+        <#return "Qualification">
+    <#elseif match_type == "PLAYOFF">
+        <#return "Playoff">
+    <#else>
+        <#return "Match">
     </#if>
 </#function>
 

@@ -1,12 +1,13 @@
 <#-- @ftlvariable name="matchReference" type="io.github.haydenheroux.scouting.models.match.MatchReference" -->
 <#import "/common/_layout.ftl" as layout />
-<@layout.header title="${matchReference.type} ${matchReference.number} - ${matchReference.eventReference.name}">
-    <h1>${matchReference.type} ${matchReference.number} - ${matchReference.eventReference.name}</h1>
+<#assign title="${layout.match_type_to_text(matchReference.type)} ${matchReference.number} - ${matchReference.eventReference.name}">
+<@layout.header title=title>
+    <h1>${title}</h1>
     <hr/>
     <#list matchReference.participantReferences as participantReference>
         <section>
             <#assign teamReference=participantReference.robotReference.seasonReference.teamReference>
-            <@layout.team_header team=teamReference />
+            <@layout.team_header team=teamReference size="small" />
             <@layout.alliance alliance=participantReference.alliance />
             <h3>Metrics</h3>
             <table>

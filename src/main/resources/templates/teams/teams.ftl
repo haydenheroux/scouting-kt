@@ -14,7 +14,7 @@
         <tr>
             <td><a href="/teams/${team.number?c}">${team.number?c}</a></td>
             <td>${team.name}</td>
-            <td>${team.region}</td>
+            <td>${layout.region_to_text(team.region)}</td>
         </tr>
         </#list>
         </tbody>
