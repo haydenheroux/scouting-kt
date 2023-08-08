@@ -3,7 +3,7 @@
 <@layout.header>
     <h1>Events</h1>
     <hr/>
-    <#list eventReferences as eventReference>
+    <#list eventReferences?reverse as eventReference>
     <@layout.event_section event=eventReference>
     </@layout.event_section>
     </#list>

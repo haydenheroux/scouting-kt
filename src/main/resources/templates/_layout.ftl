@@ -57,13 +57,13 @@
 </#macro>
 
 <#macro team_header team>
-    <h1>Team ${team.number?c} - ${team.name}</h1>
+    <h1><a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a></h1>
     <p><@layout.rename_region region=team.region /></p>
 </#macro>
 
 <#macro season_section season>
     <section>
-    <h2>${season.year?c}</h2>
+    <h1><a href="/teams/${season.teamReference.number?c}/${season.year?c}">${season.year?c}</a></h1>
     <hr/>
     <#list season.eventReferences as eventReference>
     <@layout.event_section event=eventReference />

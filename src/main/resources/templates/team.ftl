@@ -2,7 +2,7 @@
 <#import "_layout.ftl" as layout />
 <@layout.header>
     <@layout.team_header team=teamReference />
-    <#list teamReference.seasonReferences as seasonReference>
+    <#list teamReference.seasonReferences?reverse as seasonReference>
         <@layout.season_section season=seasonReference />
     </#list>
 </@layout.header>
