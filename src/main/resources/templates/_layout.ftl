@@ -32,13 +32,12 @@
         <@layout.rename_region region=event.region />
         </p>
         <p>Week ${event.week?c}, ${event.year?c}</p>
-        <hr/>
         <h3>Matches</h3>
         <table>
             <thead>
                 <tr>
-                    <td>Match</td>
-                    <td colspan="6">Teams</td>
+                    <th>Match</th>
+                    <th colspan="6">Teams</th>
                 </tr>
             </thead>
             <tbody>
@@ -54,6 +53,7 @@
             <tbody>
         </table>
     </section>
+    <hr/>
 </#macro>
 
 <#macro team_header team>

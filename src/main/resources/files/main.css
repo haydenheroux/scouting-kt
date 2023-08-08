@@ -1,34 +1,65 @@
 :root {
-    --dark: #FFFFFF;
-    --dim: #F3F3F3;
-    --gray: #DDDDDD;
-    --light: #000000;
-    --accent: #00A74A;
+    --black: #0c0a09;
+    --gray-dark: #1c1917;
+    --gray-medium: #27272a;
+    --dim: #a1a1aa;
+    --white: #f2f2f2;
+    --accent: #22c55e;
 }
 
 * {
     box-sizing: border-box;
 }
 
+a {
+    color: var(--white);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--dim);
+}
+
 h1, h2, h3 {
-    font-weight: 500;
+    font-weight: 700;
+
+    color: var(--white);
+
+    margin-top: 0;
+}
+
+section h1 {
+    margin-bottom: 0.5rem;
 }
 
 h1 {
-    font-size: 2em;
+    font-size: 3em;
 }
 
 h2 {
-    font-size: 1.5em;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -.025em;
 }
 
 h3 {
-    font-size: 1.17em;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5rem;
+    letter-spacing: -.025em;
+}
+
+hr {
+    height: 1px;
+    width: 100%;
+    border: 0;
+    border-top: 1px solid var(--gray-medium);
 }
 
 body {
-    background-color: var(--dark):
-    color: var(--light);
+    background-color: var(--black);
+    color: var(--dim);
     font-family: 'Open Sans', sans-serif;
     font-size: 14px;
     line-height: 1.4;
@@ -37,8 +68,8 @@ body {
 }
 
 header {
-    background-color: var(--accent);
-    color: var(--dark);
+    background-color: var(--black);
+    color: var(--white);
 
     width: 100%;
 
@@ -62,12 +93,10 @@ nav ul li a {
 
     min-width: 60px;
 
-    color: var(--dark);
-    text-decoration: none;
     text-align: center;
 
-    font-size: small;
-    font-weight: bold;
+    font-size: 14px;
+    font-weight: 500;
 
     padding: 15px 5px;
 }
@@ -99,25 +128,37 @@ nav ul li a {
 
 table {
     border-collapse: collapse;
-    margin: 25px 0px;
-    font-size: small;
+    border-radius: 0.5rem;
     min-width: 400px;
+    background-color: var(--gray-dark);
+    color: var(--dim);
+}
+
+th {
+    text-align: left;
+    font-weight: 600;
 }
 
 thead tr {
-    font-weight: bold;
+    color: var(--gray-dark);
     background-color: var(--accent);
-    color: var(--dark);
+}
+
+thead tr:first-child th:first-child {
+    border-top-left-radius: 0.5rem;
+    background-color: var(--accent);
+}
+
+thead tr:last-child th:last-child {
+    border-top-right-radius: 0.5rem;
+    background-color: var(--accent);
 }
 
 th, td {
     padding: 12px 15px;
 }
 
-tbody tr {
-    border-bottom: 1px solid var(--gray);
-}
-
-tbody tr:nth-child(even) {
-    background-color: var(--dim);
+section {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
 }
