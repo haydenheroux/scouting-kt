@@ -3,7 +3,7 @@ package io.github.haydenheroux.scouting.database
 import io.github.haydenheroux.scouting.models.event.EventTable
 import io.github.haydenheroux.scouting.models.match.GameMetricTable
 import io.github.haydenheroux.scouting.models.match.MatchTable
-import io.github.haydenheroux.scouting.models.match.MetricTable
+import io.github.haydenheroux.scouting.models.match.ParticipantTable
 import io.github.haydenheroux.scouting.models.team.RobotTable
 import io.github.haydenheroux.scouting.models.team.SeasonEventTable
 import io.github.haydenheroux.scouting.models.team.SeasonTable
@@ -24,7 +24,7 @@ object Database {
                 TeamTable,
                 SeasonTable,
                 RobotTable,
-                MetricTable,
+                ParticipantTable,
                 GameMetricTable,
                 MatchTable,
                 EventTable,

@@ -32,7 +32,7 @@ data class MatchReference(
     val number: Int,
     val type: MatchType,
     val eventReference: EventReference?,
-    val metricReferences: List<MetricReference>
+    val participantReferences: List<ParticipantReference>
 )
 
 suspend fun ResultRow.asMatchReference(noParent: Boolean, noChildren: Boolean): MatchReference {
@@ -44,23 +44,23 @@ suspend fun ResultRow.asMatchReference(noParent: Boolean, noChildren: Boolean): 
     }
 
     val matchId = this[MatchTable.id]
-    val metricReferences = if (noChildren) listOf() else query {
-        MetricTable.select { MetricTable.matchId eq matchId }.map { it.asMetricReference(false, false) }
+    val participantReferences = if (noChildren) listOf() else query {
+        ParticipantTable.select { ParticipantTable.matchId eq matchId }.map { it.asParticipantReference(false, false) }
     }
 
-    return MatchReference(properties.number, properties.type, eventReference, metricReferences)
+    return MatchReference(properties.number, properties.type, eventReference, participantReferences)
 }
 
 fun MatchReference.dereference(): Match {
-    val metrics = metricReferences.map { it.dereference() }
-    return Match(number, type, metrics)
+    val participants = participantReferences.map { it.dereference() }
+    return Match(number, type, participants)
 }
 
 @Serializable
 data class Match(
     val number: Int,
     val type: MatchType,
-    val metrics: List<Metric>
+    val participants: List<Participant>
 )
 
 data class MatchQuery(val number: Int, val event: EventQuery)

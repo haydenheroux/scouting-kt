@@ -21,7 +21,7 @@ interface DatabaseInterface {
 
     suspend fun getMatch(matchQuery: MatchQuery): MatchReference
 
-    suspend fun getMetric(metricQuery: MetricQuery): MetricReference
+    suspend fun getParticipant(participantQuery: ParticipantQuery): ParticipantReference
 
     suspend fun insertTeam(team: Team)
     suspend fun insertSeason(season: Season, teamQuery: TeamQuery)
@@ -29,5 +29,5 @@ interface DatabaseInterface {
     suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery)
     suspend fun insertEvent(event: Event)
     suspend fun insertMatch(match: Match, eventQuery: EventQuery)
-    suspend fun insertMetric(metric: Metric, matchQuery: MatchQuery, robotQuery: RobotQuery)
+    suspend fun insertParticipant(participant: Participant, matchQuery: MatchQuery, robotQuery: RobotQuery)
 }

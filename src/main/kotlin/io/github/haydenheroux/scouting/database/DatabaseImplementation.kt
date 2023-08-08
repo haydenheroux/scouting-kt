@@ -191,38 +191,39 @@ class DatabaseImplementation : DatabaseInterface {
         return MatchQuery(matchNumber, eventQuery)
     }
 
-    override suspend fun getMetric(metricQuery: MetricQuery): MetricReference {
-        return getMetricRow(metricQuery)!!.asMetricReference(false, false)
+    override suspend fun getParticipant(participantQuery: ParticipantQuery): ParticipantReference {
+        return getParticipantRow(participantQuery)!!.asParticipantReference(false, false)
     }
 
-    private suspend fun getMetricRow(metricQuery: MetricQuery): ResultRow? {
-        val matchId = getMatchId(metricQuery.match)
-        val robotId = getRobotId(metricQuery.robot)
+    private suspend fun getParticipantRow(participantQuery: ParticipantQuery): ResultRow? {
+        val matchId = getMatchId(participantQuery.match)
+        val robotId = getRobotId(participantQuery.robot)
 
         return query {
-            MetricTable.select { (MetricTable.matchId eq matchId) and (MetricTable.robotId eq robotId) }.singleOrNull()
+            ParticipantTable.select { (ParticipantTable.matchId eq matchId) and (ParticipantTable.robotId eq robotId) }
+                .singleOrNull()
         }
     }
 
-    private suspend fun getMetricRow(metricId: Int): ResultRow? {
+    private suspend fun getParticipantRow(participantId: Int): ResultRow? {
         return query {
-            MetricTable.select { MetricTable.id eq metricId }.singleOrNull()
+            ParticipantTable.select { ParticipantTable.id eq participantId }.singleOrNull()
         }
     }
 
-    private suspend fun getMetricId(metricQuery: MetricQuery): Int {
-        return getMetricRow(metricQuery)!![MetricTable.id].value
+    private suspend fun getParticipantId(participantQuery: ParticipantQuery): Int {
+        return getParticipantRow(participantQuery)!![ParticipantTable.id].value
     }
 
-    private suspend fun metricExists(metricQuery: MetricQuery): Boolean {
-        return getMetricRow(metricQuery)?.let { true } ?: false
+    private suspend fun participantExists(participantQuery: ParticipantQuery): Boolean {
+        return getParticipantRow(participantQuery)?.let { true } ?: false
     }
 
-    private suspend fun rowToMetricQuery(metricRow: ResultRow): MetricQuery {
-        val match = rowToMatchQuery(getMatchRow(metricRow[MetricTable.matchId].value)!!)
-        val robot = rowToRobotQuery(getRobotRow(metricRow[MetricTable.robotId].value)!!)
+    private suspend fun rowToParticipantQuery(participantRow: ResultRow): ParticipantQuery {
+        val match = rowToMatchQuery(getMatchRow(participantRow[ParticipantTable.matchId].value)!!)
+        val robot = rowToRobotQuery(getRobotRow(participantRow[ParticipantTable.robotId].value)!!)
 
-        return MetricQuery(match, robot)
+        return ParticipantQuery(match, robot)
     }
 
     override suspend fun insertTeam(team: Team) {
@@ -319,28 +320,27 @@ class DatabaseImplementation : DatabaseInterface {
             }
         }
 
-        for (metric in match.metrics) {
+        for (participant in match.participants) {
             // TODO
-            // insertMetric(metric, match.query(eventQuery))
         }
     }
 
-    override suspend fun insertMetric(metric: Metric, matchQuery: MatchQuery, robotQuery: RobotQuery) {
-        if (metricExists(MetricQuery(matchQuery, robotQuery))) throw Exception("Metric exists")
+    override suspend fun insertParticipant(participant: Participant, matchQuery: MatchQuery, robotQuery: RobotQuery) {
+        if (participantExists(ParticipantQuery(matchQuery, robotQuery))) throw Exception("Participant exists")
 
         val matchId = getMatchId(matchQuery)
         val robotId = getRobotId(robotQuery)
 
         transaction {
-            val metricId = MetricTable.insertAndGetId {
+            val participantId = ParticipantTable.insertAndGetId {
                 it[this.matchId] = matchId
                 it[this.robotId] = robotId
-                it[alliance] = metric.alliance
+                it[alliance] = participant.alliance
             }
 
-            for (gameMetric in metric.gameMetrics) {
+            for (gameMetric in participant.gameMetrics) {
                 GameMetricTable.insert {
-                    it[GameMetricTable.metricId] = metricId
+                    it[GameMetricTable.participantId] = participantId
                     it[key] = gameMetric.key
                     it[value] = gameMetric.value
                 }

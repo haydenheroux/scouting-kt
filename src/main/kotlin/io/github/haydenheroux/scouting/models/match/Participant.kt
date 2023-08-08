@@ -9,67 +9,68 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
 
-object MetricTable : IntIdTable() {
+object ParticipantTable : IntIdTable() {
     val matchId = reference("matchId", MatchTable)
     val robotId = reference("robotId", RobotTable)
     val alliance = enumerationByName<Alliance>("alliance", 255)
 }
 
 @Serializable
-data class MetricProperties(
+data class ParticipantProperties(
     val alliance: Alliance,
 )
 
-fun ResultRow.metricProperties(): MetricProperties {
-    val alliance = this[MetricTable.alliance]
+fun ResultRow.participantProperties(): ParticipantProperties {
+    val alliance = this[ParticipantTable.alliance]
 
-    return MetricProperties(alliance)
+    return ParticipantProperties(alliance)
 }
 
-data class MetricReference(
+data class ParticipantReference(
     val alliance: Alliance,
     val matchReference: MatchReference?,
     val robotReference: RobotReference?,
     val gameMetricReferences: List<GameMetricReference>
 )
 
-suspend fun ResultRow.asMetricReference(noParent: Boolean, noChildren: Boolean): MetricReference {
-    val properties = this.metricProperties()
+suspend fun ResultRow.asParticipantReference(noParent: Boolean, noChildren: Boolean): ParticipantReference {
+    val properties = this.participantProperties()
 
-    val matchId = this[MetricTable.matchId]
+    val matchId = this[ParticipantTable.matchId]
     val matchReference = if (noParent) null else query {
         MatchTable.select { MatchTable.id eq matchId }.map { it.asMatchReference(false, true) }.single()
     }
-    val robotId = this[MetricTable.robotId]
+    val robotId = this[ParticipantTable.robotId]
     val robotReference = if (noParent) null else query {
         RobotTable.select { RobotTable.id eq robotId }.map { it.asRobotReference(false) }.single()
     }
 
-    val metricId = this[MetricTable.id]
+    val participantId = this[ParticipantTable.id]
     val gameMetricReferences = if (noChildren) listOf() else query {
-        GameMetricTable.select { GameMetricTable.metricId eq metricId }.map { it.asGameMetricReference(false) }
+        GameMetricTable.select { GameMetricTable.participantId eq participantId }
+            .map { it.asGameMetricReference(false) }
     }
 
-    return MetricReference(properties.alliance, matchReference, robotReference, gameMetricReferences)
+    return ParticipantReference(properties.alliance, matchReference, robotReference, gameMetricReferences)
 }
 
-fun MetricReference.dereference(): Metric {
+fun ParticipantReference.dereference(): Participant {
     // TODO Handle robotReference == null
     val robot = robotReference!!.dereference()
     val gameMetrics = gameMetricReferences.map { it.dereference() }
-    return Metric(robot, alliance, gameMetrics)
+    return Participant(robot, alliance, gameMetrics)
 }
 
 @Serializable
-data class Metric(
+data class Participant(
     val robot: Robot,
     val alliance: Alliance,
     val gameMetrics: List<GameMetric>
 )
 
-data class MetricQuery(val match: MatchQuery, val robot: RobotQuery)
+data class ParticipantQuery(val match: MatchQuery, val robot: RobotQuery)
 
-fun Parameters.metricQuery(): Result<MetricQuery> {
+fun Parameters.participantQuery(): Result<ParticipantQuery> {
     val match = this.matchQuery()
 
     if (match.isFailure) {
@@ -82,5 +83,5 @@ fun Parameters.metricQuery(): Result<MetricQuery> {
         return Result.failure(robot.exceptionOrNull()!!)
     }
 
-    return Result.success(MetricQuery(match.getOrNull()!!, robot.getOrNull()!!))
+    return Result.success(ParticipantQuery(match.getOrNull()!!, robot.getOrNull()!!))
 }

@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
 
 object GameMetricTable : IntIdTable() {
-    val metricId = reference("metricId", MetricTable)
+    val participantId = reference("participantId", ParticipantTable)
     val key = varchar("key", 255)
     val value = varchar("value", 255)
 }
@@ -22,17 +22,18 @@ fun ResultRow.gameMetricProperties(): GameMetricProperties {
     return GameMetricProperties(key, value)
 }
 
-data class GameMetricReference(val key: String, val value: String, val metricReference: MetricReference?)
+data class GameMetricReference(val key: String, val value: String, val participantReference: ParticipantReference?)
 
 suspend fun ResultRow.asGameMetricReference(noParent: Boolean): GameMetricReference {
     val properties = this.gameMetricProperties()
 
-    val metricId = this[GameMetricTable.metricId]
-    val metricReference = if (noParent) null else query {
-        MetricTable.select { MetricTable.id eq metricId }.map { it.asMetricReference(false, true) }.single()
+    val participantId = this[GameMetricTable.participantId]
+    val participantReference = if (noParent) null else query {
+        ParticipantTable.select { ParticipantTable.id eq participantId }.map { it.asParticipantReference(false, true) }
+            .single()
     }
 
-    return GameMetricReference(properties.key, properties.value, metricReference)
+    return GameMetricReference(properties.key, properties.value, participantReference)
 }
 
 fun GameMetricReference.dereference(): GameMetric {

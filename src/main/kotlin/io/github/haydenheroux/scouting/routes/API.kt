@@ -86,13 +86,13 @@ fun Route.api() {
             }
         }
 
-        get("/get-metric") {
-            val metricQuery = call.request.queryParameters.metricQuery().getOrNull()
+        get("/get-participant") {
+            val participantQuery = call.request.queryParameters.participantQuery().getOrNull()
 
-            metricQuery?.let {
-                val metric = db.getMetric(metricQuery)
+            participantQuery?.let {
+                val participant = db.getParticipant(participantQuery)
 
-                call.respond(metric.dereference())
+                call.respond(participant.dereference())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -164,7 +164,7 @@ fun Route.api() {
         post("/new-match") {
             val match = call.receive<Match>()
 
-            assert(match.metrics.isEmpty())
+            assert(match.participants.isEmpty())
 
             val eventQuery = call.request.queryParameters.eventQuery().getOrNull()
 
@@ -177,8 +177,8 @@ fun Route.api() {
             }
         }
 
-        post("/new-metric") {
-            val metric = call.receive<Metric>()
+        post("/new-participant") {
+            val participant = call.receive<Participant>()
 
             val matchQuery = call.request.queryParameters.matchQuery().getOrNull()
 
@@ -186,7 +186,7 @@ fun Route.api() {
                 val robotQuery = call.request.queryParameters.robotQuery().getOrNull()
 
                 robotQuery?.let {
-                    db.insertMetric(metric, matchQuery, robotQuery)
+                    db.insertParticipant(participant, matchQuery, robotQuery)
 
                     call.respond(HttpStatusCode.OK)
                 } ?: run {

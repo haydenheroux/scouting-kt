@@ -45,8 +45,8 @@
             <#list event.matchReferences as matchReference>
                 <tr>
                     <td>${matchReference.type[0]}${matchReference.number}</td>
-                    <#list matchReference.metricReferences as metricReference>
-                    <#local team_number=metricReference.robotReference.seasonReference.teamReference.number>
+                    <#list matchReference.participantReferences as participantReference>
+                    <#local team_number=participantReference.robotReference.seasonReference.teamReference.number>
                     <td><a href="/teams/${team_number?c}/${event.year?c}">${team_number?c}</td>
                     </#list>
                 </tr>
