@@ -11,6 +11,10 @@
     box-sizing: border-box;
 }
 
+p {
+    margin-top: 0;
+}
+
 a {
     color: var(--white);
     text-decoration: none;
@@ -28,12 +32,9 @@ h1, h2, h3 {
     margin-top: 0;
 }
 
-section h1 {
-    margin-bottom: 0.5rem;
-}
-
 h1 {
     font-size: 3em;
+    margin-bottom: 0.5rem;
 }
 
 h2 {
@@ -41,6 +42,7 @@ h2 {
     font-weight: 600;
     line-height: 1;
     letter-spacing: -.025em;
+    margin-bottom: 1.2rem;
 }
 
 h3 {
@@ -57,11 +59,15 @@ hr {
     border-top: 1px solid var(--gray-medium);
 }
 
+html {
+    /* https://matthewjamestaylor.com/responsive-font-size */
+    font-size: calc(15px + 0.390625vw);
+}
+
 body {
     background-color: var(--black);
     color: var(--dim);
     font-family: 'Open Sans', sans-serif;
-    font-size: 14px;
     line-height: 1.4;
 
     margin: 0;
@@ -73,8 +79,8 @@ header {
 
     width: 100%;
 
-    margin-bottom: 20px;
-    min-height: 50px;
+    margin-bottom: 1rem;
+    min-height: 2.5rem;
 }
 
 nav ul {
@@ -91,11 +97,11 @@ nav ul li {
 nav ul li a {
     display: block;
 
-    min-width: 60px;
+    min-width: 6rem;
 
-    text-align: center;
+    text-align: left;
 
-    font-size: 14px;
+    font-size: 1rem;
     font-weight: 500;
 
     padding: 15px 5px;
@@ -104,8 +110,8 @@ nav ul li a {
 .container {
     margin-left: auto;
     margin-right: auto;
-    padding-left: 15px;
-    padding-right: 15px;
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
 @media (min-width: 768px) {
