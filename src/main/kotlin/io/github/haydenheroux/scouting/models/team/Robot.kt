@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.database.Database.query
+import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -39,3 +40,17 @@ fun RobotReference.dereference(): Robot {
 
 @Serializable
 data class Robot(val name: String)
+
+data class RobotQuery(val name: String, val season: SeasonQuery)
+
+fun Robot.query(seasonQuery: SeasonQuery): RobotQuery {
+    return RobotQuery(name, seasonQuery)
+}
+
+fun Parameters.robotQuery(): RobotQuery {
+    val name = this["robot"]!!
+
+    val season = this.seasonQuery()
+
+    return RobotQuery(name, season)
+}

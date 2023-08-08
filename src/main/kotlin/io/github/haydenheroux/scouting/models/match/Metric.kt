@@ -2,9 +2,8 @@ package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.Database.query
 import io.github.haydenheroux.scouting.models.enums.Alliance
-import io.github.haydenheroux.scouting.models.team.RobotReference
-import io.github.haydenheroux.scouting.models.team.Robots
-import io.github.haydenheroux.scouting.models.team.asRobotReference
+import io.github.haydenheroux.scouting.models.team.*
+import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -64,3 +63,12 @@ data class Metric(
     val alliance: Alliance,
     val gameMetrics: List<GameMetric>
 )
+
+data class MetricQuery(val match: MatchQuery, val robot: RobotQuery)
+
+fun Parameters.metricQuery(): MetricQuery {
+    val match = this.matchQuery()
+    val robot = this.robotQuery()
+
+    return MetricQuery(match, robot)
+}

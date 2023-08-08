@@ -2,8 +2,10 @@ package io.github.haydenheroux.scouting.models.event
 
 import io.github.haydenheroux.scouting.database.Database.query
 import io.github.haydenheroux.scouting.models.enums.Region
+import io.github.haydenheroux.scouting.models.enums.regionOf
 import io.github.haydenheroux.scouting.models.match.*
 import io.github.haydenheroux.scouting.models.team.Seasons
+import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -73,3 +75,18 @@ data class Event(
     val week: Int,
     val matches: List<Match>
 )
+
+data class EventQuery(val name: String, val region: Region, val year: Int, val week: Int)
+
+fun Event.query(): EventQuery {
+    return EventQuery(name, region, year, week)
+}
+
+fun Parameters.eventQuery(): EventQuery {
+    val name = this["event"]!!
+    val region = regionOf[this["region"]]!!
+    val year = this["year"]!!.toInt()
+    val week = this["week"]!!.toInt()
+
+    return EventQuery(name, region, year, week)
+}

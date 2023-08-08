@@ -1,12 +1,12 @@
 package io.github.haydenheroux.scouting.database
 
+import io.github.haydenheroux.scouting.models.event.EventQuery
 import io.github.haydenheroux.scouting.models.event.EventReference
+import io.github.haydenheroux.scouting.models.match.MatchQuery
 import io.github.haydenheroux.scouting.models.match.MatchReference
+import io.github.haydenheroux.scouting.models.match.MetricQuery
 import io.github.haydenheroux.scouting.models.match.MetricReference
-import io.github.haydenheroux.scouting.models.team.RobotReference
-import io.github.haydenheroux.scouting.models.team.SeasonReference
-import io.github.haydenheroux.scouting.models.team.TeamReference
-import io.github.haydenheroux.scouting.query.*
+import io.github.haydenheroux.scouting.models.team.*
 
 interface DatabaseInterface {
     suspend fun getTeams(): List<TeamReference>

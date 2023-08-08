@@ -2,9 +2,8 @@ package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.Database.query
 import io.github.haydenheroux.scouting.models.enums.MatchType
-import io.github.haydenheroux.scouting.models.event.EventReference
-import io.github.haydenheroux.scouting.models.event.Events
-import io.github.haydenheroux.scouting.models.event.asEventReference
+import io.github.haydenheroux.scouting.models.event.*
+import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -63,3 +62,17 @@ data class Match(
     val type: MatchType,
     val metrics: List<Metric>
 )
+
+data class MatchQuery(val number: Int, val event: EventQuery)
+
+fun Match.query(eventQuery: EventQuery): MatchQuery {
+    return MatchQuery(number, eventQuery)
+}
+
+fun Parameters.matchQuery(): MatchQuery {
+    val number = this["match"]!!.toInt()
+
+    val event = this.eventQuery()
+
+    return MatchQuery(number, event)
+}

@@ -2,6 +2,7 @@ package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.database.Database.query
 import io.github.haydenheroux.scouting.models.enums.Region
+import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -50,3 +51,15 @@ fun TeamReference.dereference(): Team {
 
 @Serializable
 data class Team(val number: Int, val name: String, val region: Region, val seasons: List<Season>)
+
+data class TeamQuery(val number: Int)
+
+fun Team.query(): TeamQuery {
+    return TeamQuery(number)
+}
+
+fun Parameters.teamQuery(): TeamQuery {
+    val number = this["team"]!!.toInt()
+
+    return TeamQuery(number)
+}

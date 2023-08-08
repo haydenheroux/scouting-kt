@@ -2,6 +2,7 @@ package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.database.Database.query
 import io.github.haydenheroux.scouting.models.event.*
+import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -59,3 +60,17 @@ fun SeasonReference.dereference(): Season {
 
 @Serializable
 data class Season(val year: Int, val events: List<Event>, val robots: List<Robot>)
+
+data class SeasonQuery(val year: Int, val team: TeamQuery)
+
+fun Season.query(teamQuery: TeamQuery): SeasonQuery {
+    return SeasonQuery(year, teamQuery)
+}
+
+fun Parameters.seasonQuery(): SeasonQuery {
+    val year = this["year"]!!.toInt()
+
+    val team = this.teamQuery()
+
+    return SeasonQuery(year, team)
+}

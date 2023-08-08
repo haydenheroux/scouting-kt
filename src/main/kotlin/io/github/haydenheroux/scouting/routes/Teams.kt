@@ -1,8 +1,8 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
-import io.github.haydenheroux.scouting.query.seasonQueryFromParameters
-import io.github.haydenheroux.scouting.query.teamQueryFromParameters
+import io.github.haydenheroux.scouting.models.team.seasonQuery
+import io.github.haydenheroux.scouting.models.team.teamQuery
 import io.ktor.server.application.*
 import io.ktor.server.freemarker.*
 import io.ktor.server.response.*
@@ -17,13 +17,13 @@ fun Route.teams() {
         }
 
         get("/{team}") {
-            val teamReference = db.getTeam(teamQueryFromParameters(call.parameters))
+            val teamReference = db.getTeam(call.parameters.teamQuery())
 
             call.respond(FreeMarkerContent("team.ftl", mapOf("teamReference" to teamReference)))
         }
 
         get("/{team}/{year}") {
-            val seasonReference = db.getSeason(seasonQueryFromParameters(call.parameters))
+            val seasonReference = db.getSeason(call.parameters.seasonQuery())
 
             call.respond(FreeMarkerContent("season.ftl", mapOf("seasonReference" to seasonReference)))
         }
