@@ -27,10 +27,8 @@
 
 <#macro event_section event>
     <section>
-        <h2>${event.name}</h2>
-        <p>
-        <@layout.rename_region region=event.region />
-        </p>
+        <h2><a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}">${event.name}</a></h2>
+        <p>${region_to_text(event.region)}</p>
         <p>Week ${event.week?c}, ${event.year?c}</p>
         <h3>Matches</h3>
         <table>
@@ -58,7 +56,7 @@
 
 <#macro team_header team>
     <h1><a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a></h1>
-    <p><@layout.rename_region region=team.region /></p>
+    <p>${region_to_text(team.region)}</p>
 </#macro>
 
 <#macro season_section season>
@@ -71,10 +69,18 @@
     </section>
 </#macro>
 
-<#macro rename_region region>
+<#function region_to_text region>
     <#if region == "NEW_ENGLAND">
-    New England
+        <#return "New England">
     <#else>
-    ${region}
+        <#return region>
     </#if>
-</#macro>
+</#function>
+
+<#function region_to_serial region>
+    <#if region == "NEW_ENGLAND">
+        <#return "ne">
+    <#else>
+        <#return region>
+    </#if>
+</#function>
