@@ -69,9 +69,18 @@ data class Metric(
 
 data class MetricQuery(val match: MatchQuery, val robot: RobotQuery)
 
-fun Parameters.metricQuery(): MetricQuery {
+fun Parameters.metricQuery(): Result<MetricQuery> {
     val match = this.matchQuery()
+
+    if (match.isFailure) {
+        return Result.failure(match.exceptionOrNull()!!)
+    }
+
     val robot = this.robotQuery()
 
-    return MetricQuery(match, robot)
+    if (robot.isFailure) {
+        return Result.failure(robot.exceptionOrNull()!!)
+    }
+
+    return Result.success(MetricQuery(match.getOrNull()!!, robot.getOrNull()!!))
 }

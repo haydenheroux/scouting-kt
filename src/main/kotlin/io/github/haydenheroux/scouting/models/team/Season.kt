@@ -75,10 +75,14 @@ fun Season.query(teamQuery: TeamQuery): SeasonQuery {
     return SeasonQuery(year, teamQuery)
 }
 
-fun Parameters.seasonQuery(): SeasonQuery {
-    val year = this["year"]!!.toInt()
+fun Parameters.seasonQuery(): Result<SeasonQuery> {
+    val year = this["year"] ?: return Result.failure(Exception("Missing `year` in parameters"))
 
     val team = this.teamQuery()
 
-    return SeasonQuery(year, team)
+    if (team.isFailure) {
+        return Result.failure(team.exceptionOrNull()!!)
+    }
+
+    return Result.success(SeasonQuery(year.toInt(), team.getOrNull()!!))
 }

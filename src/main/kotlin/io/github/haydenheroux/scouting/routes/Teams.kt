@@ -3,6 +3,7 @@ package io.github.haydenheroux.scouting.routes
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.team.seasonQuery
 import io.github.haydenheroux.scouting.models.team.teamQuery
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.freemarker.*
 import io.ktor.server.response.*
@@ -17,15 +18,27 @@ fun Route.teams() {
         }
 
         get("/{team}") {
-            val teamReference = db.getTeam(call.parameters.teamQuery())
+            val teamQuery = call.parameters.teamQuery().getOrNull()
 
-            call.respond(FreeMarkerContent("team.ftl", mapOf("teamReference" to teamReference)))
+            teamQuery?.let {
+                val teamReference = db.getTeam(teamQuery)
+
+                call.respond(FreeMarkerContent("team.ftl", mapOf("teamReference" to teamReference)))
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         get("/{team}/{year}") {
-            val seasonReference = db.getSeason(call.parameters.seasonQuery())
+            val seasonQuery = call.parameters.seasonQuery().getOrNull()
 
-            call.respond(FreeMarkerContent("season.ftl", mapOf("seasonReference" to seasonReference)))
+            seasonQuery?.let {
+                val seasonReference = db.getSeason(seasonQuery)
+
+                call.respond(FreeMarkerContent("season.ftl", mapOf("seasonReference" to seasonReference)))
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
     }
 }

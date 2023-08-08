@@ -73,11 +73,11 @@ fun Event.query(): EventQuery {
     return EventQuery(name, region, year, week)
 }
 
-fun Parameters.eventQuery(): EventQuery {
-    val name = this["event"]!!
-    val region = regionOf[this["region"]]!!
-    val year = this["year"]!!.toInt()
-    val week = this["week"]!!.toInt()
+fun Parameters.eventQuery(): Result<EventQuery> {
+    val name = this["event"] ?: return Result.failure(Exception("Missing `event` in parameters"))
+    val region = regionOf[this["region"]] ?: return Result.failure(Exception("Missing `region` in parameters"))
+    val year = this["year"] ?: return Result.failure(Exception("Missing `year` in parameters"))
+    val week = this["week"] ?: return Result.failure(Exception("Missing `week` in parameters"))
 
-    return EventQuery(name, region, year, week)
+    return Result.success(EventQuery(name, region, year.toInt(), week.toInt()))
 }

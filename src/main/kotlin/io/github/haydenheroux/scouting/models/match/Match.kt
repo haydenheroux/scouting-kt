@@ -69,10 +69,14 @@ fun Match.query(eventQuery: EventQuery): MatchQuery {
     return MatchQuery(number, eventQuery)
 }
 
-fun Parameters.matchQuery(): MatchQuery {
-    val number = this["match"]!!.toInt()
+fun Parameters.matchQuery(): Result<MatchQuery> {
+    val number = this["match"] ?: return Result.failure(Exception("Missing `number` in parameters"))
 
     val event = this.eventQuery()
 
-    return MatchQuery(number, event)
+    if (event.isFailure) {
+        return Result.failure(event.exceptionOrNull()!!)
+    }
+
+    return Result.success(MatchQuery(number.toInt(), event.getOrNull()!!))
 }

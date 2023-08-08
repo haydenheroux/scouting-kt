@@ -21,21 +21,39 @@ fun Route.api() {
         }
 
         get("/get-team") {
-            val team = db.getTeam(call.request.queryParameters.teamQuery())
+            val teamQuery = call.request.queryParameters.teamQuery().getOrNull()
 
-            call.respond(team.dereference())
+            teamQuery?.let {
+                val team = db.getTeam(teamQuery)
+
+                call.respond(team.dereference())
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         get("/get-season") {
-            val season = db.getSeason(call.request.queryParameters.seasonQuery())
+            val seasonQuery = call.request.queryParameters.seasonQuery().getOrNull()
 
-            call.respond(season.dereference())
+            seasonQuery?.let {
+                val season = db.getSeason(seasonQuery)
+
+                call.respond(season.dereference())
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         get("/get-robot") {
-            val robot = db.getRobot(call.request.queryParameters.robotQuery())
+            val robotQuery = call.request.queryParameters.robotQuery().getOrNull()
 
-            call.respond(robot.dereference())
+            robotQuery?.let {
+                val robot = db.getRobot(robotQuery)
+
+                call.respond(robot.dereference())
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         get("/get-events") {
@@ -45,21 +63,39 @@ fun Route.api() {
         }
 
         get("/get-event") {
-            val event = db.getEvent(call.request.queryParameters.eventQuery())
+            val eventQuery = call.request.queryParameters.eventQuery().getOrNull()
 
-            call.respond(event.dereference())
+            eventQuery?.let {
+                val event = db.getEvent(eventQuery)
+
+                call.respond(event.dereference())
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         get("/get-match") {
-            val match = db.getMatch(call.request.queryParameters.matchQuery())
+            val matchQuery = call.request.queryParameters.matchQuery().getOrNull()
 
-            call.respond(match.dereference())
+            matchQuery?.let {
+                val match = db.getMatch(matchQuery)
+
+                call.respond(match.dereference())
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         get("/get-metric") {
-            val metric = db.getMetric(call.request.queryParameters.metricQuery())
+            val metricQuery = call.request.queryParameters.metricQuery().getOrNull()
 
-            call.respond(metric.dereference())
+            metricQuery?.let {
+                val metric = db.getMetric(metricQuery)
+
+                call.respond(metric.dereference())
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         post("/new-team") {
@@ -73,30 +109,48 @@ fun Route.api() {
         post("/new-season") {
             val season = call.receive<Season>()
 
-            val team = call.request.queryParameters.teamQuery()
+            val teamQuery = call.request.queryParameters.teamQuery().getOrNull()
 
-            db.insertSeason(season, team)
+            teamQuery?.let {
+                db.insertSeason(season, teamQuery)
 
-            call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         post("/new-robot") {
             val robot = call.receive<Robot>()
 
-            val season = call.request.queryParameters.seasonQuery()
+            val seasonQuery = call.request.queryParameters.seasonQuery().getOrNull()
 
-            db.insertRobot(robot, season)
+            seasonQuery?.let {
+                db.insertRobot(robot, seasonQuery)
 
-            call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         post("/add-event") {
-            val event = call.request.queryParameters.eventQuery()
-            val season = call.request.queryParameters.seasonQuery()
+            val eventQuery = call.request.queryParameters.eventQuery().getOrNull()
 
-            db.insertSeasonEvent(event, season)
+            eventQuery?.let {
+                val seasonQuery = call.request.queryParameters.seasonQuery().getOrNull()
 
-            call.respond(HttpStatusCode.OK)
+                // TODO Find a way to remove these nested null checks
+                seasonQuery?.let {
+                    db.insertSeasonEvent(eventQuery, seasonQuery)
+
+                    call.respond(HttpStatusCode.OK)
+                } ?: run {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         post("/new-event") {
@@ -112,22 +166,35 @@ fun Route.api() {
 
             assert(match.metrics.isEmpty())
 
-            val event = call.request.queryParameters.eventQuery()
+            val eventQuery = call.request.queryParameters.eventQuery().getOrNull()
 
-            db.insertMatch(match, event)
+            eventQuery?.let {
+                db.insertMatch(match, eventQuery)
 
-            call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         post("/new-metric") {
             val metric = call.receive<Metric>()
 
-            val match = call.request.queryParameters.matchQuery()
-            val robot = call.request.queryParameters.robotQuery()
+            val matchQuery = call.request.queryParameters.matchQuery().getOrNull()
 
-            db.insertMetric(metric, match, robot)
+            matchQuery?.let {
+                val robotQuery = call.request.queryParameters.robotQuery().getOrNull()
 
-            call.respond(HttpStatusCode.OK)
+                robotQuery?.let {
+                    db.insertMetric(metric, matchQuery, robotQuery)
+
+                    call.respond(HttpStatusCode.OK)
+                } ?: run {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
     }
 }

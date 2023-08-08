@@ -58,8 +58,8 @@ fun Team.query(): TeamQuery {
     return TeamQuery(number)
 }
 
-fun Parameters.teamQuery(): TeamQuery {
-    val number = this["team"]!!.toInt()
+fun Parameters.teamQuery(): Result<TeamQuery> {
+    val number = this["team"] ?: return Result.failure(Exception("Missing `team` in parameters"))
 
-    return TeamQuery(number)
+    return Result.success(TeamQuery(number.toInt()))
 }
