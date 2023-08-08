@@ -17,25 +17,25 @@ object Metrics : IntIdTable() {
 }
 
 @Serializable
-data class MetricData(
+data class MetricProperties(
     val alliance: Alliance,
 )
 
-fun ResultRow.asMetricData(): MetricData {
+fun ResultRow.metricProperties(): MetricProperties {
     val alliance = this[Metrics.alliance]
 
-    return MetricData(alliance)
+    return MetricProperties(alliance)
 }
 
 data class MetricReference(
-    val metricData: MetricData,
+    val alliance: Alliance,
     val matchReference: MatchReference?,
     val robotReference: RobotReference?,
     val gameMetricReferences: List<GameMetricReference>
 )
 
 suspend fun ResultRow.asMetricReference(noParent: Boolean, noChildren: Boolean): MetricReference {
-    val metricData = this.asMetricData()
+    val properties = this.metricProperties()
 
     val matchId = this[Metrics.match]
     val matchReference = if (noParent) null else query {
@@ -51,16 +51,16 @@ suspend fun ResultRow.asMetricReference(noParent: Boolean, noChildren: Boolean):
         GameMetrics.select { GameMetrics.metric eq metricId }.map { it.asGameMetricReference(false) }
     }
 
-    return MetricReference(metricData, matchReference, robotReference, gameMetricReferences)
+    return MetricReference(properties.alliance, matchReference, robotReference, gameMetricReferences)
 }
 
 fun MetricReference.dereference(): Metric {
     val gameMetrics = gameMetricReferences.map { it.dereference() }
-    return Metric(metricData, gameMetrics)
+    return Metric(alliance, gameMetrics)
 }
 
 @Serializable
 data class Metric(
-    val metricData: MetricData,
+    val alliance: Alliance,
     val gameMetrics: List<GameMetric>
 )

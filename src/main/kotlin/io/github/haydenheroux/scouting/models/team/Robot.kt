@@ -12,30 +12,30 @@ object Robots : IntIdTable() {
 }
 
 @Serializable
-data class RobotData(val name: String)
+data class RobotProperties(val name: String)
 
-fun ResultRow.asRobotData(): RobotData {
+fun ResultRow.robotProperties(): RobotProperties {
     val name = this[Robots.name]
 
-    return RobotData(name)
+    return RobotProperties(name)
 }
 
-data class RobotReference(val robotData: RobotData, val seasonReference: SeasonReference?)
+data class RobotReference(val name: String, val seasonReference: SeasonReference?)
 
 suspend fun ResultRow.asRobotReference(noParent: Boolean): RobotReference {
-    val robotData = this.asRobotData()
+    val properties = this.robotProperties()
 
     val seasonId = this[Robots.season]
     val seasonReference = if (noParent) null else query {
         Seasons.select { Seasons.id eq seasonId }.map { it.asSeasonReference(false, true) }.single()
     }
 
-    return RobotReference(robotData, seasonReference)
+    return RobotReference(properties.name, seasonReference)
 }
 
 fun RobotReference.dereference(): Robot {
-    return Robot(robotData)
+    return Robot(name)
 }
 
 @Serializable
-data class Robot(val robotData: RobotData)
+data class Robot(val name: String)

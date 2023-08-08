@@ -13,31 +13,31 @@ object GameMetrics : IntIdTable() {
 }
 
 @Serializable
-data class GameMetricData(val key: String, val value: String)
+data class GameMetricProperties(val key: String, val value: String)
 
-fun ResultRow.asGameMetricData(): GameMetricData {
+fun ResultRow.gameMetricProperties(): GameMetricProperties {
     val key = this[GameMetrics.key]
     val value = this[GameMetrics.value]
 
-    return GameMetricData(key, value)
+    return GameMetricProperties(key, value)
 }
 
-data class GameMetricReference(val gameMetricData: GameMetricData, val metricReference: MetricReference?)
+data class GameMetricReference(val key: String, val value: String, val metricReference: MetricReference?)
 
 suspend fun ResultRow.asGameMetricReference(noParent: Boolean): GameMetricReference {
-    val gameMetricData = this.asGameMetricData()
+    val properties = this.gameMetricProperties()
 
     val metricId = this[GameMetrics.metric]
     val metricReference = if (noParent) null else query {
         Metrics.select { Metrics.id eq metricId }.map { it.asMetricReference(false, true) }.single()
     }
 
-    return GameMetricReference(gameMetricData, metricReference)
+    return GameMetricReference(properties.key, properties.value, metricReference)
 }
 
 fun GameMetricReference.dereference(): GameMetric {
-    return GameMetric(gameMetricData)
+    return GameMetric(key, value)
 }
 
 @Serializable
-data class GameMetric(val gameMetricData: GameMetricData)
+data class GameMetric(val key: String, val value: String)

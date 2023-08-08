@@ -27,11 +27,11 @@
 
 <#macro event_section event>
     <section>
-        <h2>${event.eventData.name}</h2>
+        <h2>${event.name}</h2>
         <p>
-        <@layout.rename_region region=event.eventData.region />
+        <@layout.rename_region region=event.region />
         </p>
-        <p>Week ${event.eventData.week?c}</p>
+        <p>Week ${event.week?c}</p>
         <hr/>
         <h3>Matches</h3>
         <table>
@@ -44,10 +44,10 @@
             <tbody>
             <#list event.matchReferences as matchReference>
                 <tr>
-                    <td>${matchReference.matchData.type[0]}${matchReference.matchData.number}</td>
+                    <td>${matchReference.type[0]}${matchReference.number}</td>
                     <#list matchReference.metricReferences as metricReference>
-                    <#local team_number=metricReference.robotReference.seasonReference.teamReference.teamData.number>
-                    <td><a href="/teams/${team_number?c}/${event.eventData.year?c}">${team_number?c}</td>
+                    <#local team_number=metricReference.robotReference.seasonReference.teamReference.number>
+                    <td><a href="/teams/${team_number?c}/${event.year?c}">${team_number?c}</td>
                     </#list>
                 </tr>
             </#list>
@@ -57,13 +57,13 @@
 </#macro>
 
 <#macro team_header team>
-    <h1>Team ${team.teamData.number?c} - ${team.teamData.name}</h1>
-    <p><@layout.rename_region region=team.teamData.region /></p>
+    <h1>Team ${team.number?c} - ${team.name}</h1>
+    <p><@layout.rename_region region=team.region /></p>
 </#macro>
 
 <#macro season_section season>
     <section>
-    <h2>${season.seasonData.year?c}</h2>
+    <h2>${season.year?c}</h2>
     <hr/>
     <#list season.eventReferences as eventReference>
     <@layout.event_section event=eventReference />

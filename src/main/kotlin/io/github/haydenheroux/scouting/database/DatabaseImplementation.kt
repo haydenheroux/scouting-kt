@@ -224,9 +224,9 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun insertTeam(team: Team) {
         transaction {
             Teams.insert {
-                it[number] = team.teamData.number
-                it[name] = team.teamData.name
-                it[region] = team.teamData.region
+                it[number] = team.number
+                it[name] = team.name
+                it[region] = team.region
             }
         }
 
@@ -241,7 +241,7 @@ class DatabaseImplementation : DatabaseInterface {
         transaction {
             Seasons.insert {
                 it[team] = teamId
-                it[year] = season.seasonData.year
+                it[year] = season.year
             }
         }
 
@@ -260,7 +260,7 @@ class DatabaseImplementation : DatabaseInterface {
         transaction {
             Robots.insert {
                 it[season] = seasonId
-                it[name] = robot.robotData.name
+                it[name] = robot.name
             }
         }
     }
@@ -268,10 +268,10 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun insertEvent(event: Event) {
         transaction {
             Events.insert {
-                it[name] = event.eventData.name
-                it[region] = event.eventData.region
-                it[year] = event.eventData.year
-                it[week] = event.eventData.week
+                it[name] = event.name
+                it[region] = event.region
+                it[year] = event.year
+                it[week] = event.week
             }
         }
 
@@ -297,8 +297,8 @@ class DatabaseImplementation : DatabaseInterface {
 
         transaction {
             Matches.insert {
-                it[number] = match.matchData.number
-                it[type] = match.matchData.type
+                it[number] = match.number
+                it[type] = match.type
                 it[event] = eventId
             }
         }
@@ -316,7 +316,7 @@ class DatabaseImplementation : DatabaseInterface {
             Metrics.insert {
                 it[match] = matchId
                 it[robot] = robotId
-                it[alliance] = metric.metricData.alliance
+                it[alliance] = metric.alliance
             }
         }
 
@@ -331,8 +331,8 @@ class DatabaseImplementation : DatabaseInterface {
         transaction {
             GameMetrics.insert {
                 it[metric] = metricId
-                it[key] = gameMetric.gameMetricData.key
-                it[value] = gameMetric.gameMetricData.value
+                it[key] = gameMetric.key
+                it[value] = gameMetric.value
             }
         }
     }

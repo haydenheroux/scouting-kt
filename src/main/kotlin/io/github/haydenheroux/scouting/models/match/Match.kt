@@ -17,26 +17,27 @@ object Matches : IntIdTable() {
 }
 
 @Serializable
-data class MatchData(
+data class MatchProperties(
     val number: Int,
     val type: MatchType,
 )
 
-fun ResultRow.asMatchData(): MatchData {
+fun ResultRow.matchProperties(): MatchProperties {
     val number = this[Matches.number]
     val type = this[Matches.type]
 
-    return MatchData(number, type)
+    return MatchProperties(number, type)
 }
 
 data class MatchReference(
-    val matchData: MatchData,
+    val number: Int,
+    val type: MatchType,
     val eventReference: EventReference?,
     val metricReferences: List<MetricReference>
 )
 
 suspend fun ResultRow.asMatchReference(noParent: Boolean, noChildren: Boolean): MatchReference {
-    val matchData = this.asMatchData()
+    val properties = this.matchProperties()
 
     val eventId = this[Matches.event]
     val eventReference = if (noParent) null else query {
@@ -48,16 +49,17 @@ suspend fun ResultRow.asMatchReference(noParent: Boolean, noChildren: Boolean): 
         Metrics.select { Metrics.match eq matchId }.map { it.asMetricReference(false, false) }
     }
 
-    return MatchReference(matchData, eventReference, metricReferences)
+    return MatchReference(properties.number, properties.type, eventReference, metricReferences)
 }
 
 fun MatchReference.dereference(): Match {
     val metrics = metricReferences.map { it.dereference() }
-    return Match(matchData, metrics)
+    return Match(number, type, metrics)
 }
 
 @Serializable
 data class Match(
-    val matchData: MatchData,
+    val number: Int,
+    val type: MatchType,
     val metrics: List<Metric>
 )

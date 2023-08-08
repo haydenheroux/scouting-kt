@@ -13,23 +13,23 @@ object Seasons : IntIdTable() {
 }
 
 @Serializable
-data class SeasonData(val year: Int)
+data class SeasonProperties(val year: Int)
 
-fun ResultRow.asSeasonData(): SeasonData {
+fun ResultRow.seasonProperties(): SeasonProperties {
     val year = this[Seasons.year]
 
-    return SeasonData(year)
+    return SeasonProperties(year)
 }
 
 data class SeasonReference(
-    val seasonData: SeasonData,
+    val year: Int,
     val teamReference: TeamReference?,
     val eventReferences: List<EventReference>,
     val robotReferences: List<RobotReference>
 )
 
 suspend fun ResultRow.asSeasonReference(noParent: Boolean, noChildren: Boolean): SeasonReference {
-    val seasonData = this.asSeasonData()
+    val properties = this.seasonProperties()
 
     val teamId = this[Seasons.team]
     val teamReference = if (noParent) null else query {
@@ -48,14 +48,14 @@ suspend fun ResultRow.asSeasonReference(noParent: Boolean, noChildren: Boolean):
         Robots.select { Robots.season eq seasonId }.map { it.asRobotReference(false) }
     }
 
-    return SeasonReference(seasonData, teamReference, eventReferences, robotReferences)
+    return SeasonReference(properties.year, teamReference, eventReferences, robotReferences)
 }
 
 fun SeasonReference.dereference(): Season {
     val events = eventReferences.map { it.dereference() }
     val robots = robotReferences.map { it.dereference() }
-    return Season(seasonData, events, robots)
+    return Season(year, events, robots)
 }
 
 @Serializable
-data class Season(val seasonData: SeasonData, val events: List<Event>, val robots: List<Robot>)
+data class Season(val year: Int, val events: List<Event>, val robots: List<Robot>)

@@ -25,42 +25,51 @@ object SeasonEvents : Table() {
 }
 
 @Serializable
-data class EventData(
+data class EventProperties(
     val name: String,
     val region: Region,
     val year: Int,
     val week: Int,
 )
 
-fun ResultRow.asEventData(): EventData {
+fun ResultRow.eventProperties(): EventProperties {
     val name = this[Events.name]
     val region = this[Events.region]
     val year = this[Events.year]
     val week = this[Events.week]
 
-    return EventData(name, region, year, week)
+    return EventProperties(name, region, year, week)
 }
 
-data class EventReference(val eventData: EventData, val matchReferences: List<MatchReference>)
+data class EventReference(
+    val name: String,
+    val region: Region,
+    val year: Int,
+    val week: Int,
+    val matchReferences: List<MatchReference>
+)
 
 suspend fun ResultRow.asEventReference(noChildren: Boolean): EventReference {
-    val eventData = this.asEventData()
+    val properties = this.eventProperties()
 
     val eventId = this[Events.id]
     val matchReferences = if (noChildren) listOf() else query {
         Matches.select { Matches.event eq eventId }.map { it.asMatchReference(false, false) }
     }
 
-    return EventReference(eventData, matchReferences)
+    return EventReference(properties.name, properties.region, properties.year, properties.week, matchReferences)
 }
 
 fun EventReference.dereference(): Event {
     val matches = matchReferences.map { it.dereference() }
-    return Event(eventData, matches)
+    return Event(name, region, year, week, matches)
 }
 
 @Serializable
 data class Event(
-    val eventData: EventData,
+    val name: String,
+    val region: Region,
+    val year: Int,
+    val week: Int,
     val matches: List<Match>
 )

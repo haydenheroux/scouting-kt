@@ -14,33 +14,39 @@ object Teams : IntIdTable() {
 }
 
 @Serializable
-data class TeamData(val number: Int, val name: String, val region: Region)
+data class TeamProperties(val number: Int, val name: String, val region: Region)
 
-fun ResultRow.asTeamData(): TeamData {
+fun ResultRow.teamProperties(): TeamProperties {
     val number = this[Teams.number]
     val name = this[Teams.name]
     val region = this[Teams.region]
 
-    return TeamData(number, name, region)
+    return TeamProperties(number, name, region)
 }
 
-data class TeamReference(val teamData: TeamData, val seasonReferences: List<SeasonReference>)
+data class TeamReference(
+    val number: Int,
+    val name: String,
+    val region: Region,
+    val seasonReferences: List<SeasonReference>
+)
 
 suspend fun ResultRow.asTeamReference(noChildren: Boolean): TeamReference {
-    val teamData = this.asTeamData()
+    val properties = this.teamProperties()
 
     val teamId = this[Teams.id]
     val seasonReferences = if (noChildren) listOf() else query {
         Seasons.select { Seasons.team eq teamId }.map { it.asSeasonReference(false, false) }
     }
 
-    return TeamReference(teamData, seasonReferences)
+    return TeamReference(properties.number, properties.name, properties.region, seasonReferences)
 }
 
 fun TeamReference.dereference(): Team {
     val seasons = seasonReferences.map { it.dereference() }
-    return Team(teamData, seasons)
+
+    return Team(number, name, region, seasons)
 }
 
 @Serializable
-data class Team(val teamData: TeamData, val seasons: List<Season>)
+data class Team(val number: Int, val name: String, val region: Region, val seasons: List<Season>)
