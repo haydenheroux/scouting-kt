@@ -9,8 +9,8 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
 
-object Matches : IntIdTable() {
-    val event = reference("event_id", Events)
+object MatchTable : IntIdTable() {
+    val eventId = reference("eventId", EventTable)
     val number = integer("number")
     val type = enumerationByName<MatchType>("type", 255)
 }
@@ -22,8 +22,8 @@ data class MatchProperties(
 )
 
 fun ResultRow.matchProperties(): MatchProperties {
-    val number = this[Matches.number]
-    val type = this[Matches.type]
+    val number = this[MatchTable.number]
+    val type = this[MatchTable.type]
 
     return MatchProperties(number, type)
 }
@@ -38,14 +38,14 @@ data class MatchReference(
 suspend fun ResultRow.asMatchReference(noParent: Boolean, noChildren: Boolean): MatchReference {
     val properties = this.matchProperties()
 
-    val eventId = this[Matches.event]
+    val eventId = this[MatchTable.eventId]
     val eventReference = if (noParent) null else query {
-        Events.select { Events.id eq eventId }.map { it.asEventReference(true) }.single()
+        EventTable.select { EventTable.id eq eventId }.map { it.asEventReference(true) }.single()
     }
 
-    val matchId = this[Matches.id]
+    val matchId = this[MatchTable.id]
     val metricReferences = if (noChildren) listOf() else query {
-        Metrics.select { Metrics.match eq matchId }.map { it.asMetricReference(false, false) }
+        MetricTable.select { MetricTable.matchId eq matchId }.map { it.asMetricReference(false, false) }
     }
 
     return MatchReference(properties.number, properties.type, eventReference, metricReferences)

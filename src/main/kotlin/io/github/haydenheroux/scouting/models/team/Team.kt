@@ -8,7 +8,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
 
-object Teams : IntIdTable() {
+object TeamTable : IntIdTable() {
     val number = integer("number")
     val name = varchar("name", 255)
     val region = enumerationByName<Region>("region", 255)
@@ -18,9 +18,9 @@ object Teams : IntIdTable() {
 data class TeamProperties(val number: Int, val name: String, val region: Region)
 
 fun ResultRow.teamProperties(): TeamProperties {
-    val number = this[Teams.number]
-    val name = this[Teams.name]
-    val region = this[Teams.region]
+    val number = this[TeamTable.number]
+    val name = this[TeamTable.name]
+    val region = this[TeamTable.region]
 
     return TeamProperties(number, name, region)
 }
@@ -35,9 +35,9 @@ data class TeamReference(
 suspend fun ResultRow.asTeamReference(noChildren: Boolean): TeamReference {
     val properties = this.teamProperties()
 
-    val teamId = this[Teams.id]
+    val teamId = this[TeamTable.id]
     val seasonReferences = if (noChildren) listOf() else query {
-        Seasons.select { Seasons.team eq teamId }.map { it.asSeasonReference(false, false) }
+        SeasonTable.select { SeasonTable.teamId eq teamId }.map { it.asSeasonReference(false, false) }
     }
 
     return TeamReference(properties.number, properties.name, properties.region, seasonReferences)

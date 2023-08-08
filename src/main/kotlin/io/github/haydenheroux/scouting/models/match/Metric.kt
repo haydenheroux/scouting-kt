@@ -9,9 +9,9 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
 
-object Metrics : IntIdTable() {
-    val match = reference("match_id", Matches)
-    val robot = reference("robot_id", Robots)
+object MetricTable : IntIdTable() {
+    val matchId = reference("matchId", MatchTable)
+    val robotId = reference("robotId", RobotTable)
     val alliance = enumerationByName<Alliance>("alliance", 255)
 }
 
@@ -21,7 +21,7 @@ data class MetricProperties(
 )
 
 fun ResultRow.metricProperties(): MetricProperties {
-    val alliance = this[Metrics.alliance]
+    val alliance = this[MetricTable.alliance]
 
     return MetricProperties(alliance)
 }
@@ -36,18 +36,18 @@ data class MetricReference(
 suspend fun ResultRow.asMetricReference(noParent: Boolean, noChildren: Boolean): MetricReference {
     val properties = this.metricProperties()
 
-    val matchId = this[Metrics.match]
+    val matchId = this[MetricTable.matchId]
     val matchReference = if (noParent) null else query {
-        Matches.select { Matches.id eq matchId }.map { it.asMatchReference(false, true) }.single()
+        MatchTable.select { MatchTable.id eq matchId }.map { it.asMatchReference(false, true) }.single()
     }
-    val robotId = this[Metrics.robot]
+    val robotId = this[MetricTable.robotId]
     val robotReference = if (noParent) null else query {
-        Robots.select { Robots.id eq robotId }.map { it.asRobotReference(false) }.single()
+        RobotTable.select { RobotTable.id eq robotId }.map { it.asRobotReference(false) }.single()
     }
 
-    val metricId = this[Metrics.id]
+    val metricId = this[MetricTable.id]
     val gameMetricReferences = if (noChildren) listOf() else query {
-        GameMetrics.select { GameMetrics.metric eq metricId }.map { it.asGameMetricReference(false) }
+        GameMetricTable.select { GameMetricTable.metricId eq metricId }.map { it.asGameMetricReference(false) }
     }
 
     return MetricReference(properties.alliance, matchReference, robotReference, gameMetricReferences)

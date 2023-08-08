@@ -9,23 +9,23 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.select
 
-object Seasons : IntIdTable() {
-    val team = reference("team_id", Teams)
+object SeasonTable : IntIdTable() {
+    val teamId = reference("teamId", TeamTable)
     val year = integer("year")
 }
 
-object SeasonEvents : Table() {
-    val season = reference("season_id", Seasons)
-    val event = reference("event_id", Events)
+object SeasonEventTable : Table() {
+    val seasonId = reference("seasonId", SeasonTable)
+    val eventId = reference("eventId", EventTable)
 
-    override val primaryKey = PrimaryKey(season, event, name = "seasonEvent")
+    override val primaryKey = PrimaryKey(seasonId, eventId)
 }
 
 @Serializable
 data class SeasonProperties(val year: Int)
 
 fun ResultRow.seasonProperties(): SeasonProperties {
-    val year = this[Seasons.year]
+    val year = this[SeasonTable.year]
 
     return SeasonProperties(year)
 }
@@ -40,21 +40,21 @@ data class SeasonReference(
 suspend fun ResultRow.asSeasonReference(noParent: Boolean, noChildren: Boolean): SeasonReference {
     val properties = this.seasonProperties()
 
-    val teamId = this[Seasons.team]
+    val teamId = this[SeasonTable.teamId]
     val teamReference = if (noParent) null else query {
-        Teams.select { Teams.id eq teamId }.map { it.asTeamReference(true) }.single()
+        TeamTable.select { TeamTable.id eq teamId }.map { it.asTeamReference(true) }.single()
     }
 
-    val seasonId = this[Seasons.id]
+    val seasonId = this[SeasonTable.id]
     val eventReferences = if (noChildren) listOf() else query {
-        SeasonEvents.select { SeasonEvents.season eq seasonId }.map { row ->
-            val eventId = row[SeasonEvents.event]
+        SeasonEventTable.select { SeasonEventTable.seasonId eq seasonId }.map { row ->
+            val eventId = row[SeasonEventTable.eventId]
 
-            Events.select { Events.id eq eventId }.map { it.asEventReference(false) }.single()
+            EventTable.select { EventTable.id eq eventId }.map { it.asEventReference(false) }.single()
         }
     }
     val robotReferences = if (noChildren) listOf() else query {
-        Robots.select { Robots.season eq seasonId }.map { it.asRobotReference(false) }
+        RobotTable.select { RobotTable.seasonId eq seasonId }.map { it.asRobotReference(false) }
     }
 
     return SeasonReference(properties.year, teamReference, eventReferences, robotReferences)

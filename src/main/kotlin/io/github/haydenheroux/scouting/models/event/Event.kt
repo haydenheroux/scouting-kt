@@ -10,7 +10,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
 
-object Events : IntIdTable() {
+object EventTable : IntIdTable() {
     val name = varchar("name", 255)
     val region = enumerationByName<Region>("region", 255)
     val year = integer("year")
@@ -26,10 +26,10 @@ data class EventProperties(
 )
 
 fun ResultRow.eventProperties(): EventProperties {
-    val name = this[Events.name]
-    val region = this[Events.region]
-    val year = this[Events.year]
-    val week = this[Events.week]
+    val name = this[EventTable.name]
+    val region = this[EventTable.region]
+    val year = this[EventTable.year]
+    val week = this[EventTable.week]
 
     return EventProperties(name, region, year, week)
 }
@@ -45,9 +45,9 @@ data class EventReference(
 suspend fun ResultRow.asEventReference(noChildren: Boolean): EventReference {
     val properties = this.eventProperties()
 
-    val eventId = this[Events.id]
+    val eventId = this[EventTable.id]
     val matchReferences = if (noChildren) listOf() else query {
-        Matches.select { Matches.event eq eventId }.map { it.asMatchReference(false, false) }
+        MatchTable.select { MatchTable.eventId eq eventId }.map { it.asMatchReference(false, false) }
     }
 
     return EventReference(properties.name, properties.region, properties.year, properties.week, matchReferences)

@@ -1,13 +1,13 @@
 package io.github.haydenheroux.scouting.database
 
-import io.github.haydenheroux.scouting.models.event.Events
-import io.github.haydenheroux.scouting.models.match.GameMetrics
-import io.github.haydenheroux.scouting.models.match.Matches
-import io.github.haydenheroux.scouting.models.match.Metrics
-import io.github.haydenheroux.scouting.models.team.Robots
-import io.github.haydenheroux.scouting.models.team.SeasonEvents
-import io.github.haydenheroux.scouting.models.team.Seasons
-import io.github.haydenheroux.scouting.models.team.Teams
+import io.github.haydenheroux.scouting.models.event.EventTable
+import io.github.haydenheroux.scouting.models.match.GameMetricTable
+import io.github.haydenheroux.scouting.models.match.MatchTable
+import io.github.haydenheroux.scouting.models.match.MetricTable
+import io.github.haydenheroux.scouting.models.team.RobotTable
+import io.github.haydenheroux.scouting.models.team.SeasonEventTable
+import io.github.haydenheroux.scouting.models.team.SeasonTable
+import io.github.haydenheroux.scouting.models.team.TeamTable
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -20,7 +20,16 @@ object Database {
         val driver = "org.sqlite.JDBC"
         val database = Database.connect(url, driver)
         transaction(database) {
-            SchemaUtils.create(Teams, Seasons, Robots, Metrics, GameMetrics, Matches, Events, SeasonEvents)
+            SchemaUtils.create(
+                TeamTable,
+                SeasonTable,
+                RobotTable,
+                MetricTable,
+                GameMetricTable,
+                MatchTable,
+                EventTable,
+                SeasonEventTable
+            )
         }
     }
 

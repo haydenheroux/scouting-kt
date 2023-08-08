@@ -6,8 +6,8 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
 
-object GameMetrics : IntIdTable() {
-    val metric = reference("metric_id", Metrics)
+object GameMetricTable : IntIdTable() {
+    val metricId = reference("metricId", MetricTable)
     val key = varchar("key", 255)
     val value = varchar("value", 255)
 }
@@ -16,8 +16,8 @@ object GameMetrics : IntIdTable() {
 data class GameMetricProperties(val key: String, val value: String)
 
 fun ResultRow.gameMetricProperties(): GameMetricProperties {
-    val key = this[GameMetrics.key]
-    val value = this[GameMetrics.value]
+    val key = this[GameMetricTable.key]
+    val value = this[GameMetricTable.value]
 
     return GameMetricProperties(key, value)
 }
@@ -27,9 +27,9 @@ data class GameMetricReference(val key: String, val value: String, val metricRef
 suspend fun ResultRow.asGameMetricReference(noParent: Boolean): GameMetricReference {
     val properties = this.gameMetricProperties()
 
-    val metricId = this[GameMetrics.metric]
+    val metricId = this[GameMetricTable.metricId]
     val metricReference = if (noParent) null else query {
-        Metrics.select { Metrics.id eq metricId }.map { it.asMetricReference(false, true) }.single()
+        MetricTable.select { MetricTable.id eq metricId }.map { it.asMetricReference(false, true) }.single()
     }
 
     return GameMetricReference(properties.key, properties.value, metricReference)

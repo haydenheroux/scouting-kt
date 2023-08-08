@@ -7,8 +7,8 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
 
-object Robots : IntIdTable() {
-    val season = reference("season_id", Seasons)
+object RobotTable : IntIdTable() {
+    val seasonId = reference("seasonId", SeasonTable)
     val name = varchar("name", 255)
 }
 
@@ -16,7 +16,7 @@ object Robots : IntIdTable() {
 data class RobotProperties(val name: String)
 
 fun ResultRow.robotProperties(): RobotProperties {
-    val name = this[Robots.name]
+    val name = this[RobotTable.name]
 
     return RobotProperties(name)
 }
@@ -26,9 +26,9 @@ data class RobotReference(val name: String, val seasonReference: SeasonReference
 suspend fun ResultRow.asRobotReference(noParent: Boolean): RobotReference {
     val properties = this.robotProperties()
 
-    val seasonId = this[Robots.season]
+    val seasonId = this[RobotTable.seasonId]
     val seasonReference = if (noParent) null else query {
-        Seasons.select { Seasons.id eq seasonId }.map { it.asSeasonReference(false, true) }.single()
+        SeasonTable.select { SeasonTable.id eq seasonId }.map { it.asSeasonReference(false, true) }.single()
     }
 
     return RobotReference(properties.name, seasonReference)
