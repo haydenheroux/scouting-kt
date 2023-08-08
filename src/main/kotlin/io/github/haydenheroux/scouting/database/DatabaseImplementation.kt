@@ -16,7 +16,6 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getTeam(teamQuery: TeamQuery): TeamReference {
-        println(teamQuery)
         return getTeamRow(teamQuery)!!.asTeamReference(false)
     }
 
@@ -338,11 +337,11 @@ class DatabaseImplementation : DatabaseInterface {
                 it[alliance] = participant.alliance
             }
 
-            for (gameMetric in participant.gameMetrics) {
-                GameMetricTable.insert {
-                    it[GameMetricTable.participantId] = participantId
-                    it[key] = gameMetric.key
-                    it[value] = gameMetric.value
+            for (metric in participant.metrics) {
+                MetricTable.insert {
+                    it[MetricTable.participantId] = participantId
+                    it[key] = metric.key
+                    it[value] = metric.value
                 }
             }
         }

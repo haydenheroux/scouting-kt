@@ -30,7 +30,7 @@ data class ParticipantReference(
     val alliance: Alliance,
     val matchReference: MatchReference?,
     val robotReference: RobotReference?,
-    val gameMetricReferences: List<GameMetricReference>
+    val metricReferences: List<MetricReference>
 )
 
 suspend fun ResultRow.asParticipantReference(noParent: Boolean, noChildren: Boolean): ParticipantReference {
@@ -46,26 +46,23 @@ suspend fun ResultRow.asParticipantReference(noParent: Boolean, noChildren: Bool
     }
 
     val participantId = this[ParticipantTable.id]
-    val gameMetricReferences = if (noChildren) listOf() else query {
-        GameMetricTable.select { GameMetricTable.participantId eq participantId }
-            .map { it.asGameMetricReference(false) }
+    val metricReferences = if (noChildren) listOf() else query {
+        MetricTable.select { MetricTable.participantId eq participantId }
+            .map { it.asMetricReference(false) }
     }
 
-    return ParticipantReference(properties.alliance, matchReference, robotReference, gameMetricReferences)
+    return ParticipantReference(properties.alliance, matchReference, robotReference, metricReferences)
 }
 
 fun ParticipantReference.dereference(): Participant {
-    // TODO Handle robotReference == null
-    val robot = robotReference!!.dereference()
-    val gameMetrics = gameMetricReferences.map { it.dereference() }
-    return Participant(robot, alliance, gameMetrics)
+    val metrics = metricReferences.map { it.dereference() }
+    return Participant(alliance, metrics)
 }
 
 @Serializable
 data class Participant(
-    val robot: Robot,
     val alliance: Alliance,
-    val gameMetrics: List<GameMetric>
+    val metrics: List<Metric>
 )
 
 data class ParticipantQuery(val match: MatchQuery, val robot: RobotQuery)
