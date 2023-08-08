@@ -6,11 +6,19 @@ import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.select
 
 object Seasons : IntIdTable() {
     val team = reference("team_id", Teams)
     val year = integer("year")
+}
+
+object SeasonEvents : Table() {
+    val season = reference("season_id", Seasons)
+    val event = reference("event_id", Events)
+
+    override val primaryKey = PrimaryKey(season, event, name = "seasonEvent")
 }
 
 @Serializable

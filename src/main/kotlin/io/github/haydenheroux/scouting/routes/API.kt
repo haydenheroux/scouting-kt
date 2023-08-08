@@ -1,16 +1,14 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.models.event.Event
 import io.github.haydenheroux.scouting.models.event.dereference
 import io.github.haydenheroux.scouting.models.event.eventQuery
-import io.github.haydenheroux.scouting.models.match.dereference
-import io.github.haydenheroux.scouting.models.match.matchQuery
-import io.github.haydenheroux.scouting.models.match.metricQuery
-import io.github.haydenheroux.scouting.models.team.dereference
-import io.github.haydenheroux.scouting.models.team.robotQuery
-import io.github.haydenheroux.scouting.models.team.seasonQuery
-import io.github.haydenheroux.scouting.models.team.teamQuery
+import io.github.haydenheroux.scouting.models.match.*
+import io.github.haydenheroux.scouting.models.team.*
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
@@ -62,6 +60,74 @@ fun Route.api() {
             val metric = db.getMetric(call.request.queryParameters.metricQuery())
 
             call.respond(metric.dereference())
+        }
+
+        post("/new-team") {
+            val team = call.receive<Team>()
+
+            db.insertTeam(team)
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/new-season") {
+            val season = call.receive<Season>()
+
+            val team = call.request.queryParameters.teamQuery()
+
+            db.insertSeason(season, team)
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/new-robot") {
+            val robot = call.receive<Robot>()
+
+            val season = call.request.queryParameters.seasonQuery()
+
+            db.insertRobot(robot, season)
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/add-event") {
+            val event = call.request.queryParameters.eventQuery()
+            val season = call.request.queryParameters.seasonQuery()
+
+            db.insertSeasonEvent(event, season)
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/new-event") {
+            val event = call.receive<Event>()
+
+            db.insertEvent(event)
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/new-match") {
+            val match = call.receive<Match>()
+
+            assert(match.metrics.isEmpty())
+
+            val event = call.request.queryParameters.eventQuery()
+
+            db.insertMatch(match, event)
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/new-metric") {
+            val metric = call.receive<Metric>()
+
+            val match = call.request.queryParameters.matchQuery()
+            val robot = call.request.queryParameters.robotQuery()
+
+            db.insertMetric(metric, match, robot)
+
+            call.respond(HttpStatusCode.OK)
         }
     }
 }

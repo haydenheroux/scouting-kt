@@ -1,11 +1,11 @@
 package io.github.haydenheroux.scouting.database
 
 import io.github.haydenheroux.scouting.models.event.Events
-import io.github.haydenheroux.scouting.models.event.SeasonEvents
 import io.github.haydenheroux.scouting.models.match.GameMetrics
 import io.github.haydenheroux.scouting.models.match.Matches
 import io.github.haydenheroux.scouting.models.match.Metrics
 import io.github.haydenheroux.scouting.models.team.Robots
+import io.github.haydenheroux.scouting.models.team.SeasonEvents
 import io.github.haydenheroux.scouting.models.team.Seasons
 import io.github.haydenheroux.scouting.models.team.Teams
 import kotlinx.coroutines.Dispatchers

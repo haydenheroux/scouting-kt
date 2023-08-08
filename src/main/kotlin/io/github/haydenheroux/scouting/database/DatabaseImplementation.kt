@@ -1,16 +1,11 @@
 package io.github.haydenheroux.scouting.database
 
 import io.github.haydenheroux.scouting.database.Database.query
-import io.github.haydenheroux.scouting.models.event.EventQuery
-import io.github.haydenheroux.scouting.models.event.EventReference
-import io.github.haydenheroux.scouting.models.event.Events
-import io.github.haydenheroux.scouting.models.event.asEventReference
+import io.github.haydenheroux.scouting.models.event.*
 import io.github.haydenheroux.scouting.models.match.*
 import io.github.haydenheroux.scouting.models.team.*
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
 
 class DatabaseImplementation : DatabaseInterface {
 
@@ -226,6 +221,131 @@ class DatabaseImplementation : DatabaseInterface {
         val robot = rowToRobotQuery(getRobotRow(metricRow[Metrics.robot].value)!!)
 
         return MetricQuery(match, robot)
+    }
+
+    override suspend fun insertTeam(team: Team) {
+        if (teamExists(team.query())) throw Exception("Team exists")
+
+        transaction {
+            Teams.insert {
+                it[number] = team.number
+                it[name] = team.name
+                it[region] = team.region
+            }
+        }
+
+        for (season in team.seasons) {
+            insertSeason(season, team.query())
+        }
+    }
+
+    override suspend fun insertSeason(season: Season, teamQuery: TeamQuery) {
+        if (seasonExists(season.query(teamQuery))) throw Exception("Season exists")
+
+        val teamId = getTeamId(teamQuery)
+
+        transaction {
+            Seasons.insert {
+                it[team] = teamId
+                it[year] = season.year
+            }
+        }
+
+        for (event in season.events) {
+            insertSeasonEvent(event.query(), season.query(teamQuery))
+        }
+
+        for (robot in season.robots) {
+            insertRobot(robot, season.query(teamQuery))
+        }
+    }
+
+    override suspend fun insertSeasonEvent(eventQuery: EventQuery, seasonQuery: SeasonQuery) {
+        // TODO Test cases
+
+        val seasonId = getSeasonId(seasonQuery)
+        val eventId = getEventId(eventQuery)
+
+        transaction {
+            SeasonEvents.insert {
+                it[season] = seasonId
+                it[event] = eventId
+            }
+        }
+    }
+
+    override suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery) {
+        if (robotExists(robot.query(seasonQuery))) throw Exception("Robot exists")
+
+        val seasonId = getSeasonId(seasonQuery)
+
+        transaction {
+            Robots.insert {
+                it[season] = seasonId
+                it[name] = robot.name
+            }
+        }
+    }
+
+    override suspend fun insertEvent(event: Event) {
+        if (eventExists(event.query())) throw Exception("Event exists")
+
+        transaction {
+            Events.insert {
+                it[name] = event.name
+                it[region] = event.region
+                it[year] = event.year
+                it[week] = event.week
+            }
+        }
+
+        for (match in event.matches) {
+            insertMatch(match, event.query())
+        }
+    }
+
+    override suspend fun insertMatch(match: Match, eventQuery: EventQuery) {
+        if (matchExists(match.query(eventQuery))) throw Exception("Match exists")
+
+        val eventId = getEventId(eventQuery)
+
+        transaction {
+            Matches.insert {
+                it[event] = eventId
+                it[number] = match.number
+                it[type] = match.type
+            }
+        }
+
+        for (metric in match.metrics) {
+            // TODO
+            // insertMetric(metric, match.query(eventQuery))
+        }
+    }
+
+    override suspend fun insertMetric(metric: Metric, matchQuery: MatchQuery, robotQuery: RobotQuery) {
+        if (metricExists(MetricQuery(matchQuery, robotQuery))) throw Exception("Metric exists")
+
+        val matchId = getMatchId(matchQuery)
+        val robotId = getRobotId(robotQuery)
+
+        transaction {
+            val metricId = Metrics.insertAndGetId {
+                it[match] = matchId
+                it[robot] = robotId
+                it[alliance] = metric.alliance
+            }
+
+            // TODO Potential bug involving duplication of game metrics
+            for (gameMetric in metric.gameMetrics) {
+                GameMetrics.insert {
+                    it[GameMetrics.metric] = metricId
+                    it[key] = gameMetric.key
+                    it[value] = gameMetric.value
+                }
+            }
+        }
+
     }
 }
 
