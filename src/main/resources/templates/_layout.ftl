@@ -31,7 +31,7 @@
         <p>
         <@layout.rename_region region=event.region />
         </p>
-        <p>Week ${event.week?c}</p>
+        <p>Week ${event.week?c}, ${event.year?c}</p>
         <hr/>
         <h3>Matches</h3>
         <table>
