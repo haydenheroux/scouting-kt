@@ -1,8 +1,8 @@
-<#macro header>
+<#macro header title>
     <!DOCTYPE html>
     <html lang="en">
     <head>
-        <title>scouting-kt</title>
+        <title>${title}</title>
         <link rel="stylesheet" href="/static/main.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

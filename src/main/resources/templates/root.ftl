@@ -1,3 +1,3 @@
 <#import "_layout.ftl" as layout />
-<@layout.header>
+<@layout.header title="Home">
 </@layout.header>

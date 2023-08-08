@@ -1,6 +1,6 @@
 <#-- @ftlvariable name="teams" type="kotlin.collections.List<io.github.haydenheroux.scouting.models.team.Team>" -->
 <#import "_layout.ftl" as layout />
-<@layout.header>
+<@layout.header title="Teams">
     <table>
         <thead>
             <tr>

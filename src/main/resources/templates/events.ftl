@@ -1,6 +1,6 @@
 <#-- @ftlvariable name="eventReferences" type="kotlin.collections.List<io.github.haydenheroux.scouting.models.event.EventReference>" -->
 <#import "_layout.ftl" as layout />
-<@layout.header>
+<@layout.header title="Events">
     <h1>Events</h1>
     <hr/>
     <#list eventReferences?reverse as eventReference>
