@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting
 
 import io.github.haydenheroux.scouting.database.Database
+import io.github.haydenheroux.scouting.plugins.configureIgnoreTrailingSlash
 import io.github.haydenheroux.scouting.plugins.configureRouting
 import io.github.haydenheroux.scouting.plugins.configureSerialization
 import io.github.haydenheroux.scouting.plugins.configureTemplating
@@ -13,4 +14,5 @@ fun Application.module() {
     configureRouting()
     configureSerialization()
     configureTemplating()
+    configureIgnoreTrailingSlash()
 }
