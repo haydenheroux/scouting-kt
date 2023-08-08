@@ -1,12 +1,16 @@
 package io.github.haydenheroux.scouting.database
 
 import io.github.haydenheroux.scouting.database.Database.query
-import io.github.haydenheroux.scouting.models.event.*
+import io.github.haydenheroux.scouting.models.event.EventReference
+import io.github.haydenheroux.scouting.models.event.Events
+import io.github.haydenheroux.scouting.models.event.asEventReference
 import io.github.haydenheroux.scouting.models.match.*
 import io.github.haydenheroux.scouting.models.team.*
 import io.github.haydenheroux.scouting.query.*
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 
 class DatabaseImplementation : DatabaseInterface {
 
@@ -219,122 +223,6 @@ class DatabaseImplementation : DatabaseInterface {
         val robot = rowToRobotQuery(getRobotRow(metricRow[Metrics.robot].value)!!)
 
         return MetricQuery(match, robot)
-    }
-
-    override suspend fun insertTeam(team: Team) {
-        transaction {
-            Teams.insert {
-                it[number] = team.number
-                it[name] = team.name
-                it[region] = team.region
-            }
-        }
-
-        for (season in team.seasons) {
-            insertSeason(season)
-        }
-    }
-
-    override suspend fun insertSeason(season: Season) {
-        val teamId = 0 // TODO
-
-        transaction {
-            Seasons.insert {
-                it[team] = teamId
-                it[year] = season.year
-            }
-        }
-
-        for (robot in season.robots) {
-            insertRobot(robot)
-        }
-
-        for (event in season.events) {
-            insertSeasonEvent(event, season)
-        }
-    }
-
-    override suspend fun insertRobot(robot: Robot) {
-        val seasonId = 0 // TODO
-
-        transaction {
-            Robots.insert {
-                it[season] = seasonId
-                it[name] = robot.name
-            }
-        }
-    }
-
-    override suspend fun insertEvent(event: Event) {
-        transaction {
-            Events.insert {
-                it[name] = event.name
-                it[region] = event.region
-                it[year] = event.year
-                it[week] = event.week
-            }
-        }
-
-        for (match in event.matches) {
-            insertMatch(match)
-        }
-    }
-
-    override suspend fun insertSeasonEvent(event: Event, season: Season) {
-        val eventId = 0 // TODO
-        val seasonId = 0 // TODO
-
-        transaction {
-            SeasonEvents.insert {
-                it[SeasonEvents.event] = eventId
-                it[SeasonEvents.season] = seasonId
-            }
-        }
-    }
-
-    override suspend fun insertMatch(match: Match) {
-        val eventId = 0 // TODO
-
-        transaction {
-            Matches.insert {
-                it[number] = match.number
-                it[type] = match.type
-                it[event] = eventId
-            }
-        }
-
-        for (metric in match.metrics) {
-            insertMetric(metric)
-        }
-    }
-
-    override suspend fun insertMetric(metric: Metric) {
-        val matchId = 0 // TODO
-        val robotId = 0 // TODO
-
-        transaction {
-            Metrics.insert {
-                it[match] = matchId
-                it[robot] = robotId
-                it[alliance] = metric.alliance
-            }
-        }
-
-        for (gameMetric in metric.gameMetrics) {
-            insertGameMetric(gameMetric)
-        }
-    }
-
-    override suspend fun insertGameMetric(gameMetric: GameMetric) {
-        val metricId = 0 // TODO
-
-        transaction {
-            GameMetrics.insert {
-                it[metric] = metricId
-                it[key] = gameMetric.key
-                it[value] = gameMetric.value
-            }
-        }
     }
 }
 
