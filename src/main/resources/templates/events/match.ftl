@@ -6,8 +6,9 @@
     <hr/>
     <#list matchReference.participantReferences as participantReference>
         <section>
-            <#assign teamReference=participantReference.robotReference.seasonReference.teamReference>
-            <@layout.team_header team=teamReference size="small" />
+            <#assign seasonReference=participantReference.robotReference.seasonReference>
+            <#assign teamReference=seasonReference.teamReference>
+            <@layout.season_link season=seasonReference size="small" />
             <@layout.alliance alliance=participantReference.alliance />
             <h3>Metrics</h3>
             <table>
