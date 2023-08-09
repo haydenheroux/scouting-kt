@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.Database.query
+import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.MatchType
 import io.github.haydenheroux.scouting.models.event.*
 import io.ktor.http.*
@@ -29,30 +30,24 @@ fun ResultRow.matchProperties(): MatchProperties {
 }
 
 data class MatchReference(
+    val matchId: Int,
+    val eventReference: EventReference,
     val number: Int,
     val type: MatchType,
-    val eventReference: EventReference?,
-    val participantReferences: List<ParticipantReference>
 )
 
-suspend fun ResultRow.matchReference(noParent: Boolean, noChildren: Boolean): MatchReference {
+suspend fun ResultRow.matchReference(): MatchReference {
+    val matchId = this[MatchTable.id].value
     val properties = this.matchProperties()
 
-    val eventId = this[MatchTable.eventId]
-    val eventReference = if (noParent) null else query {
-        EventTable.select { EventTable.id eq eventId }.map { it.eventReference(true) }.single()
-    }
+    val eventId = this[MatchTable.eventId].value
+    val eventReference = db.getEvent(eventId)
 
-    val matchId = this[MatchTable.id]
-    val participantReferences = if (noChildren) listOf() else query {
-        ParticipantTable.select { ParticipantTable.matchId eq matchId }.map { it.asParticipantReference(false, false) }
-    }
-
-    return MatchReference(properties.number, properties.type, eventReference, participantReferences)
+    return MatchReference(matchId, eventReference, properties.number, properties.type,)
 }
 
-fun MatchReference.dereference(): Match {
-    val participants = participantReferences.map { it.dereference() }
+suspend fun MatchReference.dereference(children: Boolean): Match {
+    val participants = if (children) db.getParticipants(this).map { it.dereference(true) } else emptyList()
     return Match(number, type, participants)
 }
 

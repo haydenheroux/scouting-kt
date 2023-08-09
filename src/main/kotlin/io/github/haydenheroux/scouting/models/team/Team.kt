@@ -1,12 +1,12 @@
 package io.github.haydenheroux.scouting.models.team
 
-import io.github.haydenheroux.scouting.database.Database.query
+import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Region
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.select
 
 object TeamTable : IntIdTable() {
     val number = integer("number")
@@ -26,25 +26,21 @@ fun ResultRow.teamProperties(): TeamProperties {
 }
 
 data class TeamReference(
+    val teamId: Int,
     val number: Int,
     val name: String,
     val region: Region,
-    val seasonReferences: List<SeasonReference>
 )
 
-suspend fun ResultRow.teamReference(noChildren: Boolean): TeamReference {
+fun ResultRow.teamReference(): TeamReference {
+    val teamId = this[TeamTable.id].value
     val properties = this.teamProperties()
 
-    val teamId = this[TeamTable.id]
-    val seasonReferences = if (noChildren) listOf() else query {
-        SeasonTable.select { SeasonTable.teamId eq teamId }.map { it.seasonReference(false, false) }
-    }
-
-    return TeamReference(properties.number, properties.name, properties.region, seasonReferences)
+    return TeamReference(teamId, properties.number, properties.name, properties.region)
 }
 
-fun TeamReference.dereference(): Team {
-    val seasons = seasonReferences.map { it.dereference() }
+suspend fun TeamReference.dereference(children: Boolean): Team {
+    val seasons = if (children) db.getSeasons(this).map { it.dereference(true) } else emptyList()
 
     return Team(number, name, region, seasons)
 }

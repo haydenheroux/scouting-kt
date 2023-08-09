@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.database.Database.query
+import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.event.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
@@ -31,38 +32,24 @@ fun ResultRow.seasonProperties(): SeasonProperties {
 }
 
 data class SeasonReference(
+    val seasonId: Int,
+    val teamReference: TeamReference,
     val year: Int,
-    val teamReference: TeamReference?,
-    val eventReferences: List<EventReference>,
-    val robotReferences: List<RobotReference>
 )
 
-suspend fun ResultRow.seasonReference(noParent: Boolean, noChildren: Boolean): SeasonReference {
+suspend fun ResultRow.seasonReference(): SeasonReference {
+    val seasonId = this[SeasonTable.id].value
     val properties = this.seasonProperties()
 
-    val teamId = this[SeasonTable.teamId]
-    val teamReference = if (noParent) null else query {
-        TeamTable.select { TeamTable.id eq teamId }.map { it.teamReference(true) }.single()
-    }
+    val teamId = this[SeasonTable.teamId].value
+    val teamReference = db.getTeam(teamId)
 
-    val seasonId = this[SeasonTable.id]
-    val eventReferences = if (noChildren) listOf() else query {
-        SeasonEventTable.select { SeasonEventTable.seasonId eq seasonId }.map { row ->
-            val eventId = row[SeasonEventTable.eventId]
-
-            EventTable.select { EventTable.id eq eventId }.map { it.eventReference(false) }.single()
-        }
-    }
-    val robotReferences = if (noChildren) listOf() else query {
-        RobotTable.select { RobotTable.seasonId eq seasonId }.map { it.robotReference(false) }
-    }
-
-    return SeasonReference(properties.year, teamReference, eventReferences, robotReferences)
+    return SeasonReference(seasonId, teamReference, properties.year)
 }
 
-fun SeasonReference.dereference(): Season {
-    val events = eventReferences.map { it.dereference() }
-    val robots = robotReferences.map { it.dereference() }
+suspend fun SeasonReference.dereference(children: Boolean): Season {
+    val events = if (children) db.getEvents(this).map { it.dereference(true) } else emptyList()
+    val robots = if (children) db.getRobots(this).map { it.dereference(true) } else emptyList()
     return Season(year, events, robots)
 }
 

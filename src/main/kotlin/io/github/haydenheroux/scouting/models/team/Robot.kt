@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.database.Database.query
+import io.github.haydenheroux.scouting.database.db
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -21,20 +22,19 @@ fun ResultRow.robotProperties(): RobotProperties {
     return RobotProperties(name)
 }
 
-data class RobotReference(val name: String, val seasonReference: SeasonReference?)
+data class RobotReference(val robotId: Int, val seasonReference: SeasonReference, val name: String)
 
-suspend fun ResultRow.robotReference(noParent: Boolean): RobotReference {
+suspend fun ResultRow.robotReference(): RobotReference {
+    val robotId = this[RobotTable.id].value
     val properties = this.robotProperties()
 
-    val seasonId = this[RobotTable.seasonId]
-    val seasonReference = if (noParent) null else query {
-        SeasonTable.select { SeasonTable.id eq seasonId }.map { it.seasonReference(false, true) }.single()
-    }
+    val seasonId = this[RobotTable.seasonId].value
+    val seasonReference = db.getSeason(seasonId)
 
-    return RobotReference(properties.name, seasonReference)
+    return RobotReference(robotId, seasonReference, properties.name)
 }
 
-fun RobotReference.dereference(): Robot {
+fun RobotReference.dereference(children: Boolean): Robot {
     return Robot(name)
 }
 

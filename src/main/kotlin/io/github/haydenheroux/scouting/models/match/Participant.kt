@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.Database.query
+import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Alliance
 import io.github.haydenheroux.scouting.models.team.*
 import io.ktor.http.*
@@ -27,35 +28,27 @@ fun ResultRow.participantProperties(): ParticipantProperties {
 }
 
 data class ParticipantReference(
+    val participantId: Int,
+    val matchReference: MatchReference,
+    val robotReference: RobotReference,
     val alliance: Alliance,
-    val matchReference: MatchReference?,
-    val robotReference: RobotReference?,
-    val metricReferences: List<MetricReference>
 )
 
-suspend fun ResultRow.asParticipantReference(noParent: Boolean, noChildren: Boolean): ParticipantReference {
+suspend fun ResultRow.participantReference(): ParticipantReference {
+    val participantId = this[ParticipantTable.id].value
     val properties = this.participantProperties()
 
-    val matchId = this[ParticipantTable.matchId]
-    val matchReference = if (noParent) null else query {
-        MatchTable.select { MatchTable.id eq matchId }.map { it.matchReference(false, true) }.single()
-    }
-    val robotId = this[ParticipantTable.robotId]
-    val robotReference = if (noParent) null else query {
-        RobotTable.select { RobotTable.id eq robotId }.map { it.robotReference(false) }.single()
-    }
+    val matchId = this[ParticipantTable.matchId].value
+    val matchReference = db.getMatch(matchId)
 
-    val participantId = this[ParticipantTable.id]
-    val metricReferences = if (noChildren) listOf() else query {
-        MetricTable.select { MetricTable.participantId eq participantId }
-            .map { it.metricReference(false) }
-    }
+    val robotId = this[ParticipantTable.robotId].value
+    val robotReference = db.getRobot(robotId)
 
-    return ParticipantReference(properties.alliance, matchReference, robotReference, metricReferences)
+    return ParticipantReference(participantId, matchReference, robotReference, properties.alliance)
 }
 
-fun ParticipantReference.dereference(): Participant {
-    val metrics = metricReferences.map { it.dereference() }
+suspend fun ParticipantReference.dereference(children: Boolean): Participant {
+    val metrics = if (children) db.getMetrics(this).map { it.dereference(true) } else emptyList()
     return Participant(alliance, metrics)
 }
 

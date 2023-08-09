@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.event
 
 import io.github.haydenheroux.scouting.database.Database.query
+import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.enums.regionOf
 import io.github.haydenheroux.scouting.models.match.*
@@ -35,26 +36,22 @@ fun ResultRow.eventProperties(): EventProperties {
 }
 
 data class EventReference(
+    val eventId: Int,
     val name: String,
     val region: Region,
     val year: Int,
     val week: Int,
-    val matchReferences: List<MatchReference>
 )
 
-suspend fun ResultRow.eventReference(noChildren: Boolean): EventReference {
+fun ResultRow.eventReference(): EventReference {
+    val eventId = this[EventTable.id].value
     val properties = this.eventProperties()
 
-    val eventId = this[EventTable.id]
-    val matchReferences = if (noChildren) listOf() else query {
-        MatchTable.select { MatchTable.eventId eq eventId }.map { it.matchReference(false, false) }
-    }
-
-    return EventReference(properties.name, properties.region, properties.year, properties.week, matchReferences)
+    return EventReference(eventId, properties.name, properties.region, properties.year, properties.week)
 }
 
-fun EventReference.dereference(): Event {
-    val matches = matchReferences.map { it.dereference() }
+suspend fun EventReference.dereference(children: Boolean): Event {
+    val matches = if (children) db.getMatches(this).map { it.dereference(true) } else emptyList()
     return Event(name, region, year, week, matches)
 }
 

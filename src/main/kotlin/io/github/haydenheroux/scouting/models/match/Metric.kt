@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.Database.query
+import io.github.haydenheroux.scouting.database.db
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -22,21 +23,19 @@ fun ResultRow.metricProperties(): MetricProperties {
     return MetricProperties(key, value)
 }
 
-data class MetricReference(val key: String, val value: String, val participantReference: ParticipantReference?)
+data class MetricReference(val metricId: Int, val participantReference: ParticipantReference, val key: String, val value: String)
 
-suspend fun ResultRow.metricReference(noParent: Boolean): MetricReference {
+suspend fun ResultRow.metricReference(): MetricReference {
+    val metricId = this[MetricTable.id].value
     val properties = this.metricProperties()
 
-    val participantId = this[MetricTable.participantId]
-    val participantReference = if (noParent) null else query {
-        ParticipantTable.select { ParticipantTable.id eq participantId }.map { it.asParticipantReference(false, true) }
-            .single()
-    }
+    val participantId = this[MetricTable.participantId].value
+    val participantReference = db.getParticipant(participantId)
 
-    return MetricReference(properties.key, properties.value, participantReference)
+    return MetricReference(metricId, participantReference, properties.key, properties.value)
 }
 
-fun MetricReference.dereference(): Metric {
+fun MetricReference.dereference(children: Boolean): Metric {
     return Metric(key, value)
 }
 
