@@ -17,7 +17,7 @@ fun Route.api() {
         get("/get-teams") {
             val teams = db.getTeams()
 
-            call.respond(teams.map { it.dereference(true) })
+            call.respond(teams.map { it.dereference(false) })
         }
 
         get("/get-team") {
@@ -26,7 +26,7 @@ fun Route.api() {
             teamQuery?.let {
                 val team = db.getTeam(teamQuery)
 
-                call.respond(team.dereference(true))
+                call.respond(team.dereference(false))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -38,7 +38,7 @@ fun Route.api() {
             seasonQuery?.let {
                 val season = db.getSeason(seasonQuery)
 
-                call.respond(season.dereference(true))
+                call.respond(season.dereference(false))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -50,7 +50,7 @@ fun Route.api() {
             robotQuery?.let {
                 val robot = db.getRobot(robotQuery)
 
-                call.respond(robot.dereference(true))
+                call.respond(robot.dereference(false))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -59,7 +59,7 @@ fun Route.api() {
         get("/get-events") {
             val events = db.getEvents()
 
-            call.respond(events.map { it.dereference(true) })
+            call.respond(events.map { it.dereference(false) })
         }
 
         get("/get-event") {
@@ -68,7 +68,7 @@ fun Route.api() {
             eventQuery?.let {
                 val event = db.getEvent(eventQuery)
 
-                call.respond(event.dereference(true))
+                call.respond(event.dereference(false))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -80,7 +80,7 @@ fun Route.api() {
             matchQuery?.let {
                 val match = db.getMatch(matchQuery)
 
-                call.respond(match.dereference(true))
+                call.respond(match.dereference(false))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -92,7 +92,7 @@ fun Route.api() {
             participantQuery?.let {
                 val participant = db.getParticipant(participantQuery)
 
-                call.respond(participant.dereference(true))
+                call.respond(participant.dereference(false))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
