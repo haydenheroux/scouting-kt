@@ -21,7 +21,7 @@ fun Route.events() {
             val eventQuery = call.parameters.eventQuery().getOrNull()
 
             eventQuery?.let {
-                val event = db.getEvent(eventQuery)
+                val event = db.getEventByQuery(eventQuery)
 
                 call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
             } ?: run {
@@ -33,7 +33,7 @@ fun Route.events() {
             val matchQuery = call.parameters.matchQuery().getOrNull()
 
             matchQuery?.let {
-                val match = db.getMatch(matchQuery)
+                val match = db.getMatchByQuery(matchQuery)
 
                 call.respond(FreeMarkerContent("events/match.ftl", mapOf("match" to match)))
             } ?: run {

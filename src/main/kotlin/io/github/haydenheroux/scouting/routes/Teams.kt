@@ -21,7 +21,7 @@ fun Route.teams() {
             val teamQuery = call.parameters.teamQuery().getOrNull()
 
             teamQuery?.let {
-                val team = db.getTeam(teamQuery)
+                val team = db.getTeamByQuery(teamQuery)
 
                 call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
             } ?: run {
@@ -33,7 +33,7 @@ fun Route.teams() {
             val seasonQuery = call.parameters.seasonQuery().getOrNull()
 
             seasonQuery?.let {
-                val season = db.getSeason(seasonQuery)
+                val season = db.getSeasonByQuery(seasonQuery)
 
                 call.respond(FreeMarkerContent("teams/season.ftl", mapOf("season" to season)))
             } ?: run {

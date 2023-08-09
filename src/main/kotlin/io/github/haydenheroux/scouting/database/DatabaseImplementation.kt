@@ -9,18 +9,29 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 class DatabaseImplementation : DatabaseInterface {
 
-    override suspend fun getTeams(): List<TeamReference> {
+    override suspend fun getTeams(): List<TeamData> {
         return query {
-            TeamTable.selectAll().map { it.teamReference() }
+            TeamTable.selectAll().map { teamRow -> TeamData.from(teamRow) }
         }
     }
 
-    override suspend fun getTeam(teamQuery: TeamQuery): TeamReference {
-        return getTeamRow(teamQuery)!!.teamReference()
+    override suspend fun getTeamByQuery(teamQuery: TeamQuery): TeamData {
+        val teamRow = getTeamRow(teamQuery)!!
+        return TeamData.from(teamRow)
     }
 
-    override suspend fun getTeam(teamId: Int): TeamReference {
-        return getTeamRow(teamId)!!.teamReference()
+    override suspend fun getTeamBySeason(seasonData: SeasonData): TeamData {
+        return query {
+            val seasonRow = SeasonTable.select { SeasonTable.id eq seasonData.seasonId }.single()
+            val teamId = seasonRow[SeasonTable.teamId].value
+
+            getTeamById(teamId)
+        }
+    }
+
+    override suspend fun getTeamById(teamId: Int): TeamData {
+        val teamRow = getTeamRow(teamId)!!
+        return TeamData.from(teamRow)
     }
 
     private suspend fun getTeamRow(teamQuery: TeamQuery): ResultRow? {
@@ -43,23 +54,28 @@ class DatabaseImplementation : DatabaseInterface {
         return getTeamRow(teamQuery)?.let { true } ?: false
     }
 
-    private fun rowToTeamQuery(teamRow: ResultRow): TeamQuery {
-        val teamNumber = teamRow[TeamTable.number]
-
-        return TeamQuery(teamNumber)
+    override suspend fun getSeasonByQuery(seasonQuery: SeasonQuery): SeasonData {
+        val seasonRow = getSeasonRow(seasonQuery)!!
+        return SeasonData.from(seasonRow)
     }
 
-    override suspend fun getSeason(seasonQuery: SeasonQuery): SeasonReference {
-        return getSeasonRow(seasonQuery)!!.seasonReference()
-    }
-
-    override suspend fun getSeason(seasonId: Int): SeasonReference {
-        return getSeasonRow(seasonId)!!.seasonReference()
-    }
-
-    override suspend fun getSeasons(teamReference: TeamReference): List<SeasonReference> {
+    override suspend fun getSeasonByRobot(robotData: RobotData): SeasonData {
         return query {
-            SeasonTable.select { SeasonTable.teamId eq teamReference.teamId }.map { it.seasonReference() }
+            val robotRow = RobotTable.select { RobotTable.id eq robotData.robotId }.single()
+            val seasonId = robotRow[RobotTable.seasonId].value
+
+            getSeasonById(seasonId)
+        }
+    }
+
+    override suspend fun getSeasonById(seasonId: Int): SeasonData {
+        val seasonRow = getSeasonRow(seasonId)!!
+        return SeasonData.from(seasonRow)
+    }
+
+    override suspend fun getSeasonsByTeam(teamData: TeamData): List<SeasonData> {
+        return query {
+            SeasonTable.select { SeasonTable.teamId eq teamData.teamId }.map { seasonRow -> SeasonData.from(seasonRow) }
         }
     }
 
@@ -86,26 +102,21 @@ class DatabaseImplementation : DatabaseInterface {
         return getSeasonRow(seasonQuery)?.let { true } ?: false
     }
 
-    private suspend fun rowToSeasonQuery(seasonRow: ResultRow): SeasonQuery {
-        val year = seasonRow[SeasonTable.year]
-
-        val teamQuery = rowToTeamQuery(getTeamRow(seasonRow[SeasonTable.teamId].value)!!)
-
-        return SeasonQuery(year, teamQuery)
-    }
-
-    override suspend fun getRobots(seasonReference: SeasonReference): List<RobotReference> {
+    override suspend fun getRobotsBySeason(seasonData: SeasonData): List<RobotData> {
         return query {
-            RobotTable.select { RobotTable.seasonId eq seasonReference.seasonId }.map { it.robotReference() }
+            RobotTable.select { RobotTable.seasonId eq seasonData.seasonId }
+                .map { robotRow -> RobotData.from(robotRow) }
         }
     }
 
-    override suspend fun getRobot(robotQuery: RobotQuery): RobotReference {
-        return getRobotRow(robotQuery)!!.robotReference()
+    override suspend fun getRobotByQuery(robotQuery: RobotQuery): RobotData {
+        val robotRow = getRobotRow(robotQuery)!!
+        return RobotData.from(robotRow)
     }
 
-    override suspend fun getRobot(robotId: Int): RobotReference {
-        return getRobotRow(robotId)!!.robotReference()
+    override suspend fun getRobotById(robotId: Int): RobotData {
+        val robotRow = getRobotRow(robotId)!!
+        return RobotData.from(robotRow)
     }
 
     private suspend fun getRobotRow(robotQuery: RobotQuery): ResultRow? {
@@ -131,36 +142,39 @@ class DatabaseImplementation : DatabaseInterface {
         return getRobotRow(robotQuery)?.let { true } ?: false
     }
 
-    private suspend fun rowToRobotQuery(robotRow: ResultRow): RobotQuery {
-        val name = robotRow[RobotTable.name]
-
-        val season = rowToSeasonQuery(getSeasonRow(robotRow[RobotTable.seasonId].value)!!)
-
-        return RobotQuery(name, season)
-    }
-
-    override suspend fun getEvents(): List<EventReference> {
+    override suspend fun getEvents(): List<EventData> {
         return query {
-            EventTable.selectAll().map { it.eventReference() }
+            EventTable.selectAll().map { eventRow -> EventData.from(eventRow) }
         }
     }
 
-    override suspend fun getEvents(seasonReference: SeasonReference): List<EventReference> {
+    override suspend fun getEventsBySeason(seasonData: SeasonData): List<EventData> {
         return query {
-            SeasonEventTable.select { SeasonEventTable.seasonId eq seasonReference.seasonId }.map {seasonEventRow ->
+            SeasonEventTable.select { SeasonEventTable.seasonId eq seasonData.seasonId }.map { seasonEventRow ->
                 val eventId = seasonEventRow[SeasonEventTable.eventId].value
 
-                getEvent(eventId)
+                getEventById(eventId)
             }
         }
     }
 
-    override suspend fun getEvent(eventQuery: EventQuery): EventReference {
-        return getEventRow(eventQuery)!!.eventReference()
+    override suspend fun getEventByMatch(matchData: MatchData): EventData {
+        return query {
+            val matchRow = MatchTable.select { MatchTable.id eq matchData.matchId }.single()
+            val eventId = matchRow[MatchTable.eventId].value
+
+            getEventById(eventId)
+        }
     }
 
-    override suspend fun getEvent(eventId: Int): EventReference {
-        return getEventRow(eventId)!!.eventReference()
+    override suspend fun getEventByQuery(eventQuery: EventQuery): EventData {
+        val eventRow = getEventRow(eventQuery)!!
+        return EventData.from(eventRow)
+    }
+
+    override suspend fun getEventById(eventId: Int): EventData {
+        val eventRow = getEventRow(eventId)!!
+        return EventData.from(eventRow)
     }
 
     private suspend fun getEventRow(eventQuery: EventQuery): ResultRow? {
@@ -184,26 +198,29 @@ class DatabaseImplementation : DatabaseInterface {
         return getEventRow(eventQuery)?.let { true } ?: false
     }
 
-    private fun rowToEventQuery(eventRow: ResultRow): EventQuery {
-        val name = eventRow[EventTable.name]
-        val region = eventRow[EventTable.region]
-        val year = eventRow[EventTable.year]
-        val week = eventRow[EventTable.week]
-
-        return EventQuery(name, region, year, week)
+    override suspend fun getMatchByQuery(matchQuery: MatchQuery): MatchData {
+        val matchRow = getMatchRow(matchQuery)!!
+        return MatchData.from(matchRow)
     }
 
-    override suspend fun getMatch(matchQuery: MatchQuery): MatchReference {
-        return getMatchRow(matchQuery)!!.matchReference()
-    }
-
-    override suspend fun getMatch(matchId: Int): MatchReference {
-        return getMatchRow(matchId)!!.matchReference()
-    }
-
-    override suspend fun getMatches(eventReference: EventReference): List<MatchReference> {
+    override suspend fun getMatchByParticipant(participantData: ParticipantData): MatchData {
         return query {
-            MatchTable.select { MatchTable.eventId eq eventReference.eventId }.map { it.matchReference() }
+            val participantRow =
+                ParticipantTable.select { ParticipantTable.id eq participantData.participantId }.single()
+            val matchId = participantRow[ParticipantTable.matchId].value
+
+            getMatchById(matchId)
+        }
+    }
+
+    override suspend fun getMatchById(matchId: Int): MatchData {
+        val matchRow = getMatchRow(matchId)!!
+        return MatchData.from(matchRow)
+    }
+
+    override suspend fun getMatchesByEvent(eventData: EventData): List<MatchData> {
+        return query {
+            MatchTable.select { MatchTable.eventId eq eventData.eventId }.map { matchRow -> MatchData.from(matchRow) }
         }
     }
 
@@ -230,25 +247,29 @@ class DatabaseImplementation : DatabaseInterface {
         return getMatchRow(matchQuery)?.let { true } ?: false
     }
 
-    private suspend fun rowToMatchQuery(matchRow: ResultRow): MatchQuery {
-        val matchNumber = matchRow[MatchTable.number]
-
-        val eventQuery = rowToEventQuery(getEventRow(matchRow[MatchTable.eventId].value)!!)
-
-        return MatchQuery(matchNumber, eventQuery)
+    override suspend fun getParticipantByQuery(participantQuery: ParticipantQuery): ParticipantData {
+        val participantRow = getParticipantRow(participantQuery)!!
+        return ParticipantData.from(participantRow)
     }
 
-    override suspend fun getParticipant(participantQuery: ParticipantQuery): ParticipantReference {
-        return getParticipantRow(participantQuery)!!.participantReference()
-    }
-
-    override suspend fun getParticipant(participantId: Int): ParticipantReference {
-        return getParticipantRow(participantId)!!.participantReference()
-    }
-
-    override suspend fun getParticipants(matchReference: MatchReference): List<ParticipantReference> {
+    override suspend fun getParticipantByMetric(metricData: MetricData): ParticipantData {
         return query {
-            ParticipantTable.select { ParticipantTable.matchId eq matchReference.matchId }.map { it.participantReference() }
+            val metricRow = MetricTable.select { MetricTable.id eq metricData.metricId }.single()
+            val participantId = metricRow[MetricTable.participantId].value
+
+            getParticipantById(participantId)
+        }
+    }
+
+    override suspend fun getParticipantById(participantId: Int): ParticipantData {
+        val participantRow = getParticipantRow(participantId)!!
+        return ParticipantData.from(participantRow)
+    }
+
+    override suspend fun getParticipantsByMatch(matchData: MatchData): List<ParticipantData> {
+        return query {
+            ParticipantTable.select { ParticipantTable.matchId eq matchData.matchId }
+                .map { participantRow -> ParticipantData.from(participantRow) }
         }
     }
 
@@ -276,53 +297,53 @@ class DatabaseImplementation : DatabaseInterface {
         return getParticipantRow(participantQuery)?.let { true } ?: false
     }
 
-    private suspend fun rowToParticipantQuery(participantRow: ResultRow): ParticipantQuery {
-        val match = rowToMatchQuery(getMatchRow(participantRow[ParticipantTable.matchId].value)!!)
-        val robot = rowToRobotQuery(getRobotRow(participantRow[ParticipantTable.robotId].value)!!)
-
-        return ParticipantQuery(match, robot)
-    }
-
-    override suspend fun getMetrics(participantReference: ParticipantReference): List<MetricReference> {
+    override suspend fun getMetricsByParticipant(participantData: ParticipantData): List<MetricData> {
         return query {
-            MetricTable.select { MetricTable.participantId eq participantReference.participantId }.map { it.metricReference() }
+            MetricTable.select { MetricTable.participantId eq participantData.participantId }
+                .map { metricRow -> MetricData.from(metricRow) }
         }
     }
 
-    override suspend fun insertTeam(team: Team) {
-        if (teamExists(team.query())) throw Exception("Team exists")
+    override suspend fun insertTeam(teamDTO: TeamDTO) {
+        val teamQuery = teamQueryOf(teamDTO)
+
+        if (teamExists(teamQuery)) throw Exception("Team exists")
 
         transaction {
             TeamTable.insert {
-                it[number] = team.number
-                it[name] = team.name
-                it[region] = team.region
+                it[number] = teamDTO.number
+                it[name] = teamDTO.name
+                it[region] = teamDTO.region
             }
         }
 
-        for (season in team.seasons) {
-            insertSeason(season, team.query())
+        for (season in teamDTO.seasons) {
+            insertSeason(season, teamQuery)
         }
     }
 
-    override suspend fun insertSeason(season: Season, teamQuery: TeamQuery) {
-        if (seasonExists(season.query(teamQuery))) throw Exception("Season exists")
+    override suspend fun insertSeason(seasonDTO: SeasonDTO, teamQuery: TeamQuery) {
+        val seasonQuery = seasonQueryOf(seasonDTO, teamQuery)
+
+        if (seasonExists(seasonQuery)) throw Exception("Season exists")
 
         val teamId = getTeamId(teamQuery)
 
         transaction {
             SeasonTable.insert {
                 it[this.teamId] = teamId
-                it[year] = season.year
+                it[year] = seasonDTO.year
             }
         }
 
-        for (event in season.events) {
-            insertSeasonEvent(event.query(), season.query(teamQuery))
+
+        for (event in seasonDTO.events) {
+            val eventQuery = eventQueryOf(event)
+            insertSeasonEvent(eventQuery, seasonQuery)
         }
 
-        for (robot in season.robots) {
-            insertRobot(robot, season.query(teamQuery))
+        for (robot in seasonDTO.robots) {
+            insertRobot(robot, seasonQuery)
         }
     }
 
@@ -340,57 +361,68 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
-    override suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery) {
-        if (robotExists(robot.query(seasonQuery))) throw Exception("Robot exists")
+    override suspend fun insertRobot(robotDTO: RobotDTO, seasonQuery: SeasonQuery) {
+        val robotQuery = robotQueryOf(robotDTO, seasonQuery)
+
+        if (robotExists(robotQuery)) throw Exception("Robot exists")
 
         val seasonId = getSeasonId(seasonQuery)
 
         transaction {
             RobotTable.insert {
                 it[this.seasonId] = seasonId
-                it[name] = robot.name
+                it[name] = robotDTO.name
             }
         }
     }
 
-    override suspend fun insertEvent(event: Event) {
-        if (eventExists(event.query())) throw Exception("Event exists")
+    override suspend fun insertEvent(eventDTO: EventDTO) {
+        val eventQuery = eventQueryOf(eventDTO)
+
+        if (eventExists(eventQuery)) throw Exception("Event exists")
 
         transaction {
             EventTable.insert {
-                it[name] = event.name
-                it[region] = event.region
-                it[year] = event.year
-                it[week] = event.week
+                it[name] = eventDTO.name
+                it[region] = eventDTO.region
+                it[year] = eventDTO.year
+                it[week] = eventDTO.week
             }
         }
 
-        for (match in event.matches) {
-            insertMatch(match, event.query())
+        for (match in eventDTO.matches) {
+            insertMatch(match, eventQuery)
         }
     }
 
-    override suspend fun insertMatch(match: Match, eventQuery: EventQuery) {
-        if (matchExists(match.query(eventQuery))) throw Exception("Match exists")
+    override suspend fun insertMatch(matchDTO: MatchDTO, eventQuery: EventQuery) {
+        val matchQuery = matchQueryOf(matchDTO, eventQuery)
+
+        if (matchExists(matchQuery)) throw Exception("Match exists")
 
         val eventId = getEventId(eventQuery)
 
         transaction {
             MatchTable.insert {
                 it[this.eventId] = eventId
-                it[number] = match.number
-                it[type] = match.type
+                it[number] = matchDTO.number
+                it[type] = matchDTO.type
             }
         }
 
-        for (participant in match.participants) {
+        for (participant in matchDTO.participants) {
             // TODO
         }
     }
 
-    override suspend fun insertParticipant(participant: Participant, matchQuery: MatchQuery, robotQuery: RobotQuery) {
+    override suspend fun insertParticipant(
+        participantDTO: ParticipantDTO,
+        matchQuery: MatchQuery,
+        robotQuery: RobotQuery
+    ) {
         // TODO Duplicate participants inserted
-        if (participantExists(ParticipantQuery(matchQuery, robotQuery))) throw Exception("Participant exists")
+        val participantQuery = participantQueryOf(matchQuery, robotQuery)
+        if (participantExists(participantQuery)) throw Exception("Participant exists")
 
         val matchId = getMatchId(matchQuery)
         val robotId = getRobotId(robotQuery)
@@ -399,10 +431,10 @@ class DatabaseImplementation : DatabaseInterface {
             val participantId = ParticipantTable.insertAndGetId {
                 it[this.matchId] = matchId
                 it[this.robotId] = robotId
-                it[alliance] = participant.alliance
+                it[alliance] = participantDTO.alliance
             }
 
-            for (metric in participant.metrics) {
+            for (metric in participantDTO.metrics) {
                 MetricTable.insert {
                     it[MetricTable.participantId] = participantId
                     it[key] = metric.key
