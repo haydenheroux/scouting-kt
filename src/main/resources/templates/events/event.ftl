@@ -1,8 +1,8 @@
-<#-- @ftlvariable name="eventReference" type="io.github.haydenheroux.scouting.models.event.EventReference" -->
+<#-- @ftlvariable name="event" type="io.github.haydenheroux.scouting.models.event.Event" -->
 <#import "/common/_layout.ftl" as layout />
-<@layout.header title="${eventReference.name}">
-    <h1>${eventReference.name}</h1>
+<@layout.header title="${event.name}">
+    <h1>${event.name}</h1>
     <hr/>
-    <@layout.event_section event=eventReference>
+    <@layout.event_section event=event>
     </@layout.event_section>
 </@layout.header>

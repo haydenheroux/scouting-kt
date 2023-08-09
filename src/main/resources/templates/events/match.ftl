@@ -1,16 +1,16 @@
-<#-- @ftlvariable name="matchReference" type="io.github.haydenheroux.scouting.models.match.MatchReference" -->
+<#-- @ftlvariable name="match" type="io.github.haydenheroux.scouting.models.match.Match" -->
 <#import "/common/_layout.ftl" as layout />
-<#assign event=matchReference.eventReference>
-<#assign title="${layout.match_type_to_text(matchReference.type)} ${matchReference.number} - ${event.name}">
+<#assign title="TODO">
+<#assign heading="TODO">
 <@layout.header title=title>
-    <h1>${layout.match_type_to_text(matchReference.type)} ${matchReference.number} - <a href="/events/${layout.region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}">${event.name}</a></h1>
+    <h1>${heading}</h1>
     <hr/>
-    <#list matchReference.participantReferences as participantReference>
+    <#list match.participants as participant>
         <section>
-            <#assign seasonReference=participantReference.robotReference.seasonReference>
-            <#assign teamReference=seasonReference.teamReference>
-            <@layout.season_link season=seasonReference size="small" />
-            <@layout.alliance alliance=participantReference.alliance />
+            <!-- <#assign seasonReference=participantReference.robotReference.seasonReference> -->
+            <!-- <#assign teamReference=seasonReference.teamReference> -->
+            <!-- <@layout.season_link season=seasonReference size="small" /> -->
+            <!-- <@layout.alliance alliance=participantReference.alliance /> -->
             <h3>Metrics</h3>
             <table>
                 <thead>
@@ -20,10 +20,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                <#list participantReference.metricReferences as metricReference>
+                <#list participant.metrics as metric>
                     <tr>
-                        <td>${metricReference.key}</td>
-                        <td>${metricReference.value}</td>
+                        <td>${metric.key}</td>
+                        <td>${metric.value}</td>
                     </tr>
                 </#list>
                 </tbody>

@@ -1,7 +1,9 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.models.event.dereference
 import io.github.haydenheroux.scouting.models.event.eventQuery
+import io.github.haydenheroux.scouting.models.match.dereference
 import io.github.haydenheroux.scouting.models.match.matchQuery
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -12,18 +14,18 @@ import io.ktor.server.routing.*
 fun Route.events() {
     route("/events") {
         get {
-            val eventReferences = db.getEvents()
+            val events = db.getEvents().map { it.dereference(false) }
 
-            call.respond(FreeMarkerContent("events/events.ftl", mapOf("eventReferences" to eventReferences)))
+            call.respond(FreeMarkerContent("events/events.ftl", mapOf("events" to events)))
         }
 
         get("/{region}/{year}/{week}/{event}") {
             val eventQuery = call.parameters.eventQuery().getOrNull()
 
             eventQuery?.let {
-                val eventReference = db.getEvent(eventQuery)
+                val event = db.getEvent(eventQuery).dereference(false)
 
-                call.respond(FreeMarkerContent("events/event.ftl", mapOf("eventReference" to eventReference)))
+                call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -33,9 +35,9 @@ fun Route.events() {
             val matchQuery = call.parameters.matchQuery().getOrNull()
 
             matchQuery?.let {
-                val matchReference = db.getMatch(matchQuery)
+                val match = db.getMatch(matchQuery).dereference(false)
 
-                call.respond(FreeMarkerContent("events/match.ftl", mapOf("matchReference" to matchReference)))
+                call.respond(FreeMarkerContent("events/match.ftl", mapOf("match" to match)))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }

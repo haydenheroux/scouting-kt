@@ -39,12 +39,13 @@
                 </tr>
             </thead>
             <tbody>
-            <#list event.matchReferences as matchReference>
+            <#list event.matches as match>
                 <tr>
-                    <td><a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}/${matchReference.number}">${matchReference.type[0]}${matchReference.number}</a></td>
-                    <#list matchReference.participantReferences as participantReference>
-                    <#local team_number=participantReference.robotReference.seasonReference.teamReference.number>
-                    <td><a href="/teams/${team_number?c}/${event.year?c}">${team_number?c}</td>
+                    <td><a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}/${match.number}">${match.type[0]}${match.number}</a></td>
+                    <#list match.participants as participant>
+                    <!--  TODO -->
+                    <!-- <#local team_number=participant.robot.season.team.number> -->
+                    <!-- <td><a href="/teams/${team_number?c}/${event.year?c}">${team_number?c}</td> -->
                     </#list>
                 </tr>
             </#list>
@@ -77,10 +78,9 @@
 
 <#macro season_section season>
     <section>
-    <h1><a href="/teams/${season.teamReference.number?c}/${season.year?c}">${season.year?c}</a></h1>
     <hr/>
-    <#list season.eventReferences as eventReference>
-    <@layout.event_section event=eventReference />
+    <#list season.events as event>
+    <@layout.event_section event=event />
     </#list>
     </section>
 </#macro>

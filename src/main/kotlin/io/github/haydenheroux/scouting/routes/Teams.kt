@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.models.team.dereference
 import io.github.haydenheroux.scouting.models.team.seasonQuery
 import io.github.haydenheroux.scouting.models.team.teamQuery
 import io.ktor.http.*
@@ -12,7 +13,7 @@ import io.ktor.server.routing.*
 fun Route.teams() {
     route("/teams") {
         get {
-            val teams = db.getTeams()
+            val teams = db.getTeams().map { it.dereference(false) }
 
             call.respond(FreeMarkerContent("teams/teams.ftl", mapOf("teams" to teams)))
         }
@@ -21,9 +22,9 @@ fun Route.teams() {
             val teamQuery = call.parameters.teamQuery().getOrNull()
 
             teamQuery?.let {
-                val teamReference = db.getTeam(teamQuery)
+                val team = db.getTeam(teamQuery).dereference(false)
 
-                call.respond(FreeMarkerContent("teams/team.ftl", mapOf("teamReference" to teamReference)))
+                call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -33,9 +34,9 @@ fun Route.teams() {
             val seasonQuery = call.parameters.seasonQuery().getOrNull()
 
             seasonQuery?.let {
-                val seasonReference = db.getSeason(seasonQuery)
+                val season = db.getSeason(seasonQuery).dereference(false)
 
-                call.respond(FreeMarkerContent("teams/season.ftl", mapOf("seasonReference" to seasonReference)))
+                call.respond(FreeMarkerContent("teams/season.ftl", mapOf("season" to season)))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
