@@ -83,7 +83,25 @@ data class Season(
     val seasonData: SeasonData,
     val robotReferences: List<Reference<Robot>>,
     val eventReferences: List<Reference<Event>>
-)
+) {
+    fun noChildren(): SeasonDTO {
+        return SeasonDTO(seasonData.year, emptyList(), emptyList())
+    }
+
+    suspend fun children(): SeasonDTO {
+        val robots = robotReferences.map { robotReference -> robotReference.dereference().noChildren() }
+        val events = eventReferences.map { eventReference -> eventReference.dereference().noChildren() }
+
+        return SeasonDTO(seasonData.year, robots, events)
+    }
+
+    suspend fun subChildren(): SeasonDTO {
+        val robots = robotReferences.map { robotReference -> robotReference.dereference().subChildren() }
+        val events = eventReferences.map { eventReference -> eventReference.dereference().subChildren() }
+
+        return SeasonDTO(seasonData.year, robots, events)
+    }
+}
 
 @Serializable
 data class SeasonDTO(val year: Int, val robots: List<RobotDTO>, val events: List<EventDTO>)

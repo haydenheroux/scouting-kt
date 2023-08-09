@@ -60,7 +60,19 @@ data class RobotReference(val robotData: RobotData) : Reference<Robot> {
     }
 }
 
-data class Robot(val robotData: RobotData)
+data class Robot(val robotData: RobotData) {
+    fun noChildren(): RobotDTO {
+        return RobotDTO(robotData.name)
+    }
+
+    fun children(): RobotDTO {
+        return RobotDTO(robotData.name)
+    }
+
+    fun subChildren(): RobotDTO {
+        return RobotDTO(robotData.name)
+    }
+}
 
 @Serializable
 data class RobotDTO(val name: String)

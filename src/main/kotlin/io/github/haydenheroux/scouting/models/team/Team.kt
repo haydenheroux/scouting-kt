@@ -57,16 +57,20 @@ data class TeamReference(val teamData: TeamData, val seasonData: List<Data<Seaso
 }
 
 data class Team(val teamData: TeamData, val seasonReferences: List<Reference<Season>>) {
-    fun self(): TeamDTO {
+    fun noChildren(): TeamDTO {
         return TeamDTO(teamData.number, teamData.name, teamData.region, emptyList())
     }
 
-    fun children(): TeamDTO {
-        return TeamDTO(teamData.number, teamData.name, teamData.region, emptyList())
+    suspend fun children(): TeamDTO {
+        val seasons = seasonReferences.map { seasonReference -> seasonReference.dereference().noChildren() }
+
+        return TeamDTO(teamData.number, teamData.name, teamData.region, seasons)
     }
 
-    fun subChildren(): TeamDTO {
-        return TeamDTO(teamData.number, teamData.name, teamData.region, emptyList())
+    suspend fun subChildren(): TeamDTO {
+        val seasons = seasonReferences.map { seasonReference -> seasonReference.dereference().subChildren() }
+
+        return TeamDTO(teamData.number, teamData.name, teamData.region, seasons)
     }
 }
 

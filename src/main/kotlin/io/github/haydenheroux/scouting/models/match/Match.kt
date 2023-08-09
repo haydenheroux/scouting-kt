@@ -71,7 +71,25 @@ data class MatchReference(val matchData: MatchData, val participantData: List<Pa
     }
 }
 
-data class Match(val matchData: MatchData, val participantReferences: List<Reference<Participant>>)
+data class Match(val matchData: MatchData, val participantReferences: List<Reference<Participant>>) {
+    fun noChildren(): MatchDTO {
+        return MatchDTO(matchData.number, matchData.type, emptyList())
+    }
+
+    suspend fun children(): MatchDTO {
+        val participants =
+            participantReferences.map { participantReference -> participantReference.dereference().noChildren() }
+
+        return MatchDTO(matchData.number, matchData.type, participants)
+    }
+
+    suspend fun subChildren(): MatchDTO {
+        val participants =
+            participantReferences.map { participantReference -> participantReference.dereference().subChildren() }
+
+        return MatchDTO(matchData.number, matchData.type, participants)
+    }
+}
 
 @Serializable
 data class MatchDTO(val number: Int, val type: MatchType, val participants: List<ParticipantDTO>)

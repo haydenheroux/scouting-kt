@@ -63,16 +63,20 @@ data class EventReference(val eventData: EventData, val matchData: List<Data<Mat
 }
 
 data class Event(val eventData: EventData, val matchReferences: List<Reference<Match>>) {
-    fun self(): EventDTO {
+    fun noChildren(): EventDTO {
         return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, emptyList())
     }
 
-    fun children(): EventDTO {
-        return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, emptyList())
+    suspend fun children(): EventDTO {
+        val matches = matchReferences.map { matchReference -> matchReference.dereference().noChildren() }
+
+        return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, matches)
     }
 
-    fun subChildren(): EventDTO {
-        return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, emptyList())
+    suspend fun subChildren(): EventDTO {
+        val matches = matchReferences.map { matchReference -> matchReference.dereference().subChildren() }
+
+        return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, matches)
     }
 }
 

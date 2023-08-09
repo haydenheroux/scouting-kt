@@ -61,7 +61,19 @@ data class MetricReference(val metricData: MetricData) : Reference<Metric> {
     }
 }
 
-data class Metric(val metricData: MetricData)
+data class Metric(val metricData: MetricData) {
+    fun noChildren(): MetricDTO {
+        return MetricDTO(metricData.key, metricData.value)
+    }
+
+    fun children(): MetricDTO {
+        return MetricDTO(metricData.key, metricData.value)
+    }
+
+    fun subChildren(): MetricDTO {
+        return MetricDTO(metricData.key, metricData.value)
+    }
+}
 
 @Serializable
 data class MetricDTO(val key: String, val value: String)

@@ -70,7 +70,23 @@ data class ParticipantReference(val participantData: ParticipantData, val metric
     }
 }
 
-data class Participant(val participantData: ParticipantData, val metricReferences: List<Reference<Metric>>)
+data class Participant(val participantData: ParticipantData, val metricReferences: List<Reference<Metric>>) {
+    fun noChildren(): ParticipantDTO {
+        return ParticipantDTO(participantData.alliance, emptyList())
+    }
+
+    suspend fun children(): ParticipantDTO {
+        val metrics = metricReferences.map { metricReference -> metricReference.dereference().noChildren() }
+
+        return ParticipantDTO(participantData.alliance, metrics)
+    }
+
+    suspend fun subChildren(): ParticipantDTO {
+        val metrics = metricReferences.map { metricReference -> metricReference.dereference().subChildren() }
+
+        return ParticipantDTO(participantData.alliance, metrics)
+    }
+}
 
 @Serializable
 data class ParticipantDTO(val alliance: Alliance, val metrics: List<MetricDTO>)
