@@ -37,12 +37,12 @@ data class SeasonReference(
     val robotReferences: List<RobotReference>
 )
 
-suspend fun ResultRow.asSeasonReference(noParent: Boolean, noChildren: Boolean): SeasonReference {
+suspend fun ResultRow.seasonReference(noParent: Boolean, noChildren: Boolean): SeasonReference {
     val properties = this.seasonProperties()
 
     val teamId = this[SeasonTable.teamId]
     val teamReference = if (noParent) null else query {
-        TeamTable.select { TeamTable.id eq teamId }.map { it.asTeamReference(true) }.single()
+        TeamTable.select { TeamTable.id eq teamId }.map { it.teamReference(true) }.single()
     }
 
     val seasonId = this[SeasonTable.id]
@@ -50,11 +50,11 @@ suspend fun ResultRow.asSeasonReference(noParent: Boolean, noChildren: Boolean):
         SeasonEventTable.select { SeasonEventTable.seasonId eq seasonId }.map { row ->
             val eventId = row[SeasonEventTable.eventId]
 
-            EventTable.select { EventTable.id eq eventId }.map { it.asEventReference(false) }.single()
+            EventTable.select { EventTable.id eq eventId }.map { it.eventReference(false) }.single()
         }
     }
     val robotReferences = if (noChildren) listOf() else query {
-        RobotTable.select { RobotTable.seasonId eq seasonId }.map { it.asRobotReference(false) }
+        RobotTable.select { RobotTable.seasonId eq seasonId }.map { it.robotReference(false) }
     }
 
     return SeasonReference(properties.year, teamReference, eventReferences, robotReferences)

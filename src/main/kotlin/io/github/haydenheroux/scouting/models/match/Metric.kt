@@ -24,7 +24,7 @@ fun ResultRow.metricProperties(): MetricProperties {
 
 data class MetricReference(val key: String, val value: String, val participantReference: ParticipantReference?)
 
-suspend fun ResultRow.asMetricReference(noParent: Boolean): MetricReference {
+suspend fun ResultRow.metricReference(noParent: Boolean): MetricReference {
     val properties = this.metricProperties()
 
     val participantId = this[MetricTable.participantId]

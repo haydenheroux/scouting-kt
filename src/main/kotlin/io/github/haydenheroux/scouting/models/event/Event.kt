@@ -42,12 +42,12 @@ data class EventReference(
     val matchReferences: List<MatchReference>
 )
 
-suspend fun ResultRow.asEventReference(noChildren: Boolean): EventReference {
+suspend fun ResultRow.eventReference(noChildren: Boolean): EventReference {
     val properties = this.eventProperties()
 
     val eventId = this[EventTable.id]
     val matchReferences = if (noChildren) listOf() else query {
-        MatchTable.select { MatchTable.eventId eq eventId }.map { it.asMatchReference(false, false) }
+        MatchTable.select { MatchTable.eventId eq eventId }.map { it.matchReference(false, false) }
     }
 
     return EventReference(properties.name, properties.region, properties.year, properties.week, matchReferences)

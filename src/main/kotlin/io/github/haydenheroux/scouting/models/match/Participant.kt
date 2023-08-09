@@ -38,17 +38,17 @@ suspend fun ResultRow.asParticipantReference(noParent: Boolean, noChildren: Bool
 
     val matchId = this[ParticipantTable.matchId]
     val matchReference = if (noParent) null else query {
-        MatchTable.select { MatchTable.id eq matchId }.map { it.asMatchReference(false, true) }.single()
+        MatchTable.select { MatchTable.id eq matchId }.map { it.matchReference(false, true) }.single()
     }
     val robotId = this[ParticipantTable.robotId]
     val robotReference = if (noParent) null else query {
-        RobotTable.select { RobotTable.id eq robotId }.map { it.asRobotReference(false) }.single()
+        RobotTable.select { RobotTable.id eq robotId }.map { it.robotReference(false) }.single()
     }
 
     val participantId = this[ParticipantTable.id]
     val metricReferences = if (noChildren) listOf() else query {
         MetricTable.select { MetricTable.participantId eq participantId }
-            .map { it.asMetricReference(false) }
+            .map { it.metricReference(false) }
     }
 
     return ParticipantReference(properties.alliance, matchReference, robotReference, metricReferences)

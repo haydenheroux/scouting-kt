@@ -11,12 +11,12 @@ class DatabaseImplementation : DatabaseInterface {
 
     override suspend fun getTeams(): List<TeamReference> {
         return query {
-            TeamTable.selectAll().map { it.asTeamReference(false) }
+            TeamTable.selectAll().map { it.teamReference(false) }
         }
     }
 
     override suspend fun getTeam(teamQuery: TeamQuery): TeamReference {
-        return getTeamRow(teamQuery)!!.asTeamReference(false)
+        return getTeamRow(teamQuery)!!.teamReference(false)
     }
 
     private suspend fun getTeamRow(teamQuery: TeamQuery): ResultRow? {
@@ -46,7 +46,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getSeason(seasonQuery: SeasonQuery): SeasonReference {
-        return getSeasonRow(seasonQuery)!!.asSeasonReference(false, false)
+        return getSeasonRow(seasonQuery)!!.seasonReference(false, false)
     }
 
     private suspend fun getSeasonRow(seasonQuery: SeasonQuery): ResultRow? {
@@ -81,7 +81,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getRobot(robotQuery: RobotQuery): RobotReference {
-        return getRobotRow(robotQuery)!!.asRobotReference(false)
+        return getRobotRow(robotQuery)!!.robotReference(false)
     }
 
     private suspend fun getRobotRow(robotQuery: RobotQuery): ResultRow? {
@@ -117,12 +117,12 @@ class DatabaseImplementation : DatabaseInterface {
 
     override suspend fun getEvents(): List<EventReference> {
         return query {
-            EventTable.selectAll().map { it.asEventReference(false) }
+            EventTable.selectAll().map { it.eventReference(false) }
         }
     }
 
     override suspend fun getEvent(eventQuery: EventQuery): EventReference {
-        return getEventRow(eventQuery)!!.asEventReference(false)
+        return getEventRow(eventQuery)!!.eventReference(false)
     }
 
     private suspend fun getEventRow(eventQuery: EventQuery): ResultRow? {
@@ -156,7 +156,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun getMatch(matchQuery: MatchQuery): MatchReference {
-        return getMatchRow(matchQuery)!!.asMatchReference(false, false)
+        return getMatchRow(matchQuery)!!.matchReference(false, false)
     }
 
     private suspend fun getMatchRow(matchQuery: MatchQuery): ResultRow? {
@@ -325,6 +325,7 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     override suspend fun insertParticipant(participant: Participant, matchQuery: MatchQuery, robotQuery: RobotQuery) {
+        // TODO Duplicate participants inserted
         if (participantExists(ParticipantQuery(matchQuery, robotQuery))) throw Exception("Participant exists")
 
         val matchId = getMatchId(matchQuery)
