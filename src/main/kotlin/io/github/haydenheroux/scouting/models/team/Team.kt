@@ -56,7 +56,19 @@ data class TeamReference(val teamData: TeamData, val seasonData: List<Data<Seaso
     }
 }
 
-data class Team(val teamData: TeamData, val seasonReferences: List<Reference<Season>>)
+data class Team(val teamData: TeamData, val seasonReferences: List<Reference<Season>>) {
+    fun self(): TeamDTO {
+        return TeamDTO(teamData.number, teamData.name, teamData.region, emptyList())
+    }
+
+    fun children(): TeamDTO {
+        return TeamDTO(teamData.number, teamData.name, teamData.region, emptyList())
+    }
+
+    fun subChildren(): TeamDTO {
+        return TeamDTO(teamData.number, teamData.name, teamData.region, emptyList())
+    }
+}
 
 @Serializable
 data class TeamDTO(val number: Int, val name: String, val region: Region, val seasons: List<SeasonDTO>)

@@ -62,7 +62,19 @@ data class EventReference(val eventData: EventData, val matchData: List<Data<Mat
     }
 }
 
-data class Event(val eventData: EventData, val matchReferences: List<Reference<Match>>)
+data class Event(val eventData: EventData, val matchReferences: List<Reference<Match>>) {
+    fun self(): EventDTO {
+        return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, emptyList())
+    }
+
+    fun children(): EventDTO {
+        return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, emptyList())
+    }
+
+    fun subChildren(): EventDTO {
+        return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, emptyList())
+    }
+}
 
 @Serializable
 data class EventDTO(val name: String, val region: Region, val year: Int, val week: Int, val matches: List<MatchDTO>)

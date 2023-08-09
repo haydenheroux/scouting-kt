@@ -19,7 +19,7 @@ fun Route.api() {
         get("/get-teams") {
             val teams = db.getTeams()
 
-            call.respond(teams.map { it.data() })
+            call.respond(teams.map { it.data().self() })
         }
 
         get("/get-team") {
@@ -61,7 +61,7 @@ fun Route.api() {
         get("/get-events") {
             val events = db.getEvents()
 
-            call.respond(events.map { it.data() })
+            call.respond(events.map { it.data().self() })
         }
 
         get("/get-event") {
