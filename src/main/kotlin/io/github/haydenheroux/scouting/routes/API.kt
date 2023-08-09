@@ -17,7 +17,7 @@ fun Route.api() {
         get("/get-teams") {
             val teams = db.getTeams()
 
-            call.respond(teams.map { it.dereference(false) })
+            call.respond("TODO")
         }
 
         get("/get-team") {
@@ -26,7 +26,7 @@ fun Route.api() {
             teamQuery?.let {
                 val team = db.getTeam(teamQuery)
 
-                call.respond(team.dereference(false))
+                call.respond("TODO")
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -38,7 +38,7 @@ fun Route.api() {
             seasonQuery?.let {
                 val season = db.getSeason(seasonQuery)
 
-                call.respond(season.dereference(false))
+                call.respond("TODO")
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -50,7 +50,7 @@ fun Route.api() {
             robotQuery?.let {
                 val robot = db.getRobot(robotQuery)
 
-                call.respond(robot.dereference(false))
+                call.respond("TODO")
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -59,7 +59,7 @@ fun Route.api() {
         get("/get-events") {
             val events = db.getEvents()
 
-            call.respond(events.map { it.dereference(false) })
+            call.respond("TODO")
         }
 
         get("/get-event") {

@@ -1,7 +1,6 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
-import io.github.haydenheroux.scouting.models.team.dereference
 import io.github.haydenheroux.scouting.models.team.seasonQuery
 import io.github.haydenheroux.scouting.models.team.teamQuery
 import io.ktor.http.*
@@ -13,7 +12,7 @@ import io.ktor.server.routing.*
 fun Route.teams() {
     route("/teams") {
         get {
-            val teams = db.getTeams().map { it.dereference(false) }
+            val teams = db.getTeams()
 
             call.respond(FreeMarkerContent("teams/teams.ftl", mapOf("teams" to teams)))
         }
@@ -22,7 +21,7 @@ fun Route.teams() {
             val teamQuery = call.parameters.teamQuery().getOrNull()
 
             teamQuery?.let {
-                val team = db.getTeam(teamQuery).dereference(false)
+                val team = db.getTeam(teamQuery)
 
                 call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
             } ?: run {
@@ -34,7 +33,7 @@ fun Route.teams() {
             val seasonQuery = call.parameters.seasonQuery().getOrNull()
 
             seasonQuery?.let {
-                val season = db.getSeason(seasonQuery).dereference(false)
+                val season = db.getSeason(seasonQuery)
 
                 call.respond(FreeMarkerContent("teams/season.ftl", mapOf("season" to season)))
             } ?: run {

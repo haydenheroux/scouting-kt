@@ -1,9 +1,7 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
-import io.github.haydenheroux.scouting.models.event.dereference
 import io.github.haydenheroux.scouting.models.event.eventQuery
-import io.github.haydenheroux.scouting.models.match.dereference
 import io.github.haydenheroux.scouting.models.match.matchQuery
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -14,7 +12,7 @@ import io.ktor.server.routing.*
 fun Route.events() {
     route("/events") {
         get {
-            val events = db.getEvents().map { it.dereference(false) }
+            val events = db.getEvents()
 
             call.respond(FreeMarkerContent("events/events.ftl", mapOf("events" to events)))
         }
@@ -23,7 +21,7 @@ fun Route.events() {
             val eventQuery = call.parameters.eventQuery().getOrNull()
 
             eventQuery?.let {
-                val event = db.getEvent(eventQuery).dereference(false)
+                val event = db.getEvent(eventQuery)
 
                 call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
             } ?: run {
@@ -35,7 +33,7 @@ fun Route.events() {
             val matchQuery = call.parameters.matchQuery().getOrNull()
 
             matchQuery?.let {
-                val match = db.getMatch(matchQuery).dereference(false)
+                val match = db.getMatch(matchQuery)
 
                 call.respond(FreeMarkerContent("events/match.ftl", mapOf("match" to match)))
             } ?: run {
