@@ -28,7 +28,7 @@ fun Route.api() {
             teamQuery?.let {
                 val team = db.getTeamByQuery(teamQuery)
 
-                call.respond(team.data())
+                call.respond(team.reference().dereference().subChildren())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -40,7 +40,7 @@ fun Route.api() {
             seasonQuery?.let {
                 val season = db.getSeasonByQuery(seasonQuery)
 
-                call.respond(season.data())
+                call.respond(season.reference().dereference().subChildren())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -52,7 +52,7 @@ fun Route.api() {
             robotQuery?.let {
                 val robot = db.getRobotByQuery(robotQuery)
 
-                call.respond(robot.data())
+                call.respond(robot.reference().dereference())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -70,7 +70,7 @@ fun Route.api() {
             eventQuery?.let {
                 val event = db.getEventByQuery(eventQuery)
 
-                call.respond(event.data())
+                call.respond(event.reference().dereference().subChildren())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -82,7 +82,7 @@ fun Route.api() {
             matchQuery?.let {
                 val match = db.getMatchByQuery(matchQuery)
 
-                call.respond(match.data())
+                call.respond(match.reference().dereference().subChildren())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -94,7 +94,7 @@ fun Route.api() {
             participantQuery?.let {
                 val participant = db.getParticipantByQuery(participantQuery)
 
-                call.respond(participant.data())
+                call.respond(participant.reference().dereference().subChildren())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
