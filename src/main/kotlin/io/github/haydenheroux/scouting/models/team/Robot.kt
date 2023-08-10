@@ -1,9 +1,9 @@
 package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.database.db
-import io.github.haydenheroux.scouting.models.interfaces.Data
-import io.github.haydenheroux.scouting.models.interfaces.Parented
-import io.github.haydenheroux.scouting.models.interfaces.Reference
+import io.github.haydenheroux.scouting.models.interfaces.Node
+import io.github.haydenheroux.scouting.models.interfaces.Parent
+import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -14,73 +14,73 @@ object RobotTable : IntIdTable() {
     val name = varchar("name", 255)
 }
 
-data class RobotData(val robotId: Int, val name: String) : Data<Robot> {
+data class RobotNode(val id: Int, val name: String) : Node<RobotTree> {
 
     companion object {
-        fun from(robotRow: ResultRow): RobotData {
-            return RobotData(
+        fun from(robotRow: ResultRow): RobotNode {
+            return RobotNode(
                 robotRow[RobotTable.id].value,
                 robotRow[RobotTable.name]
             )
         }
     }
 
-    override suspend fun parent(): Parented<Robot> {
-        val seasonData = db.getSeasonByRobot(this)
+    override suspend fun parent(): Parent<RobotTree> {
+        val season = db.getSeasonByRobot(this)
 
-        return ParentedRobot(this, seasonData)
+        return RobotParent(this, season)
     }
 
-    override suspend fun reference(): Reference<Robot> {
-        return RobotReference(this)
+    override suspend fun subtree(): Subtree<RobotTree> {
+        return RobotSubtree(this)
     }
 
-    override fun data(): Robot {
-        return Robot(this)
-    }
-}
-
-data class ParentedRobot(val robotData: RobotData, val seasonData: SeasonData) : Parented<Robot> {
-    override suspend fun reference(): Reference<Robot> {
-        return robotData.reference()
-    }
-
-    override fun data(): Robot {
-        return robotData.data()
+    override fun tree(): RobotTree {
+        return RobotTree(this)
     }
 }
 
-data class RobotReference(val robotData: RobotData) : Reference<Robot> {
-    override suspend fun parent(): Parented<Robot> {
-        return robotData.parent()
+data class RobotParent(val robot: RobotNode, val season: SeasonNode) : Parent<RobotTree> {
+    override suspend fun subtree(): Subtree<RobotTree> {
+        return robot.subtree()
     }
 
-    override suspend fun dereference(): Robot {
-        return Robot(robotData)
+    override fun tree(): RobotTree {
+        return robot.tree()
     }
 }
 
-data class Robot(val robotData: RobotData) {
-    fun noChildren(): RobotDTO {
-        return RobotDTO(robotData.name)
+data class RobotSubtree(val robot: RobotNode) : Subtree<RobotTree> {
+    override suspend fun parent(): Parent<RobotTree> {
+        return robot.parent()
     }
 
-    fun children(): RobotDTO {
-        return RobotDTO(robotData.name)
+    override suspend fun tree(): RobotTree {
+        return RobotTree(robot)
+    }
+}
+
+data class RobotTree(val robot: RobotNode) {
+    fun noChildren(): Robot {
+        return Robot(robot.name)
     }
 
-    fun subChildren(): RobotDTO {
-        return RobotDTO(robotData.name)
+    fun children(): Robot {
+        return Robot(robot.name)
+    }
+
+    fun subChildren(): Robot {
+        return Robot(robot.name)
     }
 }
 
 @Serializable
-data class RobotDTO(val name: String)
+data class Robot(val name: String)
 
 data class RobotQuery(val name: String, val season: SeasonQuery)
 
-fun robotQueryOf(robotDTO: RobotDTO, seasonQuery: SeasonQuery): RobotQuery {
-    return RobotQuery(robotDTO.name, seasonQuery)
+fun robotQueryOf(robot: Robot, seasonQuery: SeasonQuery): RobotQuery {
+    return RobotQuery(robot.name, seasonQuery)
 }
 
 fun Parameters.robotQuery(): Result<RobotQuery> {

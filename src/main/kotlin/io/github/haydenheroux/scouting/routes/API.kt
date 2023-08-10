@@ -1,10 +1,10 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.db
-import io.github.haydenheroux.scouting.models.event.EventDTO
+import io.github.haydenheroux.scouting.models.event.Event
 import io.github.haydenheroux.scouting.models.event.eventQuery
-import io.github.haydenheroux.scouting.models.match.MatchDTO
-import io.github.haydenheroux.scouting.models.match.ParticipantDTO
+import io.github.haydenheroux.scouting.models.match.Match
+import io.github.haydenheroux.scouting.models.match.Participant
 import io.github.haydenheroux.scouting.models.match.matchQuery
 import io.github.haydenheroux.scouting.models.match.participantQuery
 import io.github.haydenheroux.scouting.models.team.*
@@ -19,7 +19,7 @@ fun Route.api() {
         get("/get-teams") {
             val teams = db.getTeams()
 
-            call.respond(teams.map { it.reference().dereference().subChildren() })
+            call.respond(teams.map { it.subtree().tree().subChildren() })
         }
 
         get("/get-team") {
@@ -28,7 +28,7 @@ fun Route.api() {
             teamQuery?.let {
                 val team = db.getTeamByQuery(teamQuery)
 
-                call.respond(team.reference().dereference().subChildren())
+                call.respond(team.subtree().tree().subChildren())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -40,7 +40,7 @@ fun Route.api() {
             seasonQuery?.let {
                 val season = db.getSeasonByQuery(seasonQuery)
 
-                call.respond(season.reference().dereference().subChildren())
+                call.respond(season.subtree().tree().subChildren())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -52,7 +52,7 @@ fun Route.api() {
             robotQuery?.let {
                 val robot = db.getRobotByQuery(robotQuery)
 
-                call.respond(robot.reference().dereference())
+                call.respond(robot.subtree().tree())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -61,7 +61,7 @@ fun Route.api() {
         get("/get-events") {
             val events = db.getEvents()
 
-            call.respond(events.map { it.reference().dereference().subChildren() })
+            call.respond(events.map { it.subtree().tree().subChildren() })
         }
 
         get("/get-event") {
@@ -70,7 +70,7 @@ fun Route.api() {
             eventQuery?.let {
                 val event = db.getEventByQuery(eventQuery)
 
-                call.respond(event.reference().dereference().subChildren())
+                call.respond(event.subtree().tree().subChildren())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -82,7 +82,7 @@ fun Route.api() {
             matchQuery?.let {
                 val match = db.getMatchByQuery(matchQuery)
 
-                call.respond(match.reference().dereference().subChildren())
+                call.respond(match.subtree().tree().subChildren())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -94,14 +94,14 @@ fun Route.api() {
             participantQuery?.let {
                 val participant = db.getParticipantByQuery(participantQuery)
 
-                call.respond(participant.reference().dereference().subChildren())
+                call.respond(participant.subtree().tree().subChildren())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
         }
 
         post("/new-team") {
-            val team = call.receive<TeamDTO>()
+            val team = call.receive<Team>()
 
             db.insertTeam(team)
 
@@ -109,7 +109,7 @@ fun Route.api() {
         }
 
         post("/new-season") {
-            val season = call.receive<SeasonDTO>()
+            val season = call.receive<Season>()
 
             val teamQuery = call.request.queryParameters.teamQuery().getOrNull()
 
@@ -123,7 +123,7 @@ fun Route.api() {
         }
 
         post("/new-robot") {
-            val robot = call.receive<RobotDTO>()
+            val robot = call.receive<Robot>()
 
             val seasonQuery = call.request.queryParameters.seasonQuery().getOrNull()
 
@@ -156,7 +156,7 @@ fun Route.api() {
         }
 
         post("/new-event") {
-            val event = call.receive<EventDTO>()
+            val event = call.receive<Event>()
 
             db.insertEvent(event)
 
@@ -164,7 +164,7 @@ fun Route.api() {
         }
 
         post("/new-match") {
-            val match = call.receive<MatchDTO>()
+            val match = call.receive<Match>()
 
             assert(match.participants.isEmpty())
 
@@ -180,7 +180,7 @@ fun Route.api() {
         }
 
         post("/new-participant") {
-            val participant = call.receive<ParticipantDTO>()
+            val participant = call.receive<Participant>()
 
             val matchQuery = call.request.queryParameters.matchQuery().getOrNull()
 

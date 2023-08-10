@@ -2,9 +2,9 @@ package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Region
-import io.github.haydenheroux.scouting.models.interfaces.Data
-import io.github.haydenheroux.scouting.models.interfaces.Parented
-import io.github.haydenheroux.scouting.models.interfaces.Reference
+import io.github.haydenheroux.scouting.models.interfaces.Node
+import io.github.haydenheroux.scouting.models.interfaces.Parent
+import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -16,11 +16,11 @@ object TeamTable : IntIdTable() {
     val region = enumerationByName<Region>("region", 255)
 }
 
-data class TeamData(val teamId: Int, val number: Int, val name: String, val region: Region) : Data<Team> {
+data class TeamNode(val id: Int, val number: Int, val name: String, val region: Region) : Node<TeamTree> {
 
     companion object {
-        fun from(teamRow: ResultRow): TeamData {
-            return TeamData(
+        fun from(teamRow: ResultRow): TeamNode {
+            return TeamNode(
                 teamRow[TeamTable.id].value,
                 teamRow[TeamTable.number],
                 teamRow[TeamTable.name],
@@ -29,58 +29,58 @@ data class TeamData(val teamId: Int, val number: Int, val name: String, val regi
         }
     }
 
-    override suspend fun parent(): Parented<Team>? {
+    override suspend fun parent(): Parent<TeamTree>? {
         return null
     }
 
-    override suspend fun reference(): Reference<Team> {
-        val seasonData = db.getSeasonsByTeam(this)
+    override suspend fun subtree(): Subtree<TeamTree> {
+        val seasons = db.getSeasonsByTeam(this)
 
-        return TeamReference(this, seasonData)
+        return TeamSubtree(this, seasons)
     }
 
-    override fun data(): Team {
-        return Team(this, emptyList())
-    }
-}
-
-data class TeamReference(val teamData: TeamData, val seasonData: List<Data<Season>>) : Reference<Team> {
-    override suspend fun parent(): Parented<Team>? {
-        return teamData.parent()
-    }
-
-    override suspend fun dereference(): Team {
-        val seasonReferences = seasonData.map { it.reference() }
-
-        return Team(teamData, seasonReferences)
+    override fun tree(): TeamTree {
+        return TeamTree(this, emptyList())
     }
 }
 
-data class Team(val teamData: TeamData, val seasonReferences: List<Reference<Season>>) {
-    fun noChildren(): TeamDTO {
-        return TeamDTO(teamData.number, teamData.name, teamData.region, emptyList())
+data class TeamSubtree(val team: TeamNode, val seasons: List<Node<SeasonTree>>) : Subtree<TeamTree> {
+    override suspend fun parent(): Parent<TeamTree>? {
+        return team.parent()
     }
 
-    suspend fun children(): TeamDTO {
-        val seasons = seasonReferences.map { seasonReference -> seasonReference.dereference().noChildren() }
+    override suspend fun tree(): TeamTree {
+        val seasons = seasons.map { it.subtree() }
 
-        return TeamDTO(teamData.number, teamData.name, teamData.region, seasons)
+        return TeamTree(team, seasons)
+    }
+}
+
+data class TeamTree(val team: TeamNode, val seasons: List<Subtree<SeasonTree>>) {
+    fun noChildren(): Team {
+        return Team(team.number, team.name, team.region, emptyList())
     }
 
-    suspend fun subChildren(): TeamDTO {
-        val seasons = seasonReferences.map { seasonReference -> seasonReference.dereference().subChildren() }
+    suspend fun children(): Team {
+        val seasons = seasons.map { season -> season.tree().noChildren() }
 
-        return TeamDTO(teamData.number, teamData.name, teamData.region, seasons)
+        return Team(team.number, team.name, team.region, seasons)
+    }
+
+    suspend fun subChildren(): Team {
+        val seasons = seasons.map { season -> season.tree().subChildren() }
+
+        return Team(team.number, team.name, team.region, seasons)
     }
 }
 
 @Serializable
-data class TeamDTO(val number: Int, val name: String, val region: Region, val seasons: List<SeasonDTO>)
+data class Team(val number: Int, val name: String, val region: Region, val seasons: List<Season>)
 
 data class TeamQuery(val number: Int)
 
-fun teamQueryOf(teamDTO: TeamDTO): TeamQuery {
-    return TeamQuery(teamDTO.number)
+fun teamQueryOf(team: Team): TeamQuery {
+    return TeamQuery(team.number)
 }
 
 fun Parameters.teamQuery(): Result<TeamQuery> {

@@ -3,11 +3,11 @@ package io.github.haydenheroux.scouting.models.event
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.enums.regionOf
-import io.github.haydenheroux.scouting.models.interfaces.Data
-import io.github.haydenheroux.scouting.models.interfaces.Parented
-import io.github.haydenheroux.scouting.models.interfaces.Reference
+import io.github.haydenheroux.scouting.models.interfaces.Node
+import io.github.haydenheroux.scouting.models.interfaces.Parent
+import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.github.haydenheroux.scouting.models.match.Match
-import io.github.haydenheroux.scouting.models.match.MatchDTO
+import io.github.haydenheroux.scouting.models.match.MatchTree
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -20,12 +20,12 @@ object EventTable : IntIdTable() {
     val week = integer("week")
 }
 
-data class EventData(val eventId: Int, val name: String, val region: Region, val year: Int, val week: Int) :
-    Data<Event> {
+data class EventNode(val id: Int, val name: String, val region: Region, val year: Int, val week: Int) :
+    Node<EventTree> {
 
     companion object {
-        fun from(eventRow: ResultRow): EventData {
-            return EventData(
+        fun from(eventRow: ResultRow): EventNode {
+            return EventNode(
                 eventRow[EventTable.id].value,
                 eventRow[EventTable.name],
                 eventRow[EventTable.region],
@@ -35,58 +35,58 @@ data class EventData(val eventId: Int, val name: String, val region: Region, val
         }
     }
 
-    override suspend fun parent(): Parented<Event>? {
+    override suspend fun parent(): Parent<EventTree>? {
         return null
     }
 
-    override suspend fun reference(): Reference<Event> {
-        val matchData = db.getMatchesByEvent(this)
+    override suspend fun subtree(): Subtree<EventTree> {
+        val match = db.getMatchesByEvent(this)
 
-        return EventReference(this, matchData)
+        return EventSubtree(this, match)
     }
 
-    override fun data(): Event {
-        return Event(this, emptyList())
-    }
-}
-
-data class EventReference(val eventData: EventData, val matchData: List<Data<Match>>) : Reference<Event> {
-    override suspend fun parent(): Parented<Event>? {
-        return eventData.parent()
-    }
-
-    override suspend fun dereference(): Event {
-        val matchReferences = matchData.map { it.reference() }
-
-        return Event(eventData, matchReferences)
+    override fun tree(): EventTree {
+        return EventTree(this, emptyList())
     }
 }
 
-data class Event(val eventData: EventData, val matchReferences: List<Reference<Match>>) {
-    fun noChildren(): EventDTO {
-        return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, emptyList())
+data class EventSubtree(val event: EventNode, val matches: List<Node<MatchTree>>) : Subtree<EventTree> {
+    override suspend fun parent(): Parent<EventTree>? {
+        return event.parent()
     }
 
-    suspend fun children(): EventDTO {
-        val matches = matchReferences.map { matchReference -> matchReference.dereference().noChildren() }
+    override suspend fun tree(): EventTree {
+        val matches = matches.map { it.subtree() }
 
-        return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, matches)
+        return EventTree(event, matches)
+    }
+}
+
+data class EventTree(val event: EventNode, val matches: List<Subtree<MatchTree>>) {
+    fun noChildren(): Event {
+        return Event(event.name, event.region, event.year, event.week, emptyList())
     }
 
-    suspend fun subChildren(): EventDTO {
-        val matches = matchReferences.map { matchReference -> matchReference.dereference().subChildren() }
+    suspend fun children(): Event {
+        val matches = matches.map { match -> match.tree().noChildren() }
 
-        return EventDTO(eventData.name, eventData.region, eventData.year, eventData.week, matches)
+        return Event(event.name, event.region, event.year, event.week, matches)
+    }
+
+    suspend fun subChildren(): Event {
+        val matches = matches.map { match -> match.tree().subChildren() }
+
+        return Event(event.name, event.region, event.year, event.week, matches)
     }
 }
 
 @Serializable
-data class EventDTO(val name: String, val region: Region, val year: Int, val week: Int, val matches: List<MatchDTO>)
+data class Event(val name: String, val region: Region, val year: Int, val week: Int, val matches: List<Match>)
 
 data class EventQuery(val name: String, val region: Region, val year: Int, val week: Int)
 
-fun eventQueryOf(eventDTO: EventDTO): EventQuery {
-    return EventQuery(eventDTO.name, eventDTO.region, eventDTO.year, eventDTO.week)
+fun eventQueryOf(event: Event): EventQuery {
+    return EventQuery(event.name, event.region, event.year, event.week)
 }
 
 fun Parameters.eventQuery(): Result<EventQuery> {

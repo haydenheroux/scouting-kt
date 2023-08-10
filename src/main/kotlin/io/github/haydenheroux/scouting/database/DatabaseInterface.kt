@@ -1,67 +1,67 @@
 package io.github.haydenheroux.scouting.database
 
-import io.github.haydenheroux.scouting.models.event.EventDTO
-import io.github.haydenheroux.scouting.models.event.EventData
+import io.github.haydenheroux.scouting.models.event.Event
+import io.github.haydenheroux.scouting.models.event.EventNode
 import io.github.haydenheroux.scouting.models.event.EventQuery
 import io.github.haydenheroux.scouting.models.match.*
 import io.github.haydenheroux.scouting.models.team.*
 
 interface DatabaseInterface {
-    suspend fun getTeams(): List<TeamData>
+    suspend fun getTeams(): List<TeamNode>
 
-    suspend fun getTeamByQuery(teamQuery: TeamQuery): TeamData
+    suspend fun getTeamByQuery(teamQuery: TeamQuery): TeamNode
 
-    suspend fun getTeamBySeason(seasonData: SeasonData): TeamData
+    suspend fun getTeamBySeason(seasonData: SeasonNode): TeamNode
 
-    suspend fun getTeamById(teamId: Int): TeamData
+    suspend fun getTeamById(teamId: Int): TeamNode
 
-    suspend fun getSeasonByQuery(seasonQuery: SeasonQuery): SeasonData
+    suspend fun getSeasonByQuery(seasonQuery: SeasonQuery): SeasonNode
 
-    suspend fun getSeasonsByTeam(teamData: TeamData): List<SeasonData>
+    suspend fun getSeasonsByTeam(teamData: TeamNode): List<SeasonNode>
 
-    suspend fun getSeasonByRobot(robotData: RobotData): SeasonData
+    suspend fun getSeasonByRobot(robotData: RobotNode): SeasonNode
 
-    suspend fun getSeasonById(seasonId: Int): SeasonData
+    suspend fun getSeasonById(seasonId: Int): SeasonNode
 
-    suspend fun getRobotByQuery(robotQuery: RobotQuery): RobotData
+    suspend fun getRobotByQuery(robotQuery: RobotQuery): RobotNode
 
-    suspend fun getRobotsBySeason(seasonData: SeasonData): List<RobotData>
+    suspend fun getRobotsBySeason(seasonData: SeasonNode): List<RobotNode>
 
-    suspend fun getRobotById(robotId: Int): RobotData
+    suspend fun getRobotById(robotId: Int): RobotNode
 
-    suspend fun getEvents(): List<EventData>
+    suspend fun getEvents(): List<EventNode>
 
-    suspend fun getEventsBySeason(seasonData: SeasonData): List<EventData>
+    suspend fun getEventsBySeason(seasonData: SeasonNode): List<EventNode>
 
-    suspend fun getEventByQuery(eventQuery: EventQuery): EventData
+    suspend fun getEventByQuery(eventQuery: EventQuery): EventNode
 
-    suspend fun getEventByMatch(matchData: MatchData): EventData
+    suspend fun getEventByMatch(matchData: MatchNode): EventNode
 
-    suspend fun getEventById(eventId: Int): EventData
+    suspend fun getEventById(eventId: Int): EventNode
 
-    suspend fun getMatchesByEvent(eventData: EventData): List<MatchData>
+    suspend fun getMatchesByEvent(eventData: EventNode): List<MatchNode>
 
-    suspend fun getMatchByQuery(matchQuery: MatchQuery): MatchData
+    suspend fun getMatchByQuery(matchQuery: MatchQuery): MatchNode
 
-    suspend fun getMatchByParticipant(participantData: ParticipantData): MatchData
+    suspend fun getMatchByParticipant(participantData: ParticipantNode): MatchNode
 
-    suspend fun getMatchById(matchId: Int): MatchData
+    suspend fun getMatchById(matchId: Int): MatchNode
 
-    suspend fun getParticipantsByMatch(matchData: MatchData): List<ParticipantData>
+    suspend fun getParticipantsByMatch(matchData: MatchNode): List<ParticipantNode>
 
-    suspend fun getParticipantByQuery(participantQuery: ParticipantQuery): ParticipantData
+    suspend fun getParticipantByQuery(participantQuery: ParticipantQuery): ParticipantNode
 
-    suspend fun getParticipantByMetric(metricData: MetricData): ParticipantData
+    suspend fun getParticipantByMetric(metricData: MetricNode): ParticipantNode
 
-    suspend fun getParticipantById(participantId: Int): ParticipantData
+    suspend fun getParticipantById(participantId: Int): ParticipantNode
 
-    suspend fun getMetricsByParticipant(participantData: ParticipantData): List<MetricData>
+    suspend fun getMetricsByParticipant(participantData: ParticipantNode): List<MetricNode>
 
-    suspend fun insertTeam(teamDTO: TeamDTO)
-    suspend fun insertSeason(seasonDTO: SeasonDTO, teamQuery: TeamQuery)
+    suspend fun insertTeam(team: Team)
+    suspend fun insertSeason(season: Season, teamQuery: TeamQuery)
     suspend fun insertSeasonEvent(eventQuery: EventQuery, seasonQuery: SeasonQuery)
-    suspend fun insertRobot(robotDTO: RobotDTO, seasonQuery: SeasonQuery)
-    suspend fun insertEvent(eventDTO: EventDTO)
-    suspend fun insertMatch(matchDTO: MatchDTO, eventQuery: EventQuery)
-    suspend fun insertParticipant(participantDTO: ParticipantDTO, matchQuery: MatchQuery, robotQuery: RobotQuery)
+    suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery)
+    suspend fun insertEvent(event: Event)
+    suspend fun insertMatch(match: Match, eventQuery: EventQuery)
+    suspend fun insertParticipant(participant: Participant, matchQuery: MatchQuery, robotQuery: RobotQuery)
 }

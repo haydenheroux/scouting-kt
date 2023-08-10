@@ -1,9 +1,9 @@
 package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.db
-import io.github.haydenheroux.scouting.models.interfaces.Data
-import io.github.haydenheroux.scouting.models.interfaces.Parented
-import io.github.haydenheroux.scouting.models.interfaces.Reference
+import io.github.haydenheroux.scouting.models.interfaces.Node
+import io.github.haydenheroux.scouting.models.interfaces.Parent
+import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -14,11 +14,11 @@ object MetricTable : IntIdTable() {
     val value = varchar("value", 255)
 }
 
-data class MetricData(val metricId: Int, val key: String, val value: String) : Data<Metric> {
+data class MetricNode(val id: Int, val key: String, val value: String) : Node<MetricTree> {
 
     companion object {
-        fun from(metricRow: ResultRow): MetricData {
-            return MetricData(
+        fun from(metricRow: ResultRow): MetricNode {
+            return MetricNode(
                 metricRow[MetricTable.id].value,
                 metricRow[MetricTable.key],
                 metricRow[MetricTable.value]
@@ -26,52 +26,52 @@ data class MetricData(val metricId: Int, val key: String, val value: String) : D
         }
     }
 
-    override suspend fun parent(): Parented<Metric> {
-        val participantData = db.getParticipantByMetric(this)
+    override suspend fun parent(): Parent<MetricTree> {
+        val participant = db.getParticipantByMetric(this)
 
-        return ParentedMetric(this, participantData)
+        return MetricParent(this, participant)
     }
 
-    override suspend fun reference(): Reference<Metric> {
-        return MetricReference(this)
+    override suspend fun subtree(): Subtree<MetricTree> {
+        return MetricSubtree(this)
     }
 
-    override fun data(): Metric {
-        return Metric(this)
-    }
-}
-
-data class ParentedMetric(val metricData: MetricData, val participantData: ParticipantData) : Parented<Metric> {
-    override suspend fun reference(): Reference<Metric> {
-        return metricData.reference()
-    }
-
-    override fun data(): Metric {
-        return metricData.data()
+    override fun tree(): MetricTree {
+        return MetricTree(this)
     }
 }
 
-data class MetricReference(val metricData: MetricData) : Reference<Metric> {
-    override suspend fun parent(): Parented<Metric> {
-        return metricData.parent()
+data class MetricParent(val metric: MetricNode, val participant: ParticipantNode) : Parent<MetricTree> {
+    override suspend fun subtree(): Subtree<MetricTree> {
+        return metric.subtree()
     }
 
-    override suspend fun dereference(): Metric {
-        return Metric(metricData)
+    override fun tree(): MetricTree {
+        return metric.tree()
     }
 }
 
-data class Metric(val metricData: MetricData) {
+data class MetricSubtree(val metric: MetricNode) : Subtree<MetricTree> {
+    override suspend fun parent(): Parent<MetricTree> {
+        return metric.parent()
+    }
+
+    override suspend fun tree(): MetricTree {
+        return MetricTree(metric)
+    }
+}
+
+data class MetricTree(val metric: MetricNode) {
     fun noChildren(): MetricDTO {
-        return MetricDTO(metricData.key, metricData.value)
+        return MetricDTO(metric.key, metric.value)
     }
 
     fun children(): MetricDTO {
-        return MetricDTO(metricData.key, metricData.value)
+        return MetricDTO(metric.key, metric.value)
     }
 
     fun subChildren(): MetricDTO {
-        return MetricDTO(metricData.key, metricData.value)
+        return MetricDTO(metric.key, metric.value)
     }
 }
 

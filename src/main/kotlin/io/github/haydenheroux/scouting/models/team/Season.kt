@@ -2,12 +2,12 @@ package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.event.Event
-import io.github.haydenheroux.scouting.models.event.EventDTO
-import io.github.haydenheroux.scouting.models.event.EventData
+import io.github.haydenheroux.scouting.models.event.EventNode
 import io.github.haydenheroux.scouting.models.event.EventTable
-import io.github.haydenheroux.scouting.models.interfaces.Data
-import io.github.haydenheroux.scouting.models.interfaces.Parented
-import io.github.haydenheroux.scouting.models.interfaces.Reference
+import io.github.haydenheroux.scouting.models.event.EventTree
+import io.github.haydenheroux.scouting.models.interfaces.Node
+import io.github.haydenheroux.scouting.models.interfaces.Parent
+import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -26,90 +26,90 @@ object SeasonEventTable : Table() {
     override val primaryKey = PrimaryKey(seasonId, eventId)
 }
 
-data class SeasonData(val seasonId: Int, val year: Int) : Data<Season> {
+data class SeasonNode(val id: Int, val year: Int) : Node<SeasonTree> {
 
     companion object {
-        fun from(seasonRow: ResultRow): SeasonData {
-            return SeasonData(
+        fun from(seasonRow: ResultRow): SeasonNode {
+            return SeasonNode(
                 seasonRow[SeasonTable.id].value,
                 seasonRow[SeasonTable.year]
             )
         }
     }
 
-    override suspend fun parent(): Parented<Season> {
-        val teamData = db.getTeamBySeason(this)
+    override suspend fun parent(): Parent<SeasonTree> {
+        val team = db.getTeamBySeason(this)
 
-        return ParentedSeason(this, teamData)
+        return SeasonParent(this, team)
     }
 
-    override suspend fun reference(): Reference<Season> {
-        val robotData = db.getRobotsBySeason(this)
-        val eventData = db.getEventsBySeason(this)
+    override suspend fun subtree(): Subtree<SeasonTree> {
+        val robots = db.getRobotsBySeason(this)
+        val events = db.getEventsBySeason(this)
 
-        return SeasonReference(this, robotData, eventData)
+        return SeasonSubtree(this, robots, events)
     }
 
-    override fun data(): Season {
-        return Season(this, emptyList(), emptyList())
-    }
-}
-
-data class ParentedSeason(val seasonData: SeasonData, val teamData: TeamData) : Parented<Season> {
-    override suspend fun reference(): Reference<Season> {
-        return seasonData.reference()
-    }
-
-    override fun data(): Season {
-        return seasonData.data()
+    override fun tree(): SeasonTree {
+        return SeasonTree(this, emptyList(), emptyList())
     }
 }
 
-data class SeasonReference(val seasonData: SeasonData, val robotData: List<RobotData>, val eventData: List<EventData>) :
-    Reference<Season> {
-    override suspend fun parent(): Parented<Season> {
-        return seasonData.parent()
+data class SeasonParent(val season: SeasonNode, val team: TeamNode) : Parent<SeasonTree> {
+    override suspend fun subtree(): Subtree<SeasonTree> {
+        return season.subtree()
     }
 
-    override suspend fun dereference(): Season {
-        val robotReferences = robotData.map { it.reference() }
-        val eventReferences = eventData.map { it.reference() }
-
-        return Season(seasonData, robotReferences, eventReferences)
+    override fun tree(): SeasonTree {
+        return season.tree()
     }
 }
 
-data class Season(
-    val seasonData: SeasonData,
-    val robotReferences: List<Reference<Robot>>,
-    val eventReferences: List<Reference<Event>>
+data class SeasonSubtree(val season: SeasonNode, val robots: List<RobotNode>, val events: List<EventNode>) :
+    Subtree<SeasonTree> {
+    override suspend fun parent(): Parent<SeasonTree> {
+        return season.parent()
+    }
+
+    override suspend fun tree(): SeasonTree {
+        val robots = robots.map { it.subtree() }
+        val events = events.map { it.subtree() }
+
+        return SeasonTree(season, robots, events)
+    }
+}
+
+data class SeasonTree(
+    val season: SeasonNode,
+    val robots: List<Subtree<RobotTree>>,
+    val events: List<Subtree<EventTree>>
 ) {
-    fun noChildren(): SeasonDTO {
-        return SeasonDTO(seasonData.year, emptyList(), emptyList())
+    fun noChildren(): Season {
+        return Season(season.year, emptyList(), emptyList())
     }
 
-    suspend fun children(): SeasonDTO {
-        val robots = robotReferences.map { robotReference -> robotReference.dereference().noChildren() }
-        val events = eventReferences.map { eventReference -> eventReference.dereference().noChildren() }
+    suspend fun children(): Season {
+        val robots = robots.map { robot -> robot.tree().noChildren() }
+        val events = events.map { event -> event.tree().noChildren() }
 
-        return SeasonDTO(seasonData.year, robots, events)
+        return Season(season.year, robots, events)
     }
 
-    suspend fun subChildren(): SeasonDTO {
-        val robots = robotReferences.map { robotReference -> robotReference.dereference().subChildren() }
-        val events = eventReferences.map { eventReference -> eventReference.dereference().subChildren() }
+    suspend fun subChildren(): Season {
+        val robots = robots.map { robot -> robot.tree().subChildren() }
+        val events = events.map { event -> event.tree().subChildren() }
 
-        return SeasonDTO(seasonData.year, robots, events)
+        return Season(season.year, robots, events)
     }
 }
 
 @Serializable
-data class SeasonDTO(val year: Int, val robots: List<RobotDTO>, val events: List<EventDTO>)
+data class Season(val year: Int, val robots: List<Robot>, val events: List<Event>)
 
 data class SeasonQuery(val year: Int, val team: TeamQuery)
 
-fun seasonQueryOf(seasonDTO: SeasonDTO, teamQuery: TeamQuery): SeasonQuery {
-    return SeasonQuery(seasonDTO.year, teamQuery)
+fun seasonQueryOf(season: Season, teamQuery: TeamQuery): SeasonQuery {
+    return SeasonQuery(season.year, teamQuery)
 }
 
 fun Parameters.seasonQuery(): Result<SeasonQuery> {

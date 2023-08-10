@@ -2,9 +2,9 @@ package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Alliance
-import io.github.haydenheroux.scouting.models.interfaces.Data
-import io.github.haydenheroux.scouting.models.interfaces.Parented
-import io.github.haydenheroux.scouting.models.interfaces.Reference
+import io.github.haydenheroux.scouting.models.interfaces.Node
+import io.github.haydenheroux.scouting.models.interfaces.Parent
+import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.github.haydenheroux.scouting.models.team.RobotQuery
 import io.github.haydenheroux.scouting.models.team.RobotTable
 import io.github.haydenheroux.scouting.models.team.robotQuery
@@ -19,77 +19,77 @@ object ParticipantTable : IntIdTable() {
     val alliance = enumerationByName<Alliance>("alliance", 255)
 }
 
-data class ParticipantData(val participantId: Int, val alliance: Alliance) : Data<Participant> {
+data class ParticipantNode(val id: Int, val alliance: Alliance) : Node<ParticipantTree> {
 
     companion object {
-        fun from(participantRow: ResultRow): ParticipantData {
-            return ParticipantData(
+        fun from(participantRow: ResultRow): ParticipantNode {
+            return ParticipantNode(
                 participantRow[ParticipantTable.id].value,
                 participantRow[ParticipantTable.alliance]
             )
         }
     }
 
-    override suspend fun parent(): Parented<Participant> {
-        val matchData = db.getMatchByParticipant(this)
+    override suspend fun parent(): Parent<ParticipantTree> {
+        val match = db.getMatchByParticipant(this)
 
-        return ParentedParticipant(this, matchData)
+        return ParticipantParent(this, match)
     }
 
-    override suspend fun reference(): Reference<Participant> {
-        val metricData = db.getMetricsByParticipant(this)
+    override suspend fun subtree(): Subtree<ParticipantTree> {
+        val metrics = db.getMetricsByParticipant(this)
 
-        return ParticipantReference(this, metricData)
+        return ParticipantSubtree(this, metrics)
     }
 
-    override fun data(): Participant {
-        return Participant(this, emptyList())
-    }
-}
-
-data class ParentedParticipant(val participantData: ParticipantData, val matchData: MatchData) : Parented<Participant> {
-    override suspend fun reference(): Reference<Participant> {
-        return participantData.reference()
-    }
-
-    override fun data(): Participant {
-        return participantData.data()
+    override fun tree(): ParticipantTree {
+        return ParticipantTree(this, emptyList())
     }
 }
 
-data class ParticipantReference(val participantData: ParticipantData, val metricData: List<MetricData>) :
-    Reference<Participant> {
-    override suspend fun parent(): Parented<Participant> {
-        return participantData.parent()
+data class ParticipantParent(val participant: ParticipantNode, val match: MatchNode) : Parent<ParticipantTree> {
+    override suspend fun subtree(): Subtree<ParticipantTree> {
+        return participant.subtree()
     }
 
-    override suspend fun dereference(): Participant {
-        val metricReferences = metricData.map { it.reference() }
-
-        return Participant(participantData, metricReferences)
+    override fun tree(): ParticipantTree {
+        return participant.tree()
     }
 }
 
-data class Participant(val participantData: ParticipantData, val metricReferences: List<Reference<Metric>>) {
-    fun noChildren(): ParticipantDTO {
-        return ParticipantDTO(participantData.alliance, emptyList())
+data class ParticipantSubtree(val participant: ParticipantNode, val metrics: List<MetricNode>) :
+    Subtree<ParticipantTree> {
+    override suspend fun parent(): Parent<ParticipantTree> {
+        return participant.parent()
     }
 
-    suspend fun children(): ParticipantDTO {
-        val metrics = metricReferences.map { metricReference -> metricReference.dereference().noChildren() }
+    override suspend fun tree(): ParticipantTree {
+        val metrics = metrics.map { it.subtree() }
 
-        return ParticipantDTO(participantData.alliance, metrics)
+        return ParticipantTree(participant, metrics)
+    }
+}
+
+data class ParticipantTree(val participant: ParticipantNode, val metrics: List<Subtree<MetricTree>>) {
+    fun noChildren(): Participant {
+        return Participant(participant.alliance, emptyList())
     }
 
-    suspend fun subChildren(): ParticipantDTO {
-        val metrics = metricReferences.map { metricReference -> metricReference.dereference().subChildren() }
+    suspend fun children(): Participant {
+        val metrics = metrics.map { metric -> metric.tree().noChildren() }
 
-        return ParticipantDTO(participantData.alliance, metrics)
+        return Participant(participant.alliance, metrics)
+    }
+
+    suspend fun subChildren(): Participant {
+        val metrics = metrics.map { metric -> metric.tree().subChildren() }
+
+        return Participant(participant.alliance, metrics)
     }
 }
 
 @Serializable
-data class ParticipantDTO(val alliance: Alliance, val metrics: List<MetricDTO>)
+data class Participant(val alliance: Alliance, val metrics: List<MetricDTO>)
 
 data class ParticipantQuery(val match: MatchQuery, val robot: RobotQuery)
 
