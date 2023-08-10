@@ -12,10 +12,25 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 enum class MatchType {
-    @SerialName("qualification")
+    @SerialName("qm")
     QUALIFICATION,
-    @SerialName("playoff")
-    PLAYOFF,
+
+    @SerialName("qf")
+    QUARTER_FINAL,
+
+    @SerialName("sf")
+    SEMI_FINAL,
+
+    @SerialName("f")
+    FINAL,
+
     @SerialName("other")
     OTHER
 }
+
+val matchTypeOf = mapOf(
+    "qm" to MatchType.QUALIFICATION,
+    "qf" to MatchType.QUARTER_FINAL,
+    "sf" to MatchType.SEMI_FINAL,
+    "f" to MatchType.FINAL
+)

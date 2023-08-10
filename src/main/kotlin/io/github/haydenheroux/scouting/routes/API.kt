@@ -251,8 +251,6 @@ fun Route.api() {
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
             }
-
-            call.respond(HttpStatusCode.OK)
         }
     }
 }

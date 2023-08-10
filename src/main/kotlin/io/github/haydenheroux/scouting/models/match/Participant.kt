@@ -99,7 +99,7 @@ data class ParticipantTree(
     }
 
     override suspend fun subtree(): Participant {
-        val team = team?.tree()?.subtree()
+        val team = null // TODO
         val metrics = metrics.map { metric -> metric.tree().subtree() }
 
         return Participant(participant.alliance, team, metrics)
@@ -109,7 +109,7 @@ data class ParticipantTree(
         if (depth == 0) return leaf()
         if (depth == 1) return leaves()
 
-        val team = team?.tree()?.subtree()
+        val team = team?.tree()?.subtree(depth - 1)
         val metrics = metrics.map { metric -> metric.tree().subtree(depth - 1) }
 
         return Participant(participant.alliance, team, metrics)

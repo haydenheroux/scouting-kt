@@ -269,7 +269,7 @@ class DatabaseImplementation : DatabaseInterface {
         val eventId = getEventId(matchQuery.event)
 
         return query {
-            MatchTable.select { (MatchTable.eventId eq eventId) and (MatchTable.number eq matchQuery.number) }
+            MatchTable.select { (MatchTable.eventId eq eventId) and (MatchTable.set eq matchQuery.set) and (MatchTable.number eq matchQuery.number) and (MatchTable.type eq matchQuery.type) }
                 .singleOrNull()
         }
     }
@@ -465,6 +465,7 @@ class DatabaseImplementation : DatabaseInterface {
         transaction {
             MatchTable.insert {
                 it[this.eventId] = eventId
+                it[set] = match.set
                 it[number] = match.number
                 it[type] = match.type
             }
