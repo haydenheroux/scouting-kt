@@ -31,28 +31,51 @@
         <p>${region_to_text(event.region)}</p>
         <p>Week ${event.week?c}, ${event.year?c}</p>
         <#if event.matches?has_content>
-        <h3>Matches</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Match</th>
-                    <th colspan="6">Teams</th>
-                </tr>
-            </thead>
-            <tbody>
-            <#list event.matches as match>
-                <tr>
-                    <td><a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}/${match.number}">${match.type[0]}${match.number}</a></td>
-                    <#list match.participants as participant>
-                    <td><a href="/teams/${participant.team.number?c}/${event.year?c}">${participant.team.number?c}</td>
-                    </#list>
-                </tr>
-            </#list>
-            <tbody>
-        </table>
+            <#assign qualification_matches=event.matches?filter(match -> match.type == "QUALIFICATION")>
+            <#if qualification_matches?has_content>
+                <h3>Qualification Matches</h3>
+                <@layout.match_table event=event matches=qualification_matches />
+            </#if>
+            <#assign quarterfinal_matches=event.matches?filter(match -> match.type == "QUARTER_FINAL")>
+            <#if quarterfinal_matches?has_content>
+                <h3>Quarterfinal Matches</h3>
+                <@layout.match_table event=event matches=quarterfinal_matches />
+            </#if>
+            <#assign semifinal_matches=event.matches?filter(match -> match.type == "SEMI_FINAL")>
+            <#if semifinal_matches?has_content>
+                <h3>Semifinal Matches</h3>
+                <@layout.match_table event=event matches=semifinal_matches />
+            </#if>
+            <#assign final_matches=event.matches?filter(match -> match.type == "FINAL")>
+            <#if final_matches?has_content>
+                <h3>Final Matches</h3>
+                <@layout.match_table event=event matches=final_matches />
+            </#if>
         </#if>
     </section>
     <hr/>
+</#macro>
+
+<#macro match_table event matches>
+    <table>
+        <thead>
+            <tr>
+                <th>Match</th>
+                <th colspan="6">Teams</th>
+            </tr>
+        </thead>
+        <tbody>
+        <!-- TODO sort by number or set? -->
+        <#list matches?sort_by("number") as match>
+            <tr>
+                <td><a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}/${match_to_serial(match)}">${match_to_text(match)}</a></td>
+                <#list match.participants as participant>
+                <td><a href="/teams/${participant.team.number?c}/${event.year?c}">${participant.team.number?c}</td>
+                </#list>
+            </tr>
+        </#list>
+        <tbody>
+    </table>
 </#macro>
 
 <#macro team_link team>
@@ -97,16 +120,57 @@
     </#if>
 </#function>
 
+<#function match_to_text match>
+    <#return "${match_type_to_text(match.type)} ${set_to_text(match)} Match ${match.number?c}">
+</#function>
+
+<#function set_to_text match>
+    <#if match.type != "QUALIFICATION">
+        <#return "${match.set?c}">
+    <#else>
+        <#return "">
+    </#if>
+</#function>
+
+<#function match_to_serial match>
+    <#return "${match_type_to_serial(match.type)}${set_to_serial(match)}m${match.number?c}">
+</#function>
+
+<#function set_to_serial match>
+    <#if match.type != "QUALIFICATION">
+        <#return "${match.set?c}">
+    <#else>
+        <#return "">
+    </#if>
+</#function>
+
 <#function match_type_to_text match_type>
     <#if match_type == "QUALIFICATION">
         <#return "Qualification">
-    <#elseif match_type == "PLAYOFF">
-        <#return "Playoff">
+    <#elseif match_type == "QUARTER_FINAL">
+        <#return "Quarters">
+    <#elseif match_type == "SEMI_FINAL">
+        <#return "Semis">
+    <#elseif match_type == "FINAL">
+        <#return "Finals">
     <#else>
         <#return "Match">
     </#if>
 </#function>
 
+<#function match_type_to_serial match_type>
+    <#if match_type == "QUALIFICATION">
+        <#return "qm">
+    <#elseif match_type == "QUARTER_FINAL">
+        <#return "qf">
+    <#elseif match_type == "SEMI_FINAL">
+        <#return "sf">
+    <#elseif match_type == "FINAL">
+        <#return "f">
+    <#else>
+        <#return "">
+    </#if>
+</#function>
 
 <#macro alliance alliance>
     <#if alliance == "RED">
