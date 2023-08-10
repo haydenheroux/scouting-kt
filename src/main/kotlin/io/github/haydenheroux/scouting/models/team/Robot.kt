@@ -27,7 +27,7 @@ data class RobotNode(val id: Int, val name: String) : Node<Tree<Robot>, Robot> {
     }
 
     override suspend fun parent(): Parent<Tree<Robot>, Robot> {
-        val season = db.getSeasonByRobot(this)
+        val season = db.getSeasonByRobot(this).getOrNull()!!
 
         return RobotParent(this, season)
     }

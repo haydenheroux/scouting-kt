@@ -12,9 +12,11 @@ import io.ktor.server.routing.*
 fun Route.teams() {
     route("/teams") {
         get {
-            val teams = db.getTeams().map { team -> team.tree().leaf() }
+            db.getTeams().getOrNull()?.let { nodes ->
+                val teams = nodes.map { node -> node.tree().leaf() }
 
-            call.respond(FreeMarkerContent("teams/teams.ftl", mapOf("teams" to teams)))
+                call.respond(FreeMarkerContent("teams/teams.ftl", mapOf("teams" to teams)))
+            }
         }
 
         get("/{team}") {
@@ -27,9 +29,15 @@ fun Route.teams() {
 
             val EVENTS_ONLY = 2
             val EVENTS_AND_MATCHES = 4
-            val team = db.getTeamByQuery(teamQuery).branch().tree().subtree(EVENTS_ONLY)
 
-            call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
+
+            db.getTeamByQuery(teamQuery).getOrNull()?.let { node ->
+                val team = node.branch().tree().subtree(EVENTS_ONLY)
+
+                call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
+            } ?: run {
+                call.respond(HttpStatusCode.NotFound)
+            }
         }
 
         get("/{team}/{year}") {
@@ -40,15 +48,17 @@ fun Route.teams() {
                 return@get
             }
 
-            val node = db.getSeasonByQuery(seasonQuery)
-
-            val team = node.parent().team.tree().leaf()
-
             val EVENTS_ONLY = 1
             val EVENTS_AND_MATCHES = 4
-            val season = node.branch().tree().subtree(EVENTS_AND_MATCHES)
 
-            call.respond(FreeMarkerContent("teams/season.ftl", mapOf("team" to team, "season" to season)))
+            db.getSeasonByQuery(seasonQuery).getOrNull()?.let { node ->
+                val team = node.parent().team.tree().leaf()
+                val season = node.branch().tree().subtree(EVENTS_AND_MATCHES)
+
+                call.respond(FreeMarkerContent("teams/season.ftl", mapOf("team" to team, "season" to season)))
+            } ?: run {
+                call.respond(HttpStatusCode.NotFound)
+            }
         }
     }
 }

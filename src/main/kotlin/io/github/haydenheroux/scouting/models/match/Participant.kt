@@ -35,14 +35,14 @@ data class ParticipantNode(val id: Int, val alliance: Alliance) :
     }
 
     override suspend fun parent(): Parent<Tree<Participant>, Participant> {
-        val match = db.getMatchByParticipant(this)
+        val match = db.getMatchByParticipant(this).getOrNull()!!
 
         return ParticipantParent(this, match)
     }
 
     override suspend fun branch(): Branch<Tree<Participant>, Participant> {
-        val team = db.getTeamByParticipant(this)
-        val metrics = db.getMetricsByParticipant(this)
+        val team = db.getTeamByParticipant(this).getOrNull()!!
+        val metrics = db.getMetricsByParticipant(this).getOrNull()!!
 
         return ParticipantBranch(this, team, metrics)
     }

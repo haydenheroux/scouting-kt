@@ -12,9 +12,13 @@ import io.ktor.server.routing.*
 fun Route.events() {
     route("/events") {
         get {
-            val events = db.getEvents().map { event -> event.tree().leaf() }
+            db.getEvents().getOrNull()?.let { nodes ->
+                val events = nodes.map { node -> node.tree().leaf() }
 
-            call.respond(FreeMarkerContent("events/events.ftl", mapOf("events" to events)))
+                call.respond(FreeMarkerContent("events/events.ftl", mapOf("events" to events)))
+            } ?: run {
+                call.respond(HttpStatusCode.InternalServerError)
+            }
         }
 
         get("/{region}/{year}/{week}/{event}") {
@@ -28,9 +32,14 @@ fun Route.events() {
             val MATCHES_ONLY = 1
             // TODO Store team number on Participant to avoid getting .metrics along with .team
             val MATCHES_AND_TEAMS = 3
-            val event = db.getEventByQuery(eventQuery).branch().tree().subtree(MATCHES_AND_TEAMS)
 
-            call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
+            db.getEventByQuery(eventQuery).getOrNull()?.let { node ->
+                val event = node.branch().tree().subtree(MATCHES_AND_TEAMS)
+
+                call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
+            } ?: run {
+                call.respond(HttpStatusCode.NotFound)
+            }
         }
 
         get("/{region}/{year}/{week}/{event}/{match}") {
@@ -41,15 +50,17 @@ fun Route.events() {
                 return@get
             }
 
-            val node = db.getMatchByQuery(matchQuery)
-
-            val event = node.parent().event.branch().tree().leaf()
-
             // TODO = 3 bug, long wait time, cycle?
             val TEAM_AND_METRICS = 2
-            val match = node.branch().tree().subtree(TEAM_AND_METRICS)
 
-            call.respond(FreeMarkerContent("events/match.ftl", mapOf("event" to event, "match" to match)))
+            db.getMatchByQuery(matchQuery).getOrNull()?.let { node ->
+                val event = node.parent().event.branch().tree().leaf()
+                val match = node.branch().tree().subtree(TEAM_AND_METRICS)
+
+                call.respond(FreeMarkerContent("events/match.ftl", mapOf("event" to event, "match" to match)))
+            } ?: run {
+                call.respond(HttpStatusCode.NotFound)
+            }
         }
     }
 }

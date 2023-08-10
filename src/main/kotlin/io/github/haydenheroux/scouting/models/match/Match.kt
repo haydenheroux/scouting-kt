@@ -34,13 +34,13 @@ data class MatchNode(val id: Int, val number: Int, val type: MatchType) : Node<T
     }
 
     override suspend fun parent(): MatchParent {
-        val event = db.getEventByMatch(this)
+        val event = db.getEventByMatch(this).getOrNull()!!
 
         return MatchParent(this, event)
     }
 
     override suspend fun branch(): Branch<Tree<Match>, Match> {
-        val participants = db.getParticipantsByMatch(this)
+        val participants = db.getParticipantsByMatch(this).getOrNull()!!
 
         return MatchBranch(this, participants)
     }

@@ -35,7 +35,7 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
     }
 
     override suspend fun branch(): Branch<Tree<Team>, Team> {
-        val seasons = db.getSeasonsByTeam(this)
+        val seasons = db.getSeasonsByTeam(this).getOrNull()!!
 
         return TeamBranch(this, seasons)
     }

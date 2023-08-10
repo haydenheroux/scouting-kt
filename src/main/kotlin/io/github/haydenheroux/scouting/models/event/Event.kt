@@ -40,7 +40,7 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
     }
 
     override suspend fun branch(): Branch<Tree<Event>, Event> {
-        val match = db.getMatchesByEvent(this)
+        val match = db.getMatchesByEvent(this).getOrNull()!!
 
         return EventBranch(this, match)
     }

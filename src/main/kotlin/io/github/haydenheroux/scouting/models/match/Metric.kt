@@ -28,7 +28,7 @@ data class MetricNode(val id: Int, val key: String, val value: String) : Node<Tr
     }
 
     override suspend fun parent(): Parent<Tree<Metric>, Metric> {
-        val participant = db.getParticipantByMetric(this)
+        val participant = db.getParticipantByMetric(this).getOrNull()!!
 
         return MetricParent(this, participant)
     }

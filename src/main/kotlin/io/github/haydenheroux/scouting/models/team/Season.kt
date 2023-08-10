@@ -38,14 +38,14 @@ data class SeasonNode(val id: Int, val year: Int) : Node<Tree<Season>, Season> {
     }
 
     override suspend fun parent(): SeasonParent {
-        val team = db.getTeamBySeason(this)
+        val team = db.getTeamBySeason(this).getOrNull()!!
 
         return SeasonParent(this, team)
     }
 
     override suspend fun branch(): Branch<Tree<Season>, Season> {
-        val robots = db.getRobotsBySeason(this)
-        val events = db.getEventsBySeason(this)
+        val robots = db.getRobotsBySeason(this).getOrNull()!!
+        val events = db.getEventsBySeason(this).getOrNull()!!
 
         return SeasonBranch(this, robots, events)
     }
