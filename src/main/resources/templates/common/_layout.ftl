@@ -133,12 +133,12 @@
 </#function>
 
 <#function match_to_serial match>
-    <#return "${match_type_to_serial(match.type)}${set_to_serial(match)}m${match.number?c}">
+    <#return "${match_type_to_serial(match.type)}${set_to_serial(match)}${match.number?c}">
 </#function>
 
 <#function set_to_serial match>
     <#if match.type != "QUALIFICATION">
-        <#return "${match.set?c}">
+        <#return "${match.set?c}m">
     <#else>
         <#return "">
     </#if>
