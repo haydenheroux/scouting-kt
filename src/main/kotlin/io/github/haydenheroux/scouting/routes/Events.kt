@@ -20,34 +20,36 @@ fun Route.events() {
         get("/{region}/{year}/{week}/{event}") {
             val eventQuery = call.parameters.eventQuery().getOrNull()
 
-            eventQuery?.let {
-                val MATCHES_ONLY = 1
-                // TODO Store team number on Participant to avoid getting .metrics along with .team
-                val MATCHES_AND_TEAMS = 3
-                val event = db.getEventByQuery(eventQuery).branch().tree().subtree(MATCHES_AND_TEAMS)
-
-                call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
-            } ?: run {
+            if (eventQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
+                return@get
             }
+
+            val MATCHES_ONLY = 1
+            // TODO Store team number on Participant to avoid getting .metrics along with .team
+            val MATCHES_AND_TEAMS = 3
+            val event = db.getEventByQuery(eventQuery).branch().tree().subtree(MATCHES_AND_TEAMS)
+
+            call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
         }
 
         get("/{region}/{year}/{week}/{event}/{match}") {
             val matchQuery = call.parameters.matchQuery().getOrNull()
 
-            matchQuery?.let {
-                val node = db.getMatchByQuery(matchQuery)
-
-                val event = node.parent().event.branch().tree().leaf()
-
-                // TODO = 3 bug, long wait time, cycle?
-                val TEAM_AND_METRICS = 2
-                val match = node.branch().tree().subtree(TEAM_AND_METRICS)
-
-                call.respond(FreeMarkerContent("events/match.ftl", mapOf("event" to event, "match" to match)))
-            } ?: run {
+            if (matchQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
+                return@get
             }
+
+            val node = db.getMatchByQuery(matchQuery)
+
+            val event = node.parent().event.branch().tree().leaf()
+
+            // TODO = 3 bug, long wait time, cycle?
+            val TEAM_AND_METRICS = 2
+            val match = node.branch().tree().subtree(TEAM_AND_METRICS)
+
+            call.respond(FreeMarkerContent("events/match.ftl", mapOf("event" to event, "match" to match)))
         }
     }
 }

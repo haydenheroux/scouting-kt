@@ -20,33 +20,35 @@ fun Route.teams() {
         get("/{team}") {
             val teamQuery = call.parameters.teamQuery().getOrNull()
 
-            teamQuery?.let {
-                val EVENTS_ONLY = 2
-                val EVENTS_AND_MATCHES = 4
-                val team = db.getTeamByQuery(teamQuery).branch().tree().subtree(EVENTS_ONLY)
-
-                call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
-            } ?: run {
+            if (teamQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
+                return@get
             }
+
+            val EVENTS_ONLY = 2
+            val EVENTS_AND_MATCHES = 4
+            val team = db.getTeamByQuery(teamQuery).branch().tree().subtree(EVENTS_ONLY)
+
+            call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
         }
 
         get("/{team}/{year}") {
             val seasonQuery = call.parameters.seasonQuery().getOrNull()
 
-            seasonQuery?.let {
-                val node = db.getSeasonByQuery(seasonQuery)
-
-                val team = node.parent().team.tree().leaf()
-
-                val EVENTS_ONLY = 1
-                val EVENTS_AND_MATCHES = 4
-                val season = node.branch().tree().subtree(EVENTS_AND_MATCHES)
-
-                call.respond(FreeMarkerContent("teams/season.ftl", mapOf("team" to team, "season" to season)))
-            } ?: run {
+            if (seasonQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
+                return@get
             }
+
+            val node = db.getSeasonByQuery(seasonQuery)
+
+            val team = node.parent().team.tree().leaf()
+
+            val EVENTS_ONLY = 1
+            val EVENTS_AND_MATCHES = 4
+            val season = node.branch().tree().subtree(EVENTS_AND_MATCHES)
+
+            call.respond(FreeMarkerContent("teams/season.ftl", mapOf("team" to team, "season" to season)))
         }
     }
 }
