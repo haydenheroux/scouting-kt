@@ -5,6 +5,7 @@ import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.interfaces.Node
 import io.github.haydenheroux.scouting.models.interfaces.Parent
 import io.github.haydenheroux.scouting.models.interfaces.Subtree
+import io.github.haydenheroux.scouting.models.interfaces.Tree
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -16,7 +17,7 @@ object TeamTable : IntIdTable() {
     val region = enumerationByName<Region>("region", 255)
 }
 
-data class TeamNode(val id: Int, val number: Int, val name: String, val region: Region) : Node<TeamTree> {
+data class TeamNode(val id: Int, val number: Int, val name: String, val region: Region) : Node<Tree<Team>, Team> {
 
     companion object {
         fun from(teamRow: ResultRow): TeamNode {
@@ -29,46 +30,55 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
         }
     }
 
-    override suspend fun parent(): Parent<TeamTree>? {
+    override suspend fun parent(): Parent<Tree<Team>, Team>? {
         return null
     }
 
-    override suspend fun subtree(): Subtree<TeamTree> {
+    override suspend fun subtree(): Subtree<Tree<Team>, Team> {
         val seasons = db.getSeasonsByTeam(this)
 
         return TeamSubtree(this, seasons)
     }
 
-    override fun tree(): TeamTree {
+    override fun tree(): Tree<Team> {
         return TeamTree(this, emptyList())
     }
 }
 
-data class TeamSubtree(val team: TeamNode, val seasons: List<Node<SeasonTree>>) : Subtree<TeamTree> {
-    override suspend fun parent(): Parent<TeamTree>? {
+data class TeamSubtree(val team: TeamNode, val seasons: List<Node<Tree<Season>, Season>>) : Subtree<Tree<Team>, Team> {
+    override suspend fun parent(): Parent<Tree<Team>, Team>? {
         return team.parent()
     }
 
-    override suspend fun tree(): TeamTree {
+    override suspend fun tree(): Tree<Team> {
         val seasons = seasons.map { it.subtree() }
 
         return TeamTree(team, seasons)
     }
 }
 
-data class TeamTree(val team: TeamNode, val seasons: List<Subtree<SeasonTree>>) {
-    fun noChildren(): Team {
+data class TeamTree(val team: TeamNode, val seasons: List<Subtree<Tree<Season>, Season>>) : Tree<Team> {
+    override fun leaf(): Team {
         return Team(team.number, team.name, team.region, emptyList())
     }
 
-    suspend fun children(): Team {
-        val seasons = seasons.map { season -> season.tree().noChildren() }
+    override suspend fun leaves(): Team {
+        val seasons = seasons.map { season -> season.tree().leaf() }
 
         return Team(team.number, team.name, team.region, seasons)
     }
 
-    suspend fun subChildren(): Team {
-        val seasons = seasons.map { season -> season.tree().subChildren() }
+    override suspend fun subtree(): Team {
+        val seasons = seasons.map { season -> season.tree().subtree() }
+
+        return Team(team.number, team.name, team.region, seasons)
+    }
+
+    override suspend fun subtree(depth: Int): Team {
+        if (depth == 0) return leaf()
+        if (depth == 1) return leaves()
+
+        val seasons = seasons.map { season -> season.tree().subtree(depth - 1) }
 
         return Team(team.number, team.name, team.region, seasons)
     }

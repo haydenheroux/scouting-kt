@@ -1,7 +1,7 @@
 package io.github.haydenheroux.scouting.models.interfaces
 
-interface Subtree<T> {
-    suspend fun parent(): Parent<T>?
+interface Subtree<A : Tree<B>, B> {
+    suspend fun parent(): Parent<A, B>?
 
-    suspend fun tree(): T
+    suspend fun tree(): A
 }

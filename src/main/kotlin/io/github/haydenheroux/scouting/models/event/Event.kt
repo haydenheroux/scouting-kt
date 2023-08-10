@@ -6,8 +6,8 @@ import io.github.haydenheroux.scouting.models.enums.regionOf
 import io.github.haydenheroux.scouting.models.interfaces.Node
 import io.github.haydenheroux.scouting.models.interfaces.Parent
 import io.github.haydenheroux.scouting.models.interfaces.Subtree
+import io.github.haydenheroux.scouting.models.interfaces.Tree
 import io.github.haydenheroux.scouting.models.match.Match
-import io.github.haydenheroux.scouting.models.match.MatchTree
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -21,7 +21,7 @@ object EventTable : IntIdTable() {
 }
 
 data class EventNode(val id: Int, val name: String, val region: Region, val year: Int, val week: Int) :
-    Node<EventTree> {
+    Node<Tree<Event>, Event> {
 
     companion object {
         fun from(eventRow: ResultRow): EventNode {
@@ -35,46 +35,56 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
         }
     }
 
-    override suspend fun parent(): Parent<EventTree>? {
+    override suspend fun parent(): Parent<Tree<Event>, Event>? {
         return null
     }
 
-    override suspend fun subtree(): Subtree<EventTree> {
+    override suspend fun subtree(): Subtree<Tree<Event>, Event> {
         val match = db.getMatchesByEvent(this)
 
         return EventSubtree(this, match)
     }
 
-    override fun tree(): EventTree {
+    override fun tree(): Tree<Event> {
         return EventTree(this, emptyList())
     }
 }
 
-data class EventSubtree(val event: EventNode, val matches: List<Node<MatchTree>>) : Subtree<EventTree> {
-    override suspend fun parent(): Parent<EventTree>? {
+data class EventSubtree(val event: EventNode, val matches: List<Node<Tree<Match>, Match>>) :
+    Subtree<Tree<Event>, Event> {
+    override suspend fun parent(): Parent<Tree<Event>, Event>? {
         return event.parent()
     }
 
-    override suspend fun tree(): EventTree {
+    override suspend fun tree(): Tree<Event> {
         val matches = matches.map { it.subtree() }
 
         return EventTree(event, matches)
     }
 }
 
-data class EventTree(val event: EventNode, val matches: List<Subtree<MatchTree>>) {
-    fun noChildren(): Event {
+data class EventTree(val event: EventNode, val matches: List<Subtree<Tree<Match>, Match>>) : Tree<Event> {
+    override fun leaf(): Event {
         return Event(event.name, event.region, event.year, event.week, emptyList())
     }
 
-    suspend fun children(): Event {
-        val matches = matches.map { match -> match.tree().noChildren() }
+    override suspend fun leaves(): Event {
+        val matches = matches.map { match -> match.tree().leaf() }
 
         return Event(event.name, event.region, event.year, event.week, matches)
     }
 
-    suspend fun subChildren(): Event {
-        val matches = matches.map { match -> match.tree().subChildren() }
+    override suspend fun subtree(): Event {
+        val matches = matches.map { match -> match.tree().subtree() }
+
+        return Event(event.name, event.region, event.year, event.week, matches)
+    }
+
+    override suspend fun subtree(depth: Int): Event {
+        if (depth == 0) return leaf()
+        if (depth == 1) return leaves()
+
+        val matches = matches.map { match -> match.tree().subtree(depth - 1) }
 
         return Event(event.name, event.region, event.year, event.week, matches)
     }

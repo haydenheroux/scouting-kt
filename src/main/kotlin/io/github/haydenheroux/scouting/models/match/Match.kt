@@ -9,6 +9,7 @@ import io.github.haydenheroux.scouting.models.event.eventQuery
 import io.github.haydenheroux.scouting.models.interfaces.Node
 import io.github.haydenheroux.scouting.models.interfaces.Parent
 import io.github.haydenheroux.scouting.models.interfaces.Subtree
+import io.github.haydenheroux.scouting.models.interfaces.Tree
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -20,7 +21,7 @@ object MatchTable : IntIdTable() {
     val type = enumerationByName<MatchType>("type", 255)
 }
 
-data class MatchNode(val id: Int, val number: Int, val type: MatchType) : Node<MatchTree> {
+data class MatchNode(val id: Int, val number: Int, val type: MatchType) : Node<Tree<Match>, Match> {
 
     companion object {
         fun from(matchRow: ResultRow): MatchNode {
@@ -32,60 +33,68 @@ data class MatchNode(val id: Int, val number: Int, val type: MatchType) : Node<M
         }
     }
 
-    override suspend fun parent(): Parent<MatchTree> {
+    override suspend fun parent(): Parent<Tree<Match>, Match> {
         val event = db.getEventByMatch(this)
 
         return MatchParent(this, event)
     }
 
-    override suspend fun subtree(): Subtree<MatchTree> {
+    override suspend fun subtree(): Subtree<Tree<Match>, Match> {
         val participants = db.getParticipantsByMatch(this)
 
         return MatchSubtree(this, participants)
     }
 
-    override fun tree(): MatchTree {
+    override fun tree(): Tree<Match> {
         return MatchTree(this, emptyList())
     }
 }
 
-data class MatchParent(val match: MatchNode, val event: EventNode) : Parent<MatchTree> {
-    override suspend fun subtree(): Subtree<MatchTree> {
+data class MatchParent(val match: MatchNode, val event: EventNode) : Parent<Tree<Match>, Match> {
+    override suspend fun subtree(): Subtree<Tree<Match>, Match> {
         return match.subtree()
     }
 
-    override fun tree(): MatchTree {
+    override fun tree(): Tree<Match> {
         return match.tree()
     }
 }
 
-data class MatchSubtree(val match: MatchNode, val participants: List<ParticipantNode>) : Subtree<MatchTree> {
-    override suspend fun parent(): Parent<MatchTree> {
+data class MatchSubtree(val match: MatchNode, val participants: List<ParticipantNode>) : Subtree<Tree<Match>, Match> {
+    override suspend fun parent(): Parent<Tree<Match>, Match> {
         return match.parent()
     }
 
-    override suspend fun tree(): MatchTree {
+    override suspend fun tree(): Tree<Match> {
         val participants = participants.map { it.subtree() }
 
         return MatchTree(match, participants)
     }
 }
 
-data class MatchTree(val match: MatchNode, val participants: List<Subtree<ParticipantTree>>) {
-    fun noChildren(): Match {
+data class MatchTree(val match: MatchNode, val participants: List<Subtree<Tree<Participant>, Participant>>) :
+    Tree<Match> {
+    override fun leaf(): Match {
         return Match(match.number, match.type, emptyList())
     }
 
-    suspend fun children(): Match {
-        val participants =
-            participants.map { participant -> participant.tree().noChildren() }
+    override suspend fun leaves(): Match {
+        val participants = participants.map { participant -> participant.tree().leaf() }
 
         return Match(match.number, match.type, participants)
     }
 
-    suspend fun subChildren(): Match {
-        val participants =
-            participants.map { participant -> participant.tree().subChildren() }
+    override suspend fun subtree(): Match {
+        val participants = participants.map { participant -> participant.tree().subtree() }
+
+        return Match(match.number, match.type, participants)
+    }
+
+    override suspend fun subtree(depth: Int): Match {
+        if (depth == 0) return leaf()
+        if (depth == 1) return leaves()
+
+        val participants = participants.map { participant -> participant.tree().subtree(depth - 1) }
 
         return Match(match.number, match.type, participants)
     }
