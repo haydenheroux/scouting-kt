@@ -55,25 +55,8 @@
     <hr/>
 </#macro>
 
-<#macro team_link team size>
-    <#if size == "large">
-        <h1><a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a></h1>
-    <#elseif size == "small">
-        <h2><a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a></h2>
-    <#else>
-        <p><a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a></p>
-    </#if>
-</#macro>
-
-<#macro season_link season size>
-    <#local team=season.teamReference>
-    <#if size == "large">
-        <h1><a href="/teams/${team.number?c}/${season.year?c}">Team ${team.number?c} - ${team.name}</a></h1>
-    <#elseif size == "small">
-        <h2><a href="/teams/${team.number?c}/${season.year?c}">Team ${team.number?c} - ${team.name}</a></h2>
-    <#else>
-        <p><a href="/teams/${team.number?c}/${season.year?c}">Team ${team.number?c} - ${team.name}</a></p>
-    </#if>
+<#macro team_link team>
+    <a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a>
 </#macro>
 
 <#macro team_year_link team year>
