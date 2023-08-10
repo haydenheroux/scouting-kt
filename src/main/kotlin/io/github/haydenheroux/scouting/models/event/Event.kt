@@ -3,9 +3,9 @@ package io.github.haydenheroux.scouting.models.event
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.enums.regionOf
+import io.github.haydenheroux.scouting.models.interfaces.Branch
 import io.github.haydenheroux.scouting.models.interfaces.Node
 import io.github.haydenheroux.scouting.models.interfaces.Parent
-import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.github.haydenheroux.scouting.models.interfaces.Tree
 import io.github.haydenheroux.scouting.models.match.Match
 import io.ktor.http.*
@@ -39,10 +39,10 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
         return null
     }
 
-    override suspend fun subtree(): Subtree<Tree<Event>, Event> {
+    override suspend fun branch(): Branch<Tree<Event>, Event> {
         val match = db.getMatchesByEvent(this)
 
-        return EventSubtree(this, match)
+        return EventBranch(this, match)
     }
 
     override fun tree(): Tree<Event> {
@@ -50,20 +50,20 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
     }
 }
 
-data class EventSubtree(val event: EventNode, val matches: List<Node<Tree<Match>, Match>>) :
-    Subtree<Tree<Event>, Event> {
+data class EventBranch(val event: EventNode, val matches: List<Node<Tree<Match>, Match>>) :
+    Branch<Tree<Event>, Event> {
     override suspend fun parent(): Parent<Tree<Event>, Event>? {
         return event.parent()
     }
 
     override suspend fun tree(): Tree<Event> {
-        val matches = matches.map { it.subtree() }
+        val matches = matches.map { it.branch() }
 
         return EventTree(event, matches)
     }
 }
 
-data class EventTree(val event: EventNode, val matches: List<Subtree<Tree<Match>, Match>>) : Tree<Event> {
+data class EventTree(val event: EventNode, val matches: List<Branch<Tree<Match>, Match>>) : Tree<Event> {
     override fun leaf(): Event {
         return Event(event.name, event.region, event.year, event.week, emptyList())
     }

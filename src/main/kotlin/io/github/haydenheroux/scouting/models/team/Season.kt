@@ -4,9 +4,9 @@ import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.event.Event
 import io.github.haydenheroux.scouting.models.event.EventNode
 import io.github.haydenheroux.scouting.models.event.EventTable
+import io.github.haydenheroux.scouting.models.interfaces.Branch
 import io.github.haydenheroux.scouting.models.interfaces.Node
 import io.github.haydenheroux.scouting.models.interfaces.Parent
-import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.github.haydenheroux.scouting.models.interfaces.Tree
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
@@ -43,11 +43,11 @@ data class SeasonNode(val id: Int, val year: Int) : Node<Tree<Season>, Season> {
         return SeasonParent(this, team)
     }
 
-    override suspend fun subtree(): Subtree<Tree<Season>, Season> {
+    override suspend fun branch(): Branch<Tree<Season>, Season> {
         val robots = db.getRobotsBySeason(this)
         val events = db.getEventsBySeason(this)
 
-        return SeasonSubtree(this, robots, events)
+        return SeasonBranch(this, robots, events)
     }
 
     override fun tree(): Tree<Season> {
@@ -56,8 +56,8 @@ data class SeasonNode(val id: Int, val year: Int) : Node<Tree<Season>, Season> {
 }
 
 data class SeasonParent(val season: SeasonNode, val team: TeamNode) : Parent<Tree<Season>, Season> {
-    override suspend fun subtree(): Subtree<Tree<Season>, Season> {
-        return season.subtree()
+    override suspend fun branch(): Branch<Tree<Season>, Season> {
+        return season.branch()
     }
 
     override fun tree(): Tree<Season> {
@@ -65,15 +65,15 @@ data class SeasonParent(val season: SeasonNode, val team: TeamNode) : Parent<Tre
     }
 }
 
-data class SeasonSubtree(val season: SeasonNode, val robots: List<RobotNode>, val events: List<EventNode>) :
-    Subtree<Tree<Season>, Season> {
+data class SeasonBranch(val season: SeasonNode, val robots: List<RobotNode>, val events: List<EventNode>) :
+    Branch<Tree<Season>, Season> {
     override suspend fun parent(): Parent<Tree<Season>, Season> {
         return season.parent()
     }
 
     override suspend fun tree(): Tree<Season> {
-        val robots = robots.map { it.subtree() }
-        val events = events.map { it.subtree() }
+        val robots = robots.map { it.branch() }
+        val events = events.map { it.branch() }
 
         return SeasonTree(season, robots, events)
     }
@@ -81,8 +81,8 @@ data class SeasonSubtree(val season: SeasonNode, val robots: List<RobotNode>, va
 
 data class SeasonTree(
     val season: SeasonNode,
-    val robots: List<Subtree<Tree<Robot>, Robot>>,
-    val events: List<Subtree<Tree<Event>, Event>>
+    val robots: List<Branch<Tree<Robot>, Robot>>,
+    val events: List<Branch<Tree<Event>, Event>>
 ) : Tree<Season> {
     override fun leaf(): Season {
         return Season(season.year, emptyList(), emptyList())

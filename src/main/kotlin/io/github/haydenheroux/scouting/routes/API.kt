@@ -19,7 +19,7 @@ fun Route.api() {
         get("/get-teams") {
             val teams = db.getTeams()
 
-            call.respond(teams.map { it.subtree().tree().subtree() })
+            call.respond(teams.map { it.branch().tree().subtree() })
         }
 
         get("/get-team") {
@@ -28,7 +28,7 @@ fun Route.api() {
             teamQuery?.let {
                 val team = db.getTeamByQuery(teamQuery)
 
-                call.respond(team.subtree().tree().subtree())
+                call.respond(team.branch().tree().subtree())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -40,7 +40,7 @@ fun Route.api() {
             seasonQuery?.let {
                 val season = db.getSeasonByQuery(seasonQuery)
 
-                call.respond(season.subtree().tree().subtree())
+                call.respond(season.branch().tree().subtree())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -52,7 +52,7 @@ fun Route.api() {
             robotQuery?.let {
                 val robot = db.getRobotByQuery(robotQuery)
 
-                call.respond(robot.subtree().tree().subtree())
+                call.respond(robot.branch().tree().subtree())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -61,7 +61,7 @@ fun Route.api() {
         get("/get-events") {
             val events = db.getEvents()
 
-            call.respond(events.map { it.subtree().tree().subtree() })
+            call.respond(events.map { it.branch().tree().subtree() })
         }
 
         get("/get-event") {
@@ -70,7 +70,7 @@ fun Route.api() {
             eventQuery?.let {
                 val event = db.getEventByQuery(eventQuery)
 
-                call.respond(event.subtree().tree().subtree())
+                call.respond(event.branch().tree().subtree())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -82,7 +82,7 @@ fun Route.api() {
             matchQuery?.let {
                 val match = db.getMatchByQuery(matchQuery)
 
-                call.respond(match.subtree().tree().subtree())
+                call.respond(match.branch().tree().subtree())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }
@@ -94,7 +94,7 @@ fun Route.api() {
             participantQuery?.let {
                 val participant = db.getParticipantByQuery(participantQuery)
 
-                call.respond(participant.subtree().tree().subtree())
+                call.respond(participant.branch().tree().subtree())
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }

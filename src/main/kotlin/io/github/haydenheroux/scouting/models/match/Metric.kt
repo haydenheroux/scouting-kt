@@ -1,9 +1,9 @@
 package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.models.interfaces.Branch
 import io.github.haydenheroux.scouting.models.interfaces.Node
 import io.github.haydenheroux.scouting.models.interfaces.Parent
-import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.github.haydenheroux.scouting.models.interfaces.Tree
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -33,8 +33,8 @@ data class MetricNode(val id: Int, val key: String, val value: String) : Node<Tr
         return MetricParent(this, participant)
     }
 
-    override suspend fun subtree(): Subtree<Tree<Metric>, Metric> {
-        return MetricSubtree(this)
+    override suspend fun branch(): Branch<Tree<Metric>, Metric> {
+        return MetricBranch(this)
     }
 
     override fun tree(): Tree<Metric> {
@@ -43,8 +43,8 @@ data class MetricNode(val id: Int, val key: String, val value: String) : Node<Tr
 }
 
 data class MetricParent(val metric: MetricNode, val participant: ParticipantNode) : Parent<Tree<Metric>, Metric> {
-    override suspend fun subtree(): Subtree<Tree<Metric>, Metric> {
-        return metric.subtree()
+    override suspend fun branch(): Branch<Tree<Metric>, Metric> {
+        return metric.branch()
     }
 
     override fun tree(): Tree<Metric> {
@@ -52,7 +52,7 @@ data class MetricParent(val metric: MetricNode, val participant: ParticipantNode
     }
 }
 
-data class MetricSubtree(val metric: MetricNode) : Subtree<Tree<Metric>, Metric> {
+data class MetricBranch(val metric: MetricNode) : Branch<Tree<Metric>, Metric> {
     override suspend fun parent(): Parent<Tree<Metric>, Metric> {
         return metric.parent()
     }

@@ -1,9 +1,9 @@
 package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.models.interfaces.Branch
 import io.github.haydenheroux.scouting.models.interfaces.Node
 import io.github.haydenheroux.scouting.models.interfaces.Parent
-import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.github.haydenheroux.scouting.models.interfaces.Tree
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
@@ -32,8 +32,8 @@ data class RobotNode(val id: Int, val name: String) : Node<Tree<Robot>, Robot> {
         return RobotParent(this, season)
     }
 
-    override suspend fun subtree(): Subtree<Tree<Robot>, Robot> {
-        return RobotSubtree(this)
+    override suspend fun branch(): Branch<Tree<Robot>, Robot> {
+        return RobotBranch(this)
     }
 
     override fun tree(): Tree<Robot> {
@@ -42,8 +42,8 @@ data class RobotNode(val id: Int, val name: String) : Node<Tree<Robot>, Robot> {
 }
 
 data class RobotParent(val robot: RobotNode, val season: SeasonNode) : Parent<Tree<Robot>, Robot> {
-    override suspend fun subtree(): Subtree<Tree<Robot>, Robot> {
-        return robot.subtree()
+    override suspend fun branch(): Branch<Tree<Robot>, Robot> {
+        return robot.branch()
     }
 
     override fun tree(): Tree<Robot> {
@@ -51,7 +51,7 @@ data class RobotParent(val robot: RobotNode, val season: SeasonNode) : Parent<Tr
     }
 }
 
-data class RobotSubtree(val robot: RobotNode) : Subtree<Tree<Robot>, Robot> {
+data class RobotBranch(val robot: RobotNode) : Branch<Tree<Robot>, Robot> {
     override suspend fun parent(): Parent<Tree<Robot>, Robot> {
         return robot.parent()
     }

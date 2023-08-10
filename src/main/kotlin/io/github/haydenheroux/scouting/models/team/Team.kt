@@ -2,9 +2,9 @@ package io.github.haydenheroux.scouting.models.team
 
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Region
+import io.github.haydenheroux.scouting.models.interfaces.Branch
 import io.github.haydenheroux.scouting.models.interfaces.Node
 import io.github.haydenheroux.scouting.models.interfaces.Parent
-import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.github.haydenheroux.scouting.models.interfaces.Tree
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
@@ -34,10 +34,10 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
         return null
     }
 
-    override suspend fun subtree(): Subtree<Tree<Team>, Team> {
+    override suspend fun branch(): Branch<Tree<Team>, Team> {
         val seasons = db.getSeasonsByTeam(this)
 
-        return TeamSubtree(this, seasons)
+        return TeamBranch(this, seasons)
     }
 
     override fun tree(): Tree<Team> {
@@ -45,19 +45,19 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
     }
 }
 
-data class TeamSubtree(val team: TeamNode, val seasons: List<Node<Tree<Season>, Season>>) : Subtree<Tree<Team>, Team> {
+data class TeamBranch(val team: TeamNode, val seasons: List<Node<Tree<Season>, Season>>) : Branch<Tree<Team>, Team> {
     override suspend fun parent(): Parent<Tree<Team>, Team>? {
         return team.parent()
     }
 
     override suspend fun tree(): Tree<Team> {
-        val seasons = seasons.map { it.subtree() }
+        val seasons = seasons.map { it.branch() }
 
         return TeamTree(team, seasons)
     }
 }
 
-data class TeamTree(val team: TeamNode, val seasons: List<Subtree<Tree<Season>, Season>>) : Tree<Team> {
+data class TeamTree(val team: TeamNode, val seasons: List<Branch<Tree<Season>, Season>>) : Tree<Team> {
     override fun leaf(): Team {
         return Team(team.number, team.name, team.region, emptyList())
     }

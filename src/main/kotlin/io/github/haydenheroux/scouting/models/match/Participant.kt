@@ -2,9 +2,9 @@ package io.github.haydenheroux.scouting.models.match
 
 import io.github.haydenheroux.scouting.database.db
 import io.github.haydenheroux.scouting.models.enums.Alliance
+import io.github.haydenheroux.scouting.models.interfaces.Branch
 import io.github.haydenheroux.scouting.models.interfaces.Node
 import io.github.haydenheroux.scouting.models.interfaces.Parent
-import io.github.haydenheroux.scouting.models.interfaces.Subtree
 import io.github.haydenheroux.scouting.models.interfaces.Tree
 import io.github.haydenheroux.scouting.models.team.Team
 import io.github.haydenheroux.scouting.models.team.TeamQuery
@@ -40,11 +40,11 @@ data class ParticipantNode(val id: Int, val alliance: Alliance) :
         return ParticipantParent(this, match)
     }
 
-    override suspend fun subtree(): Subtree<Tree<Participant>, Participant> {
+    override suspend fun branch(): Branch<Tree<Participant>, Participant> {
         val team = db.getTeamByParticipant(this)
         val metrics = db.getMetricsByParticipant(this)
 
-        return ParticipantSubtree(this, team, metrics)
+        return ParticipantBranch(this, team, metrics)
     }
 
     override fun tree(): Tree<Participant> {
@@ -54,8 +54,8 @@ data class ParticipantNode(val id: Int, val alliance: Alliance) :
 
 data class ParticipantParent(val participant: ParticipantNode, val match: MatchNode) :
     Parent<Tree<Participant>, Participant> {
-    override suspend fun subtree(): Subtree<Tree<Participant>, Participant> {
-        return participant.subtree()
+    override suspend fun branch(): Branch<Tree<Participant>, Participant> {
+        return participant.branch()
     }
 
     override fun tree(): Tree<Participant> {
@@ -63,19 +63,19 @@ data class ParticipantParent(val participant: ParticipantNode, val match: MatchN
     }
 }
 
-data class ParticipantSubtree(
+data class ParticipantBranch(
     val participant: ParticipantNode,
     val team: Node<Tree<Team>, Team>,
     val metrics: List<MetricNode>
 ) :
-    Subtree<Tree<Participant>, Participant> {
+    Branch<Tree<Participant>, Participant> {
     override suspend fun parent(): Parent<Tree<Participant>, Participant> {
         return participant.parent()
     }
 
     override suspend fun tree(): Tree<Participant> {
-        val team = team.subtree()
-        val metrics = metrics.map { it.subtree() }
+        val team = team.branch()
+        val metrics = metrics.map { it.branch() }
 
         return ParticipantTree(participant, team, metrics)
     }
@@ -83,8 +83,8 @@ data class ParticipantSubtree(
 
 data class ParticipantTree(
     val participant: ParticipantNode,
-    val team: Subtree<Tree<Team>, Team>?,
-    val metrics: List<Subtree<Tree<Metric>, Metric>>
+    val team: Branch<Tree<Team>, Team>?,
+    val metrics: List<Branch<Tree<Metric>, Metric>>
 ) :
     Tree<Participant> {
     override fun leaf(): Participant {
