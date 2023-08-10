@@ -483,7 +483,6 @@ class DatabaseImplementation : DatabaseInterface {
         teamQuery: TeamQuery,
         matchQuery: MatchQuery,
     ): Result<Unit> {
-        // TODO Duplicate participants inserted
         val participantQuery = ParticipantQuery(teamQuery, matchQuery)
 
         if (participantExists(participantQuery)) return Result.failure(Exception("Participant exists"))

@@ -78,19 +78,19 @@ data class MatchBranch(val match: MatchNode, val participants: List<ParticipantN
 data class MatchTree(val match: MatchNode, val participants: List<Branch<Tree<Participant>, Participant>>) :
     Tree<Match> {
     override fun leaf(): Match {
-        return Match(match.number, match.set, match.type, emptyList())
+        return Match(match.set, match.number, match.type, emptyList())
     }
 
     override suspend fun leaves(): Match {
         val participants = participants.map { participant -> participant.tree().leaf() }
 
-        return Match(match.number, match.set, match.type, participants)
+        return Match(match.set, match.number, match.type, participants)
     }
 
     override suspend fun subtree(): Match {
         val participants = participants.map { participant -> participant.tree().subtree() }
 
-        return Match(match.number, match.set, match.type, participants)
+        return Match(match.set, match.number, match.type, participants)
     }
 
     override suspend fun subtree(depth: Int): Match {
@@ -99,7 +99,7 @@ data class MatchTree(val match: MatchNode, val participants: List<Branch<Tree<Pa
 
         val participants = participants.map { participant -> participant.tree().subtree(depth - 1) }
 
-        return Match(match.number, match.set, match.type, participants)
+        return Match(match.set, match.number, match.type, participants)
     }
 }
 
@@ -109,13 +109,13 @@ data class Match(val set: Int, val number: Int, val type: MatchType, val partici
 data class MatchQuery(val set: Int, val number: Int, val type: MatchType, val event: EventQuery)
 
 fun matchQueryOf(match: Match, eventQuery: EventQuery): MatchQuery {
-    return MatchQuery(match.number, match.number, match.type, eventQuery)
+    return MatchQuery(match.set, match.number, match.type, eventQuery)
 }
 
 fun matchQueryOf(matchKey: String, eventQuery: EventQuery): Result<MatchQuery> {
     val match = parseMatchKey(matchKey).getOrNull() ?: return Result.failure(Exception("Failed parsing match key"))
 
-    return Result.success(MatchQuery(match.number, match.number, match.type, eventQuery))
+    return Result.success(MatchQuery(match.set, match.number, match.type, eventQuery))
 }
 
 fun Parameters.matchQuery(): Result<MatchQuery> {
@@ -137,16 +137,16 @@ fun parseMatchKey(matchKey: String): Result<MatchKey> {
         val regex = Regex("(?:.*_)?(qm|qf|sf|f)(\\d{1,2})(?:m(\\d{1,2}))?")
 
         regex.find(matchKey)?.destructured?.toList()?.let { fields ->
-            val hasSet = fields[2] != ""
+            val isQualificationMatch = fields[0] == "qm"
 
-            if (hasSet) {
-                val set = fields[1].toInt()
-                val match = fields[2].toInt()
+            if (isQualificationMatch) {
+                val set = 1 // default value for set in TBA is 1
+                val match = fields[1].toInt()
                 val type = matchTypeOf[fields[0]]!!
                 MatchKey(set, match, type)
             } else {
-                val set = 1 // default value for set in TBA is 1
-                val match = fields[1].toInt()
+                val set = fields[1].toInt()
+                val match = fields[2].toInt()
                 val type = matchTypeOf[fields[0]]!!
                 MatchKey(set, match, type)
             }
