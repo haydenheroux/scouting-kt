@@ -59,6 +59,10 @@
     <a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a>
 </#macro>
 
+<#macro team_number_link team>
+    <a href="/teams/${team.number?c}">${team.number?c}</a>
+</#macro>
+
 <#macro team_year_link team year>
     <a href="/teams/${team.number?c}/${year?c}">Team ${team.number?c} - ${team.name}</a>
 </#macro>
