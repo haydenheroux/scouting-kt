@@ -10,7 +10,7 @@
             </tr>
         </thead>
         <tbody>
-        <#list teams as team>
+        <#list teams?sort_by("number") as team>
             <tr>
                 <td><@layout.team_number_link team=team /></td>
                 <td>${team.name}</td>
