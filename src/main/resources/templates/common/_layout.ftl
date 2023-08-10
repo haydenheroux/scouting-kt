@@ -44,7 +44,7 @@
                 <tr>
                     <td><a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}/${match.number}">${match.type[0]}${match.number}</a></td>
                     <#list match.participants as participant>
-                    <td><a href="/teams/${participant.teamNumber?c}/${event.year?c}">${participant.teamNumber?c}</td>
+                    <td><a href="/teams/${participant.team.number?c}/${event.year?c}">${participant.team.number?c}</td>
                     </#list>
                 </tr>
             </#list>
@@ -76,9 +76,16 @@
     </#if>
 </#macro>
 
+<#macro team_year_link team year>
+    <a href="/teams/${team.number?c}/${year?c}">Team ${team.number?c} - ${team.name}</a>
+</#macro>
+
+<#macro event_link event>
+    <a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}">${event.name}</a>
+</#macro>
+
 <#macro season_section team season>
     <section>
-    <!-- TODO make h2? -->
     <h1><a href="/teams/${team.number?c}/${season.year?c}">${season.year?c}</a></h1>
     <hr/>
     <#list season.events as event>

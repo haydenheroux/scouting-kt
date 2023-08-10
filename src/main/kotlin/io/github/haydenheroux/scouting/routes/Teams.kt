@@ -36,14 +36,14 @@ fun Route.teams() {
             val seasonQuery = call.parameters.seasonQuery().getOrNull()
 
             seasonQuery?.let {
-                val seasonNode = db.getSeasonByQuery(seasonQuery)
+                val node = db.getSeasonByQuery(seasonQuery)
 
-                val team = seasonNode.parent().team.tree().leaf()
+                val team = node.parent().team.tree().leaf()
 
                 val EVENTS_ONLY = 1
                 val EVENTS_AND_MATCHES = 4
                 val depth = EVENTS_AND_MATCHES
-                val season = seasonNode.subtree().tree().subtree(depth)
+                val season = node.subtree().tree().subtree(depth)
 
                 call.respond(FreeMarkerContent("teams/season.ftl", mapOf("team" to team, "season" to season)))
             } ?: run {

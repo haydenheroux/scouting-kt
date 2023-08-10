@@ -182,12 +182,14 @@ fun Route.api() {
         post("/new-participant") {
             val participant = call.receive<Participant>()
 
+            val teamQuery = call.request.queryParameters.teamQuery().getOrNull()
             val matchQuery = call.request.queryParameters.matchQuery().getOrNull()
 
             matchQuery?.let {
-                db.insertParticipant(participant, matchQuery)
-
-                call.respond(HttpStatusCode.OK)
+                if (teamQuery != null) {
+                    db.insertParticipant(participant, teamQuery, matchQuery)
+                    call.respond(HttpStatusCode.OK)
+                }
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }

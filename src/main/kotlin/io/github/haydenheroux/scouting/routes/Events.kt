@@ -12,7 +12,7 @@ import io.ktor.server.routing.*
 fun Route.events() {
     route("/events") {
         get {
-            val events = db.getEvents()
+            val events = db.getEvents().map { event -> event.tree().leaf() }
 
             call.respond(FreeMarkerContent("events/events.ftl", mapOf("events" to events)))
         }
@@ -21,7 +21,11 @@ fun Route.events() {
             val eventQuery = call.parameters.eventQuery().getOrNull()
 
             eventQuery?.let {
-                val event = db.getEventByQuery(eventQuery)
+                val MATCHES_ONLY = 1
+                // TODO Store team number on Participant to avoid getting .metrics along with .team
+                val MATCHES_AND_TEAMS = 3
+                val depth = MATCHES_AND_TEAMS
+                val event = db.getEventByQuery(eventQuery).subtree().tree().subtree(depth)
 
                 call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
             } ?: run {
@@ -33,9 +37,16 @@ fun Route.events() {
             val matchQuery = call.parameters.matchQuery().getOrNull()
 
             matchQuery?.let {
-                val match = db.getMatchByQuery(matchQuery)
+                val node = db.getMatchByQuery(matchQuery)
 
-                call.respond(FreeMarkerContent("events/match.ftl", mapOf("match" to match)))
+                val event = node.parent().event.subtree().tree().leaf()
+
+                val TEAM_AND_METRICS = 2
+                // TODO depth=3 bug, long wait time, cycle?
+                val depth = TEAM_AND_METRICS
+                val match = node.subtree().tree().subtree(depth)
+
+                call.respond(FreeMarkerContent("events/match.ftl", mapOf("event" to event, "match" to match)))
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }

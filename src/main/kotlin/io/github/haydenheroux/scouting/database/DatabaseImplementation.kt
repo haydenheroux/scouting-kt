@@ -29,6 +29,15 @@ class DatabaseImplementation : DatabaseInterface {
         }
     }
 
+    override suspend fun getTeamByParticipant(participantData: ParticipantNode): TeamNode {
+        return query {
+            val participantRow = ParticipantTable.select { ParticipantTable.id eq participantData.id }.single()
+            val teamId = participantRow[ParticipantTable.teamId].value
+
+            getTeamById(teamId)
+        }
+    }
+
     override suspend fun getTeamById(teamId: Int): TeamNode {
         val teamRow = getTeamRow(teamId)!!
         return TeamNode.from(teamRow)
@@ -274,10 +283,11 @@ class DatabaseImplementation : DatabaseInterface {
     }
 
     private suspend fun getParticipantRow(participantQuery: ParticipantQuery): ResultRow? {
+        val teamId = getTeamId(participantQuery.team)
         val matchId = getMatchId(participantQuery.match)
 
         return query {
-            ParticipantTable.select { (ParticipantTable.matchId eq matchId) and (ParticipantTable.teamNumber eq participantQuery.team.number) }
+            ParticipantTable.select { (ParticipantTable.teamId eq teamId) and (ParticipantTable.matchId eq matchId) }
                 .singleOrNull()
         }
     }
@@ -416,19 +426,21 @@ class DatabaseImplementation : DatabaseInterface {
 
     override suspend fun insertParticipant(
         participant: Participant,
+        teamQuery: TeamQuery,
         matchQuery: MatchQuery,
     ) {
         // TODO Duplicate participants inserted
-        val participantQuery = participantQueryOf(matchQuery, TeamQuery(participant.teamNumber))
+        val participantQuery = ParticipantQuery(teamQuery, matchQuery)
         if (participantExists(participantQuery)) throw Exception("Participant exists")
 
+        val teamId = getTeamId(teamQuery)
         val matchId = getMatchId(matchQuery)
 
         transaction {
             val participantId = ParticipantTable.insertAndGetId {
                 it[this.matchId] = matchId
+                it[this.teamId] = teamId
                 it[alliance] = participant.alliance
-                it[teamNumber] = participant.teamNumber
             }
 
             for (metric in participant.metrics) {

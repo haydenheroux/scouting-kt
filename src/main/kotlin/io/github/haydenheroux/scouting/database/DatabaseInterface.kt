@@ -13,6 +13,8 @@ interface DatabaseInterface {
 
     suspend fun getTeamBySeason(seasonData: SeasonNode): TeamNode
 
+    suspend fun getTeamByParticipant(participantData: ParticipantNode): TeamNode
+
     suspend fun getTeamById(teamId: Int): TeamNode
 
     suspend fun getSeasonByQuery(seasonQuery: SeasonQuery): SeasonNode
@@ -63,5 +65,5 @@ interface DatabaseInterface {
     suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery)
     suspend fun insertEvent(event: Event)
     suspend fun insertMatch(match: Match, eventQuery: EventQuery)
-    suspend fun insertParticipant(participant: Participant, matchQuery: MatchQuery)
+    suspend fun insertParticipant(participant: Participant, teamQuery: TeamQuery, matchQuery: MatchQuery)
 }

@@ -1,16 +1,14 @@
+<#-- @ftlvariable name="event" type="io.github.haydenheroux.scouting.models.event.Event" -->
 <#-- @ftlvariable name="match" type="io.github.haydenheroux.scouting.models.match.Match" -->
 <#import "/common/_layout.ftl" as layout />
-<#assign title="TODO">
-<#assign heading="TODO">
-<@layout.header title=title>
-    <h1>${heading}</h1>
+<#assign match_text="${layout.match_type_to_text(match.type)} ${match.number}">
+<@layout.header title="${match_text} - ${event.name}">
+    <h1>${match_text} - <@layout.event_link event=event /></h1>
     <hr/>
     <#list match.participants as participant>
         <section>
-            <!-- <#assign seasonReference=participantReference.robotReference.seasonReference> -->
-            <!-- <#assign teamReference=seasonReference.teamReference> -->
-            <!-- <@layout.season_link season=seasonReference size="small" /> -->
-            <!-- <@layout.alliance alliance=participantReference.alliance /> -->
+            <h2><@layout.team_year_link team=participant.team year=event.year /><h2>
+            <@layout.alliance alliance=participant.alliance />
             <h3>Metrics</h3>
             <table>
                 <thead>

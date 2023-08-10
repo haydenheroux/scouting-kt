@@ -33,7 +33,7 @@ data class MatchNode(val id: Int, val number: Int, val type: MatchType) : Node<T
         }
     }
 
-    override suspend fun parent(): Parent<Tree<Match>, Match> {
+    override suspend fun parent(): MatchParent {
         val event = db.getEventByMatch(this)
 
         return MatchParent(this, event)
