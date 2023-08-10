@@ -24,8 +24,7 @@ fun Route.events() {
                 val MATCHES_ONLY = 1
                 // TODO Store team number on Participant to avoid getting .metrics along with .team
                 val MATCHES_AND_TEAMS = 3
-                val depth = MATCHES_AND_TEAMS
-                val event = db.getEventByQuery(eventQuery).subtree().tree().subtree(depth)
+                val event = db.getEventByQuery(eventQuery).subtree().tree().subtree(MATCHES_AND_TEAMS)
 
                 call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
             } ?: run {
@@ -41,10 +40,9 @@ fun Route.events() {
 
                 val event = node.parent().event.subtree().tree().leaf()
 
+                // TODO = 3 bug, long wait time, cycle?
                 val TEAM_AND_METRICS = 2
-                // TODO depth=3 bug, long wait time, cycle?
-                val depth = TEAM_AND_METRICS
-                val match = node.subtree().tree().subtree(depth)
+                val match = node.subtree().tree().subtree(TEAM_AND_METRICS)
 
                 call.respond(FreeMarkerContent("events/match.ftl", mapOf("event" to event, "match" to match)))
             } ?: run {
