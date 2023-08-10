@@ -3,6 +3,6 @@
 <@layout.header title="Team ${team.number?c}">
     <@layout.team_link team=team size="large" />
     <#list team.seasons?reverse as season>
-        <@layout.season_section season=season />
+        <@layout.season_section team=team season=season />
     </#list>
 </@layout.header>

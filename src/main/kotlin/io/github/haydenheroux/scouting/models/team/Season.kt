@@ -37,7 +37,7 @@ data class SeasonNode(val id: Int, val year: Int) : Node<Tree<Season>, Season> {
         }
     }
 
-    override suspend fun parent(): Parent<Tree<Season>, Season> {
+    override suspend fun parent(): SeasonParent {
         val team = db.getTeamBySeason(this)
 
         return SeasonParent(this, team)

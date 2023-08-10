@@ -30,6 +30,7 @@
         <h2><a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}">${event.name}</a></h2>
         <p>${region_to_text(event.region)}</p>
         <p>Week ${event.week?c}, ${event.year?c}</p>
+        <#if event.matches?has_content>
         <h3>Matches</h3>
         <table>
             <thead>
@@ -43,14 +44,13 @@
                 <tr>
                     <td><a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}/${match.number}">${match.type[0]}${match.number}</a></td>
                     <#list match.participants as participant>
-                    <!--  TODO -->
-                    <!-- <#local team_number=participant.robot.season.team.number> -->
-                    <!-- <td><a href="/teams/${team_number?c}/${event.year?c}">${team_number?c}</td> -->
+                    <td><a href="/teams/${participant.teamNumber?c}/${event.year?c}">${participant.teamNumber?c}</td>
                     </#list>
                 </tr>
             </#list>
             <tbody>
         </table>
+        </#if>
     </section>
     <hr/>
 </#macro>
@@ -76,8 +76,10 @@
     </#if>
 </#macro>
 
-<#macro season_section season>
+<#macro season_section team season>
     <section>
+    <!-- TODO make h2? -->
+    <h1><a href="/teams/${team.number?c}/${season.year?c}">${season.year?c}</a></h1>
     <hr/>
     <#list season.events as event>
     <@layout.event_section event=event />
