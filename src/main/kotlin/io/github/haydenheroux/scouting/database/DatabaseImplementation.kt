@@ -275,10 +275,9 @@ class DatabaseImplementation : DatabaseInterface {
 
     private suspend fun getParticipantRow(participantQuery: ParticipantQuery): ResultRow? {
         val matchId = getMatchId(participantQuery.match)
-        val robotId = getRobotId(participantQuery.robot)
 
         return query {
-            ParticipantTable.select { (ParticipantTable.matchId eq matchId) and (ParticipantTable.robotId eq robotId) }
+            ParticipantTable.select { (ParticipantTable.matchId eq matchId) and (ParticipantTable.teamNumber eq participantQuery.team.number) }
                 .singleOrNull()
         }
     }
@@ -418,20 +417,18 @@ class DatabaseImplementation : DatabaseInterface {
     override suspend fun insertParticipant(
         participant: Participant,
         matchQuery: MatchQuery,
-        robotQuery: RobotQuery
     ) {
         // TODO Duplicate participants inserted
-        val participantQuery = participantQueryOf(matchQuery, robotQuery)
+        val participantQuery = participantQueryOf(matchQuery, TeamQuery(participant.teamNumber))
         if (participantExists(participantQuery)) throw Exception("Participant exists")
 
         val matchId = getMatchId(matchQuery)
-        val robotId = getRobotId(robotQuery)
 
         transaction {
             val participantId = ParticipantTable.insertAndGetId {
                 it[this.matchId] = matchId
-                it[this.robotId] = robotId
                 it[alliance] = participant.alliance
+                it[teamNumber] = participant.teamNumber
             }
 
             for (metric in participant.metrics) {

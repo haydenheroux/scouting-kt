@@ -185,15 +185,9 @@ fun Route.api() {
             val matchQuery = call.request.queryParameters.matchQuery().getOrNull()
 
             matchQuery?.let {
-                val robotQuery = call.request.queryParameters.robotQuery().getOrNull()
+                db.insertParticipant(participant, matchQuery)
 
-                robotQuery?.let {
-                    db.insertParticipant(participant, matchQuery, robotQuery)
-
-                    call.respond(HttpStatusCode.OK)
-                } ?: run {
-                    call.respond(HttpStatusCode.BadRequest)
-                }
+                call.respond(HttpStatusCode.OK)
             } ?: run {
                 call.respond(HttpStatusCode.BadRequest)
             }

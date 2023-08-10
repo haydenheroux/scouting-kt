@@ -63,5 +63,5 @@ interface DatabaseInterface {
     suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery)
     suspend fun insertEvent(event: Event)
     suspend fun insertMatch(match: Match, eventQuery: EventQuery)
-    suspend fun insertParticipant(participant: Participant, matchQuery: MatchQuery, robotQuery: RobotQuery)
+    suspend fun insertParticipant(participant: Participant, matchQuery: MatchQuery)
 }
