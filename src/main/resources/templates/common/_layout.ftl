@@ -65,8 +65,12 @@
             </tr>
         </thead>
         <tbody>
-        <!-- TODO sort by number or set? -->
-        <#list matches?sort_by("number") as match>
+        <#if matches[0].type == "QUALIFICATION">
+            <#local sorted_matches=matches?sort_by("number")>
+        <#else>
+            <#local sorted_matches=matches?sort_by("set")>
+        </#if>
+        <#list sorted_matches as match>
             <tr>
                 <td><a href="/events/${region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}/${match_to_serial(match)}">${match_to_text(match)}</a></td>
                 <#list match.participants as participant>
