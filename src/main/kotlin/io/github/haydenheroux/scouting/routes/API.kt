@@ -18,7 +18,7 @@ fun Route.api() {
                 return@get
             }
 
-            call.respond(teams.map { it.branch().tree().subtree() })
+            call.respond(teams)
         }
 
         get("/get-team") {

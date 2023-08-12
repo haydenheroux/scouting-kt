@@ -29,10 +29,18 @@ object SQLDatabase : DatabaseInterface {
     private suspend fun <T> query(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
 
 
-    override suspend fun getTeams(): Result<List<TeamNode>> {
+    override suspend fun getTeams(): Result<List<Team>> {
         return runCatching {
             query {
-                TeamTable.selectAll().map { teamRow -> TeamNode.from(teamRow) }
+                TeamTable.selectAll().map { teamRow -> TeamNode.from(teamRow).branch().tree().subtree() }
+            }
+        }
+    }
+
+    override suspend fun getTeamsSimple(): Result<List<Team>> {
+        return runCatching {
+            query {
+                TeamTable.selectAll().map { teamRow -> TeamNode.from(teamRow).tree().leaf() }
             }
         }
     }

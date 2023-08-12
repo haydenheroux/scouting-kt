@@ -12,10 +12,10 @@ import io.ktor.server.routing.*
 fun Route.teams() {
     route("/teams") {
         get {
-            SQLDatabase.getTeams().getOrNull()?.let { nodes ->
-                val teams = nodes.map { node -> node.tree().leaf() }
-
+            SQLDatabase.getTeamsSimple().getOrNull()?.let { teams ->
                 call.respond(FreeMarkerContent("teams/teams.ftl", mapOf("teams" to teams)))
+            } ?: run {
+                call.respond(HttpStatusCode.InternalServerError)
             }
         }
 
