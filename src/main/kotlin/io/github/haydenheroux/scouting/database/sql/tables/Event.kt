@@ -36,18 +36,14 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
         return EventTree(this, matches)
     }
 
-    override fun root(): Tree<Event> {
-        return EventTree(this, emptyList())
+    override fun leaf(): Event {
+        return Event(name, region, year, week, emptyList())
     }
 }
 
 data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<Event> {
-    override fun leaf(): Event {
-        return Event(event.name, event.region, event.year, event.week, emptyList())
-    }
-
     override suspend fun leaves(): Event {
-        val matches = matches.map { match -> match.tree().leaf() }
+        val matches = matches.map { match -> match.leaf() }
 
         return Event(event.name, event.region, event.year, event.week, matches)
     }
@@ -59,7 +55,7 @@ data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<
     }
 
     override suspend fun subtree(depth: Int): Event {
-        if (depth == 0) return leaf()
+        if (depth == 0) return event.leaf()
         if (depth == 1) return leaves()
 
         val matches = matches.map { match -> match.tree().subtree(depth - 1) }

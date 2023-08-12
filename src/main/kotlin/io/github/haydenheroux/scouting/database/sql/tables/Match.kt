@@ -36,19 +36,15 @@ data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: In
         return MatchTree(this, event, participants)
     }
 
-    override fun root(): Tree<Match> {
-        return MatchTree(this, null, emptyList())
+    override fun leaf(): Match {
+        return Match(set, number, type, emptyList())
     }
 }
 
 data class MatchTree(val match: MatchNode, val event: EventNode?, val participants: List<ParticipantNode>) :
     Tree<Match> {
-    override fun leaf(): Match {
-        return Match(match.set, match.number, match.type, emptyList())
-    }
-
     override suspend fun leaves(): Match {
-        val participants = participants.map { participant -> participant.tree().leaf() }
+        val participants = participants.map { participant -> participant.leaf() }
 
         return Match(match.set, match.number, match.type, participants)
     }
@@ -60,7 +56,7 @@ data class MatchTree(val match: MatchNode, val event: EventNode?, val participan
     }
 
     override suspend fun subtree(depth: Int): Match {
-        if (depth == 0) return leaf()
+        if (depth == 0) return match.leaf()
         if (depth == 1) return leaves()
 
         val participants = participants.map { participant -> participant.tree().subtree(depth - 1) }

@@ -40,8 +40,8 @@ data class SeasonNode(val id: Int, val teamId: Int, val year: Int) : Node<Tree<S
         return SeasonTree(this, team, robots, events)
     }
 
-    override fun root(): Tree<Season> {
-        return SeasonTree(this, null, emptyList(), emptyList())
+    override fun leaf(): Season {
+        return Season(year, emptyList(), emptyList())
     }
 }
 
@@ -51,13 +51,9 @@ data class SeasonTree(
     val robots: List<RobotNode>,
     val events: List<EventNode>
 ) : Tree<Season> {
-    override fun leaf(): Season {
-        return Season(season.year, emptyList(), emptyList())
-    }
-
     override suspend fun leaves(): Season {
-        val robots = robots.map { robot -> robot.tree().leaf() }
-        val events = events.map { event -> event.tree().leaf() }
+        val robots = robots.map { robot -> robot.leaf() }
+        val events = events.map { event -> event.leaf() }
 
         return Season(season.year, robots, events)
     }
@@ -70,7 +66,7 @@ data class SeasonTree(
     }
 
     override suspend fun subtree(depth: Int): Season {
-        if (depth == 0) return leaf()
+        if (depth == 0) return season.leaf()
         if (depth == 1) return leaves()
 
         val robots = robots.map { robot -> robot.tree().subtree(depth - 1) }

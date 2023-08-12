@@ -51,7 +51,7 @@ object SQLDatabase : DatabaseInterface {
         val teamNodesResult = getTeamNodes()
 
         teamNodesResult.getOrNull()?.let { teamNodes ->
-            return Result.success(teamNodes.map { teamNode -> teamNode.tree().leaf() })
+            return Result.success(teamNodes.map { teamNode -> teamNode.leaf() })
         } ?: run {
             return Result.failure(teamNodesResult.exceptionOrNull()!!)
         }
@@ -148,7 +148,7 @@ object SQLDatabase : DatabaseInterface {
         seasonNodeResult.getOrNull()?.let { seasonNode ->
             val seasonBranch = seasonNode.tree()
             val season = seasonBranch.subtree(1)
-            val team = seasonBranch.team!!.root().leaf()
+            val team = seasonBranch.team!!.leaf()
             return Result.success(Pair(season, team))
         } ?: run {
             return Result.failure(seasonNodeResult.exceptionOrNull()!!)
@@ -161,7 +161,7 @@ object SQLDatabase : DatabaseInterface {
         seasonNodeResult.getOrNull()?.let { seasonNode ->
             val seasonBranch = seasonNode.tree()
             val season = seasonBranch.subtree(4)
-            val team = seasonBranch.team!!.root().leaf()
+            val team = seasonBranch.team!!.leaf()
             return Result.success(Pair(season, team))
         } ?: run {
             return Result.failure(seasonNodeResult.exceptionOrNull()!!)
@@ -257,7 +257,7 @@ object SQLDatabase : DatabaseInterface {
         val eventNodesResult = getEventNodes()
 
         eventNodesResult.getOrNull()?.let { eventNodes ->
-            return Result.success(eventNodes.map { eventNode -> eventNode.root().leaf() })
+            return Result.success(eventNodes.map { eventNode -> eventNode.leaf() })
         } ?: run {
             return Result.failure(eventNodesResult.exceptionOrNull()!!)
         }
@@ -367,7 +367,7 @@ object SQLDatabase : DatabaseInterface {
         matchNodeResult.getOrNull()?.let { matchNode ->
             val matchBranch = matchNode.tree()
             val match = matchBranch.subtree(2)
-            val event = matchBranch.event!!.root().leaf()
+            val event = matchBranch.event!!.leaf()
 
             return Result.success(Pair(match, event))
         } ?: run {
@@ -497,7 +497,7 @@ object SQLDatabase : DatabaseInterface {
         val metricNodeResult = getMetricNode(metricQuery)
 
         metricNodeResult.getOrNull()?.let { metricNode ->
-            return Result.success(metricNode.root().leaf())
+            return Result.success(metricNode.leaf())
         } ?: run {
             return Result.failure(metricNodeResult.exceptionOrNull()!!)
         }

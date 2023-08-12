@@ -35,8 +35,8 @@ data class ParticipantNode(val id: Int, val matchId: Int, val alliance: Alliance
         return ParticipantTree(this, match, metrics)
     }
 
-    override fun root(): Tree<Participant> {
-        return ParticipantTree(this, null, emptyList())
+    override fun leaf(): Participant {
+        return Participant(alliance, teamNumber, emptyList())
     }
 }
 
@@ -46,12 +46,8 @@ data class ParticipantTree(
     val metrics: List<MetricNode>
 ) :
     Tree<Participant> {
-    override fun leaf(): Participant {
-        return Participant(participant.alliance, participant.teamNumber, emptyList())
-    }
-
     override suspend fun leaves(): Participant {
-        val metrics = metrics.map { metric -> metric.tree().leaf() }
+        val metrics = metrics.map { metric -> metric.leaf() }
 
         return Participant(participant.alliance, participant.teamNumber, metrics)
     }
@@ -63,7 +59,7 @@ data class ParticipantTree(
     }
 
     override suspend fun subtree(depth: Int): Participant {
-        if (depth == 0) return leaf()
+        if (depth == 0) return participant.leaf()
         if (depth == 1) return leaves()
 
         val metrics = metrics.map { metric -> metric.tree().subtree(depth - 1) }

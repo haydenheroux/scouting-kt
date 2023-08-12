@@ -33,25 +33,21 @@ data class MetricNode(val id: Int, val participantId: Int, val key: String, val 
         return MetricTree(this, participant)
     }
 
-    override fun root(): Tree<Metric> {
-        return MetricTree(this, null)
+    override fun leaf(): Metric {
+        return Metric(key, value)
     }
 }
 
 data class MetricTree(val metric: MetricNode, val participant: ParticipantNode?) : Tree<Metric> {
-    override fun leaf(): Metric {
-        return Metric(metric.key, metric.value)
-    }
-
     override suspend fun leaves(): Metric {
-        return leaf()
+        return metric.leaf()
     }
 
     override suspend fun subtree(): Metric {
-        return leaf()
+        return metric.leaf()
     }
 
     override suspend fun subtree(depth: Int): Metric {
-        return subtree()
+        return metric.leaf()
     }
 }

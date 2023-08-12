@@ -33,18 +33,14 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
         return TeamTree(this, seasons)
     }
 
-    override fun root(): Tree<Team> {
-        return TeamTree(this, emptyList())
+    override fun leaf(): Team {
+        return Team(number, name, region, emptyList())
     }
 }
 
 data class TeamTree(val team: TeamNode, val seasons: List<SeasonNode>) : Tree<Team> {
-    override fun leaf(): Team {
-        return Team(team.number, team.name, team.region, emptyList())
-    }
-
     override suspend fun leaves(): Team {
-        val seasons = seasons.map { season -> season.tree().leaf() }
+        val seasons = seasons.map { season -> season.leaf() }
 
         return Team(team.number, team.name, team.region, seasons)
     }
@@ -56,7 +52,7 @@ data class TeamTree(val team: TeamNode, val seasons: List<SeasonNode>) : Tree<Te
     }
 
     override suspend fun subtree(depth: Int): Team {
-        if (depth == 0) return leaf()
+        if (depth == 0) return team.leaf()
         if (depth == 1) return leaves()
 
         val seasons = seasons.map { season -> season.tree().subtree(depth - 1) }

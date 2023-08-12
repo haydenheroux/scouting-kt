@@ -30,26 +30,22 @@ data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Tr
         return RobotTree(this, season)
     }
 
-    override fun root(): Tree<Robot> {
-        return RobotTree(this, null)
+    override fun leaf(): Robot {
+        return Robot(name)
     }
 }
 
 data class RobotTree(val robot: RobotNode, val season: SeasonNode?) : Tree<Robot> {
-    override fun leaf(): Robot {
-        return Robot(robot.name)
-    }
-
     override suspend fun leaves(): Robot {
-        return leaf()
+        return robot.leaf()
     }
 
     override suspend fun subtree(): Robot {
-        return leaf()
+        return robot.leaf()
     }
 
     override suspend fun subtree(depth: Int): Robot {
-        return subtree()
+        return robot.leaf()
     }
 }
 
