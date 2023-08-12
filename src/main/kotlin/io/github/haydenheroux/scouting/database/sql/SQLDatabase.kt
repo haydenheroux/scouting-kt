@@ -41,7 +41,7 @@ object SQLDatabase : DatabaseInterface {
         val teamNodesResult = getTeamNodes()
 
         teamNodesResult.getOrNull()?.let { teamNodes ->
-            return Result.success(teamNodes.map { teamNode -> teamNode.tree().subtree() })
+            return Result.success(teamNodes.map { teamNode -> teamNode.tree(false).subtree() })
         } ?: run {
             return Result.failure(teamNodesResult.exceptionOrNull()!!)
         }
@@ -68,7 +68,7 @@ object SQLDatabase : DatabaseInterface {
         val teamNodeResult = getTeamNode(teamQuery)
 
         teamNodeResult.getOrNull()?.let { teamNode ->
-            return Result.success(teamNode.tree().subtree())
+            return Result.success(teamNode.tree(false).subtree())
         } ?: run {
             return Result.failure(teamNodeResult.exceptionOrNull()!!)
         }
@@ -78,7 +78,7 @@ object SQLDatabase : DatabaseInterface {
         val teamNodeResult = getTeamNode(teamQuery)
 
         teamNodeResult.getOrNull()?.let { teamNode ->
-            return Result.success(teamNode.tree().subtree(2))
+            return Result.success(teamNode.tree(false).subtree(2))
         } ?: run {
             return Result.failure(teamNodeResult.exceptionOrNull()!!)
         }
@@ -88,7 +88,7 @@ object SQLDatabase : DatabaseInterface {
         val teamNodeResult = getTeamNode(teamQuery)
 
         teamNodeResult.getOrNull()?.let { teamNode ->
-            return Result.success(teamNode.tree().subtree(4))
+            return Result.success(teamNode.tree(false).subtree(4))
         } ?: run {
             return Result.failure(teamNodeResult.exceptionOrNull()!!)
         }
@@ -136,7 +136,7 @@ object SQLDatabase : DatabaseInterface {
         val seasonNodeResult = getSeasonNode(seasonQuery)
 
         seasonNodeResult.getOrNull()?.let { seasonNode ->
-            return Result.success(seasonNode.tree().subtree())
+            return Result.success(seasonNode.tree(false).subtree())
         } ?: run {
             return Result.failure(seasonNodeResult.exceptionOrNull()!!)
         }
@@ -146,7 +146,7 @@ object SQLDatabase : DatabaseInterface {
         val seasonNodeResult = getSeasonNode(seasonQuery)
 
         seasonNodeResult.getOrNull()?.let { seasonNode ->
-            val seasonBranch = seasonNode.tree()
+            val seasonBranch = seasonNode.tree(true)
             val season = seasonBranch.subtree(1)
             val team = seasonBranch.team!!.leaf()
             return Result.success(Pair(season, team))
@@ -159,7 +159,7 @@ object SQLDatabase : DatabaseInterface {
         val seasonNodeResult = getSeasonNode(seasonQuery)
 
         seasonNodeResult.getOrNull()?.let { seasonNode ->
-            val seasonBranch = seasonNode.tree()
+            val seasonBranch = seasonNode.tree(true)
             val season = seasonBranch.subtree(4)
             val team = seasonBranch.team!!.leaf()
             return Result.success(Pair(season, team))
@@ -218,7 +218,7 @@ object SQLDatabase : DatabaseInterface {
     override suspend fun getRobot(robotQuery: RobotQuery): Result<Robot> {
         return runCatching {
             val robotRow = getRobotRow(robotQuery)!!
-            RobotNode.from(robotRow).tree().subtree()
+            RobotNode.from(robotRow).tree(false).subtree()
         }
     }
 
@@ -247,7 +247,7 @@ object SQLDatabase : DatabaseInterface {
         val eventNodesResult = getEventNodes()
 
         eventNodesResult.getOrNull()?.let { eventNodes ->
-            return Result.success(eventNodes.map { eventNode -> eventNode.tree().subtree() })
+            return Result.success(eventNodes.map { eventNode -> eventNode.tree(false).subtree() })
         } ?: run {
             return Result.failure(eventNodesResult.exceptionOrNull()!!)
         }
@@ -274,7 +274,7 @@ object SQLDatabase : DatabaseInterface {
         val eventNodeResult = getEventNode(eventQuery)
 
         eventNodeResult.getOrNull()?.let { eventNode ->
-            return Result.success(eventNode.tree().subtree())
+            return Result.success(eventNode.tree(false).subtree())
         } ?: run {
             return Result.failure(eventNodeResult.exceptionOrNull()!!)
         }
@@ -284,7 +284,7 @@ object SQLDatabase : DatabaseInterface {
         val eventNodeResult = getEventNode(eventQuery)
 
         eventNodeResult.getOrNull()?.let { eventNode ->
-            return Result.success(eventNode.tree().subtree(1))
+            return Result.success(eventNode.tree(false).subtree(1))
         } ?: run {
             return Result.failure(eventNodeResult.exceptionOrNull()!!)
         }
@@ -294,7 +294,7 @@ object SQLDatabase : DatabaseInterface {
         val eventNodeResult = getEventNode(eventQuery)
 
         eventNodeResult.getOrNull()?.let { eventNode ->
-            return Result.success(eventNode.tree().subtree(2))
+            return Result.success(eventNode.tree(false).subtree(2))
         } ?: run {
             return Result.failure(eventNodeResult.exceptionOrNull()!!)
         }
@@ -355,7 +355,7 @@ object SQLDatabase : DatabaseInterface {
         val matchNodeResult = getMatchNode(matchQuery)
 
         matchNodeResult.getOrNull()?.let { matchNode ->
-            return Result.success(matchNode.tree().subtree())
+            return Result.success(matchNode.tree(false).subtree())
         } ?: run {
             return Result.failure(matchNodeResult.exceptionOrNull()!!)
         }
@@ -365,7 +365,7 @@ object SQLDatabase : DatabaseInterface {
         val matchNodeResult = getMatchNode(matchQuery)
 
         matchNodeResult.getOrNull()?.let { matchNode ->
-            val matchBranch = matchNode.tree()
+            val matchBranch = matchNode.tree(true)
             val match = matchBranch.subtree(2)
             val event = matchBranch.event!!.leaf()
 
@@ -416,7 +416,7 @@ object SQLDatabase : DatabaseInterface {
     override suspend fun getParticipant(participantQuery: ParticipantQuery): Result<Participant> {
         return runCatching {
             val participantRow = getParticipantRow(participantQuery)!!
-            ParticipantNode.from(participantRow).tree().subtree()
+            ParticipantNode.from(participantRow).tree(false).subtree()
         }
     }
 

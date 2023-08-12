@@ -27,8 +27,8 @@ data class MetricNode(val id: Int, val participantId: Int, val key: String, val 
         }
     }
 
-    override suspend fun tree(): Tree<Metric> {
-        val participant = SQLDatabase.getParticipantById(participantId).getOrNull()!!
+    override suspend fun tree(parent: Boolean): Tree<Metric> {
+        val participant = if (parent) SQLDatabase.getParticipantById(participantId).getOrNull()!! else null
 
         return MetricTree(this, participant)
     }

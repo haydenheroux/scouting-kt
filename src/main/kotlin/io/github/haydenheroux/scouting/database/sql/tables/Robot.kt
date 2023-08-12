@@ -24,8 +24,8 @@ data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Tr
         }
     }
 
-    override suspend fun tree(): Tree<Robot> {
-        val season = SQLDatabase.getSeasonById(seasonId).getOrNull()!!
+    override suspend fun tree(parent: Boolean): Tree<Robot> {
+        val season = if (parent) SQLDatabase.getSeasonById(seasonId).getOrNull()!! else null
 
         return RobotTree(this, season)
     }

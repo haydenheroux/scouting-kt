@@ -32,8 +32,8 @@ data class SeasonNode(val id: Int, val teamId: Int, val year: Int) : Node<Tree<S
         }
     }
 
-    override suspend fun tree(): SeasonTree {
-        val team = SQLDatabase.getTeamById(teamId).getOrNull()!!
+    override suspend fun tree(parent: Boolean): SeasonTree {
+        val team = if (parent) SQLDatabase.getTeamById(teamId).getOrNull()!! else null
         val robots = SQLDatabase.getRobotsBySeason(this).getOrNull()!!
         val events = SQLDatabase.getEventsBySeason(this).getOrNull()!!
 
@@ -59,8 +59,8 @@ data class SeasonTree(
     }
 
     override suspend fun subtree(): Season {
-        val robots = robots.map { robot -> robot.tree().subtree() }
-        val events = events.map { event -> event.tree().subtree() }
+        val robots = robots.map { robot -> robot.tree(false).subtree() }
+        val events = events.map { event -> event.tree(false).subtree() }
 
         return Season(season.year, robots, events)
     }
@@ -69,8 +69,8 @@ data class SeasonTree(
         if (depth == 0) return season.leaf()
         if (depth == 1) return leaves()
 
-        val robots = robots.map { robot -> robot.tree().subtree(depth - 1) }
-        val events = events.map { event -> event.tree().subtree(depth - 1) }
+        val robots = robots.map { robot -> robot.tree(false).subtree(depth - 1) }
+        val events = events.map { event -> event.tree(false).subtree(depth - 1) }
 
         return Season(season.year, robots, events)
     }

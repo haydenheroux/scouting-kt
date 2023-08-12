@@ -28,8 +28,8 @@ data class ParticipantNode(val id: Int, val matchId: Int, val alliance: Alliance
         }
     }
 
-    override suspend fun tree(): Tree<Participant> {
-        val match = SQLDatabase.getMatchById(matchId).getOrNull()!!
+    override suspend fun tree(parent: Boolean): Tree<Participant> {
+        val match = if (parent) SQLDatabase.getMatchById(matchId).getOrNull()!! else null
         val metrics = SQLDatabase.getMetricsByParticipant(this).getOrNull()!!
 
         return ParticipantTree(this, match, metrics)
@@ -53,7 +53,7 @@ data class ParticipantTree(
     }
 
     override suspend fun subtree(): Participant {
-        val metrics = metrics.map { metric -> metric.tree().subtree() }
+        val metrics = metrics.map { metric -> metric.tree(false).subtree() }
 
         return Participant(participant.alliance, participant.teamNumber, metrics)
     }
@@ -62,7 +62,7 @@ data class ParticipantTree(
         if (depth == 0) return participant.leaf()
         if (depth == 1) return leaves()
 
-        val metrics = metrics.map { metric -> metric.tree().subtree(depth - 1) }
+        val metrics = metrics.map { metric -> metric.tree(false).subtree(depth - 1) }
 
         return Participant(participant.alliance, participant.teamNumber, metrics)
     }

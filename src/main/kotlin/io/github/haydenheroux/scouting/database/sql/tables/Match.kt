@@ -29,8 +29,8 @@ data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: In
         }
     }
 
-    override suspend fun tree(): MatchTree {
-        val event = SQLDatabase.getEventById(eventId).getOrNull()!!
+    override suspend fun tree(parent: Boolean): MatchTree {
+        val event = if (parent) SQLDatabase.getEventById(eventId).getOrNull()!! else null
         val participants = SQLDatabase.getParticipantsByMatch(this).getOrNull()!!
 
         return MatchTree(this, event, participants)
@@ -50,7 +50,7 @@ data class MatchTree(val match: MatchNode, val event: EventNode?, val participan
     }
 
     override suspend fun subtree(): Match {
-        val participants = participants.map { participant -> participant.tree().subtree() }
+        val participants = participants.map { participant -> participant.tree(false).subtree() }
 
         return Match(match.set, match.number, match.type, participants)
     }
@@ -59,7 +59,7 @@ data class MatchTree(val match: MatchNode, val event: EventNode?, val participan
         if (depth == 0) return match.leaf()
         if (depth == 1) return leaves()
 
-        val participants = participants.map { participant -> participant.tree().subtree(depth - 1) }
+        val participants = participants.map { participant -> participant.tree(false).subtree(depth - 1) }
 
         return Match(match.set, match.number, match.type, participants)
     }

@@ -30,7 +30,7 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
         }
     }
 
-    override suspend fun tree(): Tree<Event> {
+    override suspend fun tree(parent: Boolean): Tree<Event> {
         val matches = SQLDatabase.getMatchesByEvent(this).getOrNull()!!
 
         return EventTree(this, matches)
@@ -49,7 +49,7 @@ data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<
     }
 
     override suspend fun subtree(): Event {
-        val matches = matches.map { match -> match.tree().subtree() }
+        val matches = matches.map { match -> match.tree(false).subtree() }
 
         return Event(event.name, event.region, event.year, event.week, matches)
     }
@@ -58,7 +58,7 @@ data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<
         if (depth == 0) return event.leaf()
         if (depth == 1) return leaves()
 
-        val matches = matches.map { match -> match.tree().subtree(depth - 1) }
+        val matches = matches.map { match -> match.tree(false).subtree(depth - 1) }
 
         return Event(event.name, event.region, event.year, event.week, matches)
     }
