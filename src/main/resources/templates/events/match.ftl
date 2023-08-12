@@ -1,14 +1,16 @@
 <#-- @ftlvariable name="event" type="io.github.haydenheroux.scouting.models.event.Event" -->
 <#-- @ftlvariable name="match" type="io.github.haydenheroux.scouting.models.match.Match" -->
-<#import "/common/_layout.ftl" as layout />
-<#assign match_text="${layout.match_type_to_text(match.type)} ${match.number}">
-<@layout.header title="${match_text} - ${event.name}">
-    <h1>${match_text} - <@layout.event_link event=event /></h1>
+<#import "/common/layout.ftl" as layout />
+<#import "/common/links.ftl" as links />
+<#import "/common/enums.ftl" as enums />
+<#import "/common/match.ftl" as _match />
+<@layout.header title="${_match.match_to_text_short(match)} - ${event.name}">
+    <h1>${_match.match_to_text_short(match)} - <@links.event_link event=event /></h1>
     <hr/>
     <#list match.participants as participant>
         <section>
-            <h2><@layout.team_year_link team=participant.team year=event.year /><h2>
-            <@layout.alliance alliance=participant.alliance />
+            <h2><@links.team_year_link team=participant.team year=event.year /><h2>
+            <@enums.alliance alliance=participant.alliance />
             <h3>Metrics</h3>
             <table>
                 <thead>

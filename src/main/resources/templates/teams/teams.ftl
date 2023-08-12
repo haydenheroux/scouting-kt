@@ -1,5 +1,7 @@
 <#-- @ftlvariable name="teams" type="kotlin.collections.List<io.github.haydenheroux.scouting.models.team.Team>" -->
-<#import "/common/_layout.ftl" as layout />
+<#import "/common/layout.ftl" as layout />
+<#import "/common/links.ftl" as links />
+<#import "/common/enums.ftl" as enums />
 <@layout.header title="Teams">
     <table>
         <thead>
@@ -12,9 +14,9 @@
         <tbody>
         <#list teams?sort_by("number") as team>
             <tr>
-                <td><@layout.team_number_link team=team /></td>
+                <td><@links.team_number_link team=team /></td>
                 <td>${team.name}</td>
-                <td>${layout.region_to_text(team.region)}</td>
+                <td>${enums.region_to_text(team.region)}</td>
             </tr>
         </#list>
         </tbody>
