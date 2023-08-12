@@ -23,9 +23,6 @@ enum class MatchType {
 
     @SerialName("f")
     FINAL,
-
-    @SerialName("other")
-    OTHER
 }
 
 val matchTypeOf = mapOf(

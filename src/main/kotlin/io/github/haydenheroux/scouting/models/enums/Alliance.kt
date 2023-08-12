@@ -17,7 +17,9 @@ enum class Alliance {
 
     @SerialName("blue")
     BLUE,
-
-    @SerialName("other")
-    OTHER
 }
+
+val allianceOf = mapOf(
+    "red" to Alliance.RED,
+    "blue" to Alliance.BLUE
+)
