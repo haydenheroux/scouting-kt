@@ -42,14 +42,13 @@ fun Route.events() {
                 return@get
             }
 
-            // TODO = 3 bug, long wait time, cycle?
-            val TEAM_AND_METRICS = 2
-
-            SQLDatabase.getMatchByQuery(matchQuery).getOrNull()?.let { node ->
-                val event = node.parent().event.branch().tree().leaf()
-                val match = node.branch().tree().subtree(TEAM_AND_METRICS)
-
-                call.respond(FreeMarkerContent("events/match.ftl", mapOf("event" to event, "match" to match)))
+            SQLDatabase.getMatchWithMetricsAndEvent(matchQuery).getOrNull()?.let { matchAndEvent ->
+                call.respond(
+                    FreeMarkerContent(
+                        "events/match.ftl",
+                        mapOf("match" to matchAndEvent.first, "event" to matchAndEvent.second)
+                    )
+                )
             } ?: run {
                 call.respond(HttpStatusCode.NotFound)
             }

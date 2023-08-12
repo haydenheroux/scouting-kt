@@ -395,14 +395,37 @@ object SQLDatabase : DatabaseInterface {
         return eventExists(eventQueryOf(event))
     }
 
-    override suspend fun getMatchByQuery(matchQuery: MatchQuery): Result<MatchNode> {
+    private suspend fun getMatchNode(matchQuery: MatchQuery): Result<MatchNode> {
         return runCatching {
             val matchRow = getMatchRow(matchQuery)!!
             MatchNode.from(matchRow)
         }
     }
 
-    override suspend fun getMatchByParticipant(participantData: ParticipantNode): Result<MatchNode> {
+    override suspend fun getMatch(matchQuery: MatchQuery): Result<Match> {
+        val matchNodeResult = getMatchNode(matchQuery)
+
+        matchNodeResult.getOrNull()?.let { matchNode ->
+            return Result.success(matchNode.branch().tree().subtree())
+        } ?: run {
+            return Result.failure(matchNodeResult.exceptionOrNull()!!)
+        }
+    }
+
+    override suspend fun getMatchWithMetricsAndEvent(matchQuery: MatchQuery): Result<Pair<Match, Event>> {
+        val matchNodeResult = getMatchNode(matchQuery)
+
+        matchNodeResult.getOrNull()?.let { matchNode ->
+            val match = matchNode.branch().tree().subtree(2)
+            val event = matchNode.parent().event.tree().leaf()
+
+            return Result.success(Pair(match, event))
+        } ?: run {
+            return Result.failure(matchNodeResult.exceptionOrNull()!!)
+        }
+    }
+
+    suspend fun getMatchByParticipant(participantData: ParticipantNode): Result<MatchNode> {
         return query {
             val participantRow =
                 ParticipantTable.select { ParticipantTable.id eq participantData.id }.single()
@@ -412,14 +435,14 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    override suspend fun getMatchById(matchId: Int): Result<MatchNode> {
+    private suspend fun getMatchById(matchId: Int): Result<MatchNode> {
         return runCatching {
             val matchRow = getMatchRow(matchId)!!
             MatchNode.from(matchRow)
         }
     }
 
-    override suspend fun getMatchesByEvent(eventData: EventNode): Result<List<MatchNode>> {
+    suspend fun getMatchesByEvent(eventData: EventNode): Result<List<MatchNode>> {
         return runCatching {
             query {
                 MatchTable.select { MatchTable.eventId eq eventData.id }.map { matchRow -> MatchNode.from(matchRow) }

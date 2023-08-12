@@ -112,14 +112,14 @@ fun Route.api() {
                 return@get
             }
 
-            val match = SQLDatabase.getMatchByQuery(matchQuery).getOrNull()
+            val match = SQLDatabase.getMatch(matchQuery).getOrNull()
 
             if (match == null) {
                 call.respond(HttpStatusCode.NotFound)
                 return@get
             }
 
-            call.respond(match.branch().tree().subtree())
+            call.respond(match)
         }
 
         get("/get-participant") {
