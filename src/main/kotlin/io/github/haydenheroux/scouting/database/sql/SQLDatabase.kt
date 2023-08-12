@@ -85,8 +85,12 @@ object SQLDatabase : DatabaseInterface {
         return getTeamRow(teamQuery)!![TeamTable.id].value
     }
 
-    private suspend fun teamExists(teamQuery: TeamQuery): Boolean {
+    override suspend fun teamExists(teamQuery: TeamQuery): Boolean {
         return getTeamRow(teamQuery)?.let { true } ?: false
+    }
+
+    override suspend fun teamExists(team: Team): Boolean {
+        return teamExists(teamQueryOf(team))
     }
 
     override suspend fun getSeasonByQuery(seasonQuery: SeasonQuery): Result<SeasonNode> {
@@ -139,7 +143,7 @@ object SQLDatabase : DatabaseInterface {
         return getSeasonRow(seasonQuery)!![SeasonTable.id].value
     }
 
-    private suspend fun seasonExists(seasonQuery: SeasonQuery): Boolean {
+    override suspend fun seasonExists(seasonQuery: SeasonQuery): Boolean {
         return getSeasonRow(seasonQuery)?.let { true } ?: false
     }
 
@@ -185,7 +189,7 @@ object SQLDatabase : DatabaseInterface {
         return getRobotRow(robotQuery)!![RobotTable.id].value
     }
 
-    private suspend fun robotExists(robotQuery: RobotQuery): Boolean {
+    override suspend fun robotExists(robotQuery: RobotQuery): Boolean {
         return getRobotRow(robotQuery)?.let { true } ?: false
     }
 
@@ -249,8 +253,12 @@ object SQLDatabase : DatabaseInterface {
         return getEventRow(eventQuery)!![EventTable.id].value
     }
 
-    private suspend fun eventExists(eventQuery: EventQuery): Boolean {
+    override suspend fun eventExists(eventQuery: EventQuery): Boolean {
         return getEventRow(eventQuery)?.let { true } ?: false
+    }
+
+    override suspend fun eventExists(event: Event): Boolean {
+        return eventExists(eventQueryOf(event))
     }
 
     override suspend fun getMatchByQuery(matchQuery: MatchQuery): Result<MatchNode> {
@@ -304,7 +312,7 @@ object SQLDatabase : DatabaseInterface {
         return getMatchRow(matchQuery)!![MatchTable.id].value
     }
 
-    private suspend fun matchExists(matchQuery: MatchQuery): Boolean {
+    override suspend fun matchExists(matchQuery: MatchQuery): Boolean {
         return getMatchRow(matchQuery)?.let { true } ?: false
     }
 
@@ -360,7 +368,7 @@ object SQLDatabase : DatabaseInterface {
         return getParticipantRow(participantQuery)!![ParticipantTable.id].value
     }
 
-    private suspend fun participantExists(participantQuery: ParticipantQuery): Boolean {
+    override suspend fun participantExists(participantQuery: ParticipantQuery): Boolean {
         return getParticipantRow(participantQuery)?.let { true } ?: false
     }
 
@@ -420,6 +428,10 @@ object SQLDatabase : DatabaseInterface {
         return Result.success(Unit)
     }
 
+    override suspend fun seasonExists(season: Season, team: Team): Boolean {
+        return seasonExists(seasonQueryOf(season, teamQueryOf(team)))
+    }
+
     override suspend fun insertSeasonEvent(eventQuery: EventQuery, seasonQuery: SeasonQuery): Result<Unit> {
         if (!eventExists(eventQuery)) return Result.failure(Exception("Event does not exist"))
         if (!seasonExists(seasonQuery)) return Result.failure(Exception("Season does not exist"))
@@ -452,6 +464,10 @@ object SQLDatabase : DatabaseInterface {
         }
 
         return Result.success(Unit)
+    }
+
+    override suspend fun robotExists(robot: Robot, season: Season, team: Team): Boolean {
+        return robotExists(robotQueryOf(robot, seasonQueryOf(season, teamQueryOf(team))))
     }
 
     override suspend fun insertEvent(event: Event): Result<Unit> {
@@ -498,6 +514,10 @@ object SQLDatabase : DatabaseInterface {
         return Result.success(Unit)
     }
 
+    override suspend fun matchExists(match: Match, event: Event): Boolean {
+        return matchExists(matchQueryOf(match, eventQueryOf(event)))
+    }
+
     override suspend fun insertParticipant(
         participant: Participant,
         teamQuery: TeamQuery,
@@ -527,6 +547,15 @@ object SQLDatabase : DatabaseInterface {
         }
 
         return Result.success(Unit)
+    }
+
+    override suspend fun participantExists(participant: Participant, match: Match, event: Event): Boolean {
+        return participantExists(
+            ParticipantQuery(
+                teamQueryOf(participant.team!!),
+                matchQueryOf(match, eventQueryOf(event))
+            )
+        )
     }
 
 }

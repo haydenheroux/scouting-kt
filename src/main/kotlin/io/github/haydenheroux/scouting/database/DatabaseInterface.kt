@@ -57,10 +57,40 @@ interface DatabaseInterface {
     suspend fun getMetricsByParticipant(participantData: ParticipantNode): Result<List<MetricNode>>
 
     suspend fun insertTeam(team: Team): Result<Unit>
+
+    suspend fun teamExists(teamQuery: TeamQuery): Boolean
+
+    suspend fun teamExists(team: Team): Boolean
+
     suspend fun insertSeason(season: Season, teamQuery: TeamQuery): Result<Unit>
+
+    suspend fun seasonExists(seasonQuery: SeasonQuery): Boolean
+
+    suspend fun seasonExists(season: Season, team: Team): Boolean
+
     suspend fun insertSeasonEvent(eventQuery: EventQuery, seasonQuery: SeasonQuery): Result<Unit>
+
     suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery): Result<Unit>
+
+    suspend fun robotExists(robotQuery: RobotQuery): Boolean
+
+    suspend fun robotExists(robot: Robot, season: Season, team: Team): Boolean
+
     suspend fun insertEvent(event: Event): Result<Unit>
+
+    suspend fun eventExists(eventQuery: EventQuery): Boolean
+
+    suspend fun eventExists(event: Event): Boolean
+
     suspend fun insertMatch(match: Match, eventQuery: EventQuery): Result<Unit>
+
+    suspend fun matchExists(matchQuery: MatchQuery): Boolean
+
+    suspend fun matchExists(match: Match, event: Event): Boolean
+
     suspend fun insertParticipant(participant: Participant, teamQuery: TeamQuery, matchQuery: MatchQuery): Result<Unit>
+
+    suspend fun participantExists(participantQuery: ParticipantQuery): Boolean
+
+    suspend fun participantExists(participant: Participant, match: Match, event: Event): Boolean
 }
