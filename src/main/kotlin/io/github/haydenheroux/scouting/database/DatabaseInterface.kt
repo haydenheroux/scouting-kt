@@ -4,14 +4,6 @@ import io.github.haydenheroux.scouting.database.sql.tables.*
 import io.github.haydenheroux.scouting.models.*
 
 interface DatabaseInterface {
-    suspend fun getSeasonByQuery(seasonQuery: SeasonQuery): Result<SeasonNode>
-
-    suspend fun getSeasonsByTeam(teamData: TeamNode): Result<List<SeasonNode>>
-
-    suspend fun getSeasonByRobot(robotData: RobotNode): Result<SeasonNode>
-
-    suspend fun getSeasonById(seasonId: Int): Result<SeasonNode>
-
     suspend fun getRobotByQuery(robotQuery: RobotQuery): Result<RobotNode>
 
     suspend fun getRobotsBySeason(seasonData: SeasonNode): Result<List<RobotNode>>
@@ -66,11 +58,18 @@ interface DatabaseInterface {
 
     suspend fun insertSeason(season: Season, teamQuery: TeamQuery): Result<Unit>
 
+    suspend fun insertSeasonEvent(eventQuery: EventQuery, seasonQuery: SeasonQuery): Result<Unit>
+
     suspend fun seasonExists(seasonQuery: SeasonQuery): Boolean
 
     suspend fun seasonExists(season: Season, team: Team): Boolean
 
-    suspend fun insertSeasonEvent(eventQuery: EventQuery, seasonQuery: SeasonQuery): Result<Unit>
+    suspend fun getSeason(seasonQuery: SeasonQuery): Result<Season>
+
+    suspend fun getSeasonWithEventsAndTeam(seasonQuery: SeasonQuery): Result<Pair<Season, Team>>
+
+    suspend fun getSeasonWithMatchesAndTeam(seasonQuery: SeasonQuery): Result<Pair<Season, Team>>
+
 
     suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery): Result<Unit>
 

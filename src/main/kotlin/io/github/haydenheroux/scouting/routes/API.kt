@@ -47,14 +47,14 @@ fun Route.api() {
                 return@get
             }
 
-            val season = SQLDatabase.getSeasonByQuery(seasonQuery).getOrNull()
+            val season = SQLDatabase.getSeason(seasonQuery).getOrNull()
 
             if (season == null) {
                 call.respond(HttpStatusCode.NotFound)
                 return@get
             }
 
-            call.respond(season.branch().tree().subtree())
+            call.respond(season)
         }
 
         get("/get-robot") {

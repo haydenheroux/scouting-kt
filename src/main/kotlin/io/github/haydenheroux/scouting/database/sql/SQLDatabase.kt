@@ -131,14 +131,48 @@ object SQLDatabase : DatabaseInterface {
         return teamExists(teamQueryOf(team))
     }
 
-    override suspend fun getSeasonByQuery(seasonQuery: SeasonQuery): Result<SeasonNode> {
+    private suspend fun getSeasonNode(seasonQuery: SeasonQuery): Result<SeasonNode> {
         return runCatching {
             val seasonRow = getSeasonRow(seasonQuery)!!
             SeasonNode.from(seasonRow)
         }
     }
 
-    override suspend fun getSeasonByRobot(robotData: RobotNode): Result<SeasonNode> {
+    override suspend fun getSeason(seasonQuery: SeasonQuery): Result<Season> {
+        val seasonNodeResult = getSeasonNode(seasonQuery)
+
+        seasonNodeResult.getOrNull()?.let { seasonNode ->
+            return Result.success(seasonNode.branch().tree().subtree())
+        } ?: run {
+            return Result.failure(seasonNodeResult.exceptionOrNull()!!)
+        }
+    }
+
+    override suspend fun getSeasonWithEventsAndTeam(seasonQuery: SeasonQuery): Result<Pair<Season, Team>> {
+        val seasonNodeResult = getSeasonNode(seasonQuery)
+
+        seasonNodeResult.getOrNull()?.let { seasonNode ->
+            val season = seasonNode.branch().tree().subtree(1)
+            val team = seasonNode.parent().team.tree().leaf()
+            return Result.success(Pair(season, team))
+        } ?: run {
+            return Result.failure(seasonNodeResult.exceptionOrNull()!!)
+        }
+    }
+
+    override suspend fun getSeasonWithMatchesAndTeam(seasonQuery: SeasonQuery): Result<Pair<Season, Team>> {
+        val seasonNodeResult = getSeasonNode(seasonQuery)
+
+        seasonNodeResult.getOrNull()?.let { seasonNode ->
+            val season = seasonNode.branch().tree().subtree(4)
+            val team = seasonNode.parent().team.tree().leaf()
+            return Result.success(Pair(season, team))
+        } ?: run {
+            return Result.failure(seasonNodeResult.exceptionOrNull()!!)
+        }
+    }
+
+    suspend fun getSeasonByRobot(robotData: RobotNode): Result<SeasonNode> {
         return query {
             val robotRow = RobotTable.select { RobotTable.id eq robotData.id }.single()
             val seasonId = robotRow[RobotTable.seasonId].value
@@ -147,14 +181,14 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    override suspend fun getSeasonById(seasonId: Int): Result<SeasonNode> {
+    private suspend fun getSeasonById(seasonId: Int): Result<SeasonNode> {
         return runCatching {
             val seasonRow = getSeasonRow(seasonId)!!
             SeasonNode.from(seasonRow)
         }
     }
 
-    override suspend fun getSeasonsByTeam(teamData: TeamNode): Result<List<SeasonNode>> {
+    suspend fun getSeasonsByTeam(teamData: TeamNode): Result<List<SeasonNode>> {
         return runCatching {
             query {
                 SeasonTable.select { SeasonTable.teamId eq teamData.id }.map { seasonRow -> SeasonNode.from(seasonRow) }

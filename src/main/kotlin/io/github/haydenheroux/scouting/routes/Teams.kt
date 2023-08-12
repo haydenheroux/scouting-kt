@@ -42,14 +42,14 @@ fun Route.teams() {
                 return@get
             }
 
-            val EVENTS_ONLY = 1
-            val EVENTS_AND_MATCHES = 4
-
-            SQLDatabase.getSeasonByQuery(seasonQuery).getOrNull()?.let { node ->
-                val team = node.parent().team.tree().leaf()
-                val season = node.branch().tree().subtree(EVENTS_AND_MATCHES)
-
-                call.respond(FreeMarkerContent("teams/season.ftl", mapOf("team" to team, "season" to season)))
+            // perf: SQLDatabase.getSeasonWithEventsAndTeam(seasonQuery).getOrNull()?.let { seasonAndTeam ->
+            SQLDatabase.getSeasonWithMatchesAndTeam(seasonQuery).getOrNull()?.let { seasonAndTeam ->
+                call.respond(
+                    FreeMarkerContent(
+                        "teams/season.ftl",
+                        mapOf("season" to seasonAndTeam.first, "team" to seasonAndTeam.second)
+                    )
+                )
             } ?: run {
                 call.respond(HttpStatusCode.NotFound)
             }
