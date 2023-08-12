@@ -231,7 +231,7 @@ object SQLDatabase : DatabaseInterface {
         return getSeasonRow(seasonQuery)?.let { true } ?: false
     }
 
-    override suspend fun getRobotsBySeason(seasonData: SeasonNode): Result<List<RobotNode>> {
+    suspend fun getRobotsBySeason(seasonData: SeasonNode): Result<List<RobotNode>> {
         return runCatching {
             query {
                 RobotTable.select { RobotTable.seasonId eq seasonData.id }
@@ -240,14 +240,14 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    override suspend fun getRobotByQuery(robotQuery: RobotQuery): Result<RobotNode> {
+    override suspend fun getRobot(robotQuery: RobotQuery): Result<Robot> {
         return runCatching {
             val robotRow = getRobotRow(robotQuery)!!
-            RobotNode.from(robotRow)
+            RobotNode.from(robotRow).branch().tree().subtree()
         }
     }
 
-    override suspend fun getRobotById(robotId: Int): Result<RobotNode> {
+    suspend fun getRobotById(robotId: Int): Result<RobotNode> {
         return runCatching {
             val robotRow = getRobotRow(robotId)!!
             RobotNode.from(robotRow)

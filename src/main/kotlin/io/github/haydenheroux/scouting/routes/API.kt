@@ -65,14 +65,14 @@ fun Route.api() {
                 return@get
             }
 
-            val robot = SQLDatabase.getRobotByQuery(robotQuery).getOrNull()
+            val robot = SQLDatabase.getRobot(robotQuery).getOrNull()
 
             if (robot == null) {
                 call.respond(HttpStatusCode.NotFound)
                 return@get
             }
 
-            call.respond(robot.branch().tree().subtree())
+            call.respond(robot)
         }
 
         get("/get-events") {

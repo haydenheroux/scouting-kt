@@ -1,16 +1,12 @@
 package io.github.haydenheroux.scouting.database
 
-import io.github.haydenheroux.scouting.database.sql.tables.*
+import io.github.haydenheroux.scouting.database.sql.tables.EventNode
+import io.github.haydenheroux.scouting.database.sql.tables.MatchNode
+import io.github.haydenheroux.scouting.database.sql.tables.MetricNode
+import io.github.haydenheroux.scouting.database.sql.tables.ParticipantNode
 import io.github.haydenheroux.scouting.models.*
 
 interface DatabaseInterface {
-    suspend fun getRobotByQuery(robotQuery: RobotQuery): Result<RobotNode>
-
-    suspend fun getRobotsBySeason(seasonData: SeasonNode): Result<List<RobotNode>>
-
-    suspend fun getRobotById(robotId: Int): Result<RobotNode>
-
-
     suspend fun getMatchesByEvent(eventData: EventNode): Result<List<MatchNode>>
 
     suspend fun getMatchByQuery(matchQuery: MatchQuery): Result<MatchNode>
@@ -67,6 +63,8 @@ interface DatabaseInterface {
     suspend fun robotExists(robotQuery: RobotQuery): Boolean
 
     suspend fun robotExists(robot: Robot, season: Season, team: Team): Boolean
+
+    suspend fun getRobot(robotQuery: RobotQuery): Result<Robot>
 
 
     suspend fun insertEvent(event: Event): Result<Unit>
