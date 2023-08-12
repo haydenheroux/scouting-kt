@@ -403,16 +403,36 @@ object SQLDatabase : DatabaseInterface {
 
         if (teamExists(teamQuery)) return Result.failure(Exception("Team exists"))
 
-        transaction {
-            TeamTable.insert {
+        val teamId = query {
+            TeamTable.insertAndGetId {
                 it[number] = team.number
                 it[name] = team.name
                 it[region] = team.region
-            }
+            }.value
         }
 
         for (season in team.seasons) {
-            insertSeason(season, teamQuery)
+            insertSeason(season, teamId)
+        }
+
+        return Result.success(Unit)
+    }
+
+    private suspend fun insertSeason(season: Season, teamId: Int): Result<Unit> {
+        val seasonId = query {
+            SeasonTable.insertAndGetId {
+                it[this.teamId] = teamId
+                it[year] = season.year
+            }.value
+        }
+
+        for (event in season.events) {
+            val eventId = getEventId(eventQueryOf(event))
+            insertSeasonEvent(eventId, seasonId)
+        }
+
+        for (robot in season.robots) {
+            insertRobot(robot, seasonId)
         }
 
         return Result.success(Unit)
@@ -425,28 +445,22 @@ object SQLDatabase : DatabaseInterface {
 
         val teamId = getTeamId(teamQuery)
 
-        transaction {
-            SeasonTable.insert {
-                it[this.teamId] = teamId
-                it[year] = season.year
-            }
-        }
-
-
-        for (event in season.events) {
-            val eventQuery = eventQueryOf(event)
-            insertSeasonEvent(eventQuery, seasonQuery)
-        }
-
-        for (robot in season.robots) {
-            insertRobot(robot, seasonQuery)
-        }
-
-        return Result.success(Unit)
+        return insertSeason(season, teamId)
     }
 
     override suspend fun seasonExists(season: Season, team: Team): Boolean {
         return seasonExists(seasonQueryOf(season, team))
+    }
+
+    private suspend fun insertSeasonEvent(seasonId: Int, eventId: Int): Result<Unit> {
+        query {
+            SeasonEventTable.insert {
+                it[this.seasonId] = seasonId
+                it[this.eventId] = eventId
+            }
+        }
+
+        return Result.success(Unit)
     }
 
     override suspend fun insertSeasonEvent(eventQuery: EventQuery, seasonQuery: SeasonQuery): Result<Unit> {
@@ -456,10 +470,14 @@ object SQLDatabase : DatabaseInterface {
         val seasonId = getSeasonId(seasonQuery)
         val eventId = getEventId(eventQuery)
 
-        transaction {
-            SeasonEventTable.insert {
+        return insertSeasonEvent(seasonId, eventId)
+    }
+
+    private suspend fun insertRobot(robot: Robot, seasonId: Int): Result<Unit> {
+        query {
+            RobotTable.insert {
                 it[this.seasonId] = seasonId
-                it[this.eventId] = eventId
+                it[name] = robot.name
             }
         }
 
@@ -473,14 +491,7 @@ object SQLDatabase : DatabaseInterface {
 
         val seasonId = getSeasonId(seasonQuery)
 
-        transaction {
-            RobotTable.insert {
-                it[this.seasonId] = seasonId
-                it[name] = robot.name
-            }
-        }
-
-        return Result.success(Unit)
+        return insertRobot(robot, seasonId)
     }
 
     override suspend fun robotExists(robot: Robot, season: Season, team: Team): Boolean {
@@ -492,17 +503,39 @@ object SQLDatabase : DatabaseInterface {
 
         if (eventExists(eventQuery)) return Result.failure(Exception("Event exists"))
 
-        transaction {
-            EventTable.insert {
+        val eventId = query {
+            EventTable.insertAndGetId {
                 it[name] = event.name
                 it[region] = event.region
                 it[year] = event.year
                 it[week] = event.week
-            }
+            }.value
         }
 
         for (match in event.matches) {
-            insertMatch(match, eventQuery)
+            insertMatch(match, eventId)
+        }
+
+        return Result.success(Unit)
+    }
+
+    private suspend fun insertMatch(match: Match, eventId: Int): Result<Unit> {
+        val matchId = query {
+            MatchTable.insertAndGetId {
+                it[this.eventId] = eventId
+                it[set] = match.set
+                it[number] = match.number
+                it[type] = match.type
+            }.value
+        }
+
+        for (participant in match.participants) {
+            if (participant.team == null) {
+                println("TODO: Unable to insert participant because team was null")
+            } else {
+                val teamId = getTeamId(teamQueryOf(participant.team))
+                insertParticipant(participant, teamId, matchId)
+            }
         }
 
         return Result.success(Unit)
@@ -515,24 +548,27 @@ object SQLDatabase : DatabaseInterface {
 
         val eventId = getEventId(eventQuery)
 
-        transaction {
-            MatchTable.insert {
-                it[this.eventId] = eventId
-                it[set] = match.set
-                it[number] = match.number
-                it[type] = match.type
-            }
-        }
-
-        for (participant in match.participants) {
-            // TODO
-        }
-
-        return Result.success(Unit)
+        return insertMatch(match, eventId)
     }
 
     override suspend fun matchExists(match: Match, event: Event): Boolean {
         return matchExists(matchQueryOf(match, event))
+    }
+
+    private suspend fun insertParticipant(participant: Participant, teamId: Int, matchId: Int): Result<Unit> {
+        val participantId = query {
+            ParticipantTable.insertAndGetId {
+                it[this.matchId] = matchId
+                it[this.teamId] = teamId
+                it[alliance] = participant.alliance
+            }.value
+        }
+
+        for (metric in participant.metrics) {
+            insertMetric(metric, participantId)
+        }
+
+        return Result.success(Unit)
     }
 
     override suspend fun insertParticipant(
@@ -547,19 +583,7 @@ object SQLDatabase : DatabaseInterface {
         val teamId = getTeamId(teamQuery)
         val matchId = getMatchId(matchQuery)
 
-        transaction {
-            ParticipantTable.insert {
-                it[this.matchId] = matchId
-                it[this.teamId] = teamId
-                it[alliance] = participant.alliance
-            }
-        }
-
-        for (metric in participant.metrics) {
-            insertMetric(metric, participantQuery)
-        }
-
-        return Result.success(Unit)
+        return insertParticipant(participant, teamId, matchId)
     }
 
     override suspend fun participantExists(participant: Participant, match: Match, event: Event): Boolean {
@@ -571,12 +595,8 @@ object SQLDatabase : DatabaseInterface {
         )
     }
 
-    override suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Result<Unit> {
-        val participantId = getParticipantId(participantQuery)
-
-        if (metricExists(MetricQuery(metric.key, participantQuery))) return Result.failure(Exception("Metric exists"))
-
-        transaction {
+    private suspend fun insertMetric(metric: Metric, participantId: Int): Result<Unit> {
+        query {
             MetricTable.insert {
                 it[MetricTable.participantId] = participantId
                 it[key] = metric.key
@@ -585,6 +605,14 @@ object SQLDatabase : DatabaseInterface {
         }
 
         return Result.success(Unit)
+    }
+
+    override suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Result<Unit> {
+        if (metricExists(MetricQuery(metric.key, participantQuery))) return Result.failure(Exception("Metric exists"))
+
+        val participantId = getParticipantId(participantQuery)
+
+        return insertMetric(metric, participantId)
     }
 
     override suspend fun metricExists(metric: Metric, participant: Participant, match: Match, event: Event): Boolean {
