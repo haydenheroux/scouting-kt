@@ -13,7 +13,7 @@ object RobotTable : IntIdTable() {
     val name = varchar("name", 255)
 }
 
-data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Tree<Robot>, Robot> {
+data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Branch<Robot>, Robot> {
 
     companion object {
         fun from(robotRow: ResultRow): RobotNode {
@@ -25,24 +25,24 @@ data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Tr
         }
     }
 
-    override suspend fun branch(): Branch<Tree<Robot>, Robot> {
+    override suspend fun tree(): Tree<Branch<Robot>, Robot> {
         val season = SQLDatabase.getSeasonById(seasonId).getOrNull()!!
 
-        return RobotBranch(this, season)
+        return RobotTree(this, season)
     }
 
-    override fun tree(): Tree<Robot> {
-        return RobotTree(this)
-    }
-}
-
-data class RobotBranch(val robot: RobotNode, val season: SeasonNode) : Branch<Tree<Robot>, Robot> {
-    override suspend fun tree(): Tree<Robot> {
-        return RobotTree(robot)
+    override fun root(): Branch<Robot> {
+        return RobotBranch(this)
     }
 }
 
-data class RobotTree(val robot: RobotNode) : Tree<Robot> {
+data class RobotTree(val robot: RobotNode, val season: SeasonNode) : Tree<Branch<Robot>, Robot> {
+    override suspend fun branch(): Branch<Robot> {
+        return RobotBranch(robot)
+    }
+}
+
+data class RobotBranch(val robot: RobotNode) : Branch<Robot> {
     override fun leaf(): Robot {
         return Robot(robot.name)
     }
@@ -51,12 +51,12 @@ data class RobotTree(val robot: RobotNode) : Tree<Robot> {
         return leaf()
     }
 
-    override suspend fun subtree(): Robot {
+    override suspend fun subbranch(): Robot {
         return leaf()
     }
 
-    override suspend fun subtree(depth: Int): Robot {
-        return subtree()
+    override suspend fun subbranch(depth: Int): Robot {
+        return subbranch()
     }
 }
 

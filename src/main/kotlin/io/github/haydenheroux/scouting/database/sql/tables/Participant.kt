@@ -17,7 +17,7 @@ object ParticipantTable : IntIdTable() {
 }
 
 data class ParticipantNode(val id: Int, val matchId: Int, val alliance: Alliance, val teamNumber: Int) :
-    Node<Tree<Participant>, Participant> {
+    Node<Branch<Participant>, Participant> {
 
     companion object {
         fun from(participantRow: ResultRow): ParticipantNode {
@@ -30,58 +30,58 @@ data class ParticipantNode(val id: Int, val matchId: Int, val alliance: Alliance
         }
     }
 
-    override suspend fun branch(): Branch<Tree<Participant>, Participant> {
+    override suspend fun tree(): Tree<Branch<Participant>, Participant> {
         val match = SQLDatabase.getMatchById(matchId).getOrNull()!!
         val metrics = SQLDatabase.getMetricsByParticipant(this).getOrNull()!!
 
-        return ParticipantBranch(this, match, metrics)
+        return ParticipantTree(this, match, metrics)
     }
 
-    override fun tree(): Tree<Participant> {
-        return ParticipantTree(this, emptyList())
-    }
-}
-
-data class ParticipantBranch(
-    val participant: ParticipantNode,
-    val match: MatchNode,
-    val metrics: List<MetricNode>
-) :
-    Branch<Tree<Participant>, Participant> {
-
-    override suspend fun tree(): Tree<Participant> {
-        val metrics = metrics.map { it.branch() }
-
-        return ParticipantTree(participant, metrics)
+    override fun root(): Branch<Participant> {
+        return ParticipantBranch(this, emptyList())
     }
 }
 
 data class ParticipantTree(
     val participant: ParticipantNode,
-    val metrics: List<Branch<Tree<Metric>, Metric>>
+    val match: MatchNode,
+    val metrics: List<MetricNode>
 ) :
-    Tree<Participant> {
+    Tree<Branch<Participant>, Participant> {
+
+    override suspend fun branch(): Branch<Participant> {
+        val metrics = metrics.map { it.tree() }
+
+        return ParticipantBranch(participant, metrics)
+    }
+}
+
+data class ParticipantBranch(
+    val participant: ParticipantNode,
+    val metrics: List<Tree<Branch<Metric>, Metric>>
+) :
+    Branch<Participant> {
     override fun leaf(): Participant {
         return Participant(participant.alliance, participant.teamNumber, emptyList())
     }
 
     override suspend fun leaves(): Participant {
-        val metrics = metrics.map { metric -> metric.tree().leaf() }
+        val metrics = metrics.map { metric -> metric.branch().leaf() }
 
         return Participant(participant.alliance, participant.teamNumber, metrics)
     }
 
-    override suspend fun subtree(): Participant {
-        val metrics = metrics.map { metric -> metric.tree().subtree() }
+    override suspend fun subbranch(): Participant {
+        val metrics = metrics.map { metric -> metric.branch().subbranch() }
 
         return Participant(participant.alliance, participant.teamNumber, metrics)
     }
 
-    override suspend fun subtree(depth: Int): Participant {
+    override suspend fun subbranch(depth: Int): Participant {
         if (depth == 0) return leaf()
         if (depth == 1) return leaves()
 
-        val metrics = metrics.map { metric -> metric.tree().subtree(depth - 1) }
+        val metrics = metrics.map { metric -> metric.branch().subbranch(depth - 1) }
 
         return Participant(participant.alliance, participant.teamNumber, metrics)
     }

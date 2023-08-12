@@ -27,7 +27,7 @@ fun Route.events() {
                 return@get
             }
 
-            SQLDatabase.getEventWithParticipants(eventQuery).getOrNull()?.let { event ->
+            SQLDatabase.getEventWithTeamNumbers(eventQuery).getOrNull()?.let { event ->
                 call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
             } ?: run {
                 call.respond(HttpStatusCode.NotFound)

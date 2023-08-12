@@ -58,7 +58,7 @@ interface DatabaseInterface {
 
     suspend fun getEventWithMatches(eventQuery: EventQuery): Result<Event>
 
-    suspend fun getEventWithParticipants(eventQuery: EventQuery): Result<Event>
+    suspend fun getEventWithTeamNumbers(eventQuery: EventQuery): Result<Event>
 
 
     suspend fun insertMatch(match: Match, eventQuery: EventQuery): Result<Unit>

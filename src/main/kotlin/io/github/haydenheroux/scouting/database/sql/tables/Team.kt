@@ -16,7 +16,7 @@ object TeamTable : IntIdTable() {
     val region = enumerationByName<Region>("region", 255)
 }
 
-data class TeamNode(val id: Int, val number: Int, val name: String, val region: Region) : Node<Tree<Team>, Team> {
+data class TeamNode(val id: Int, val number: Int, val name: String, val region: Region) : Node<Branch<Team>, Team> {
 
     companion object {
         fun from(teamRow: ResultRow): TeamNode {
@@ -29,47 +29,47 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
         }
     }
 
-    override suspend fun branch(): Branch<Tree<Team>, Team> {
+    override suspend fun tree(): Tree<Branch<Team>, Team> {
         val seasons = SQLDatabase.getSeasonsByTeam(this).getOrNull()!!
 
-        return TeamBranch(this, seasons)
+        return TeamTree(this, seasons)
     }
 
-    override fun tree(): Tree<Team> {
-        return TeamTree(this, emptyList())
-    }
-}
-
-data class TeamBranch(val team: TeamNode, val seasons: List<Node<Tree<Season>, Season>>) : Branch<Tree<Team>, Team> {
-    override suspend fun tree(): Tree<Team> {
-        val seasons = seasons.map { it.branch() }
-
-        return TeamTree(team, seasons)
+    override fun root(): Branch<Team> {
+        return TeamBranch(this, emptyList())
     }
 }
 
-data class TeamTree(val team: TeamNode, val seasons: List<Branch<Tree<Season>, Season>>) : Tree<Team> {
+data class TeamTree(val team: TeamNode, val seasons: List<Node<Branch<Season>, Season>>) : Tree<Branch<Team>, Team> {
+    override suspend fun branch(): Branch<Team> {
+        val seasons = seasons.map { it.tree() }
+
+        return TeamBranch(team, seasons)
+    }
+}
+
+data class TeamBranch(val team: TeamNode, val seasons: List<Tree<Branch<Season>, Season>>) : Branch<Team> {
     override fun leaf(): Team {
         return Team(team.number, team.name, team.region, emptyList())
     }
 
     override suspend fun leaves(): Team {
-        val seasons = seasons.map { season -> season.tree().leaf() }
+        val seasons = seasons.map { season -> season.branch().leaf() }
 
         return Team(team.number, team.name, team.region, seasons)
     }
 
-    override suspend fun subtree(): Team {
-        val seasons = seasons.map { season -> season.tree().subtree() }
+    override suspend fun subbranch(): Team {
+        val seasons = seasons.map { season -> season.branch().subbranch() }
 
         return Team(team.number, team.name, team.region, seasons)
     }
 
-    override suspend fun subtree(depth: Int): Team {
+    override suspend fun subbranch(depth: Int): Team {
         if (depth == 0) return leaf()
         if (depth == 1) return leaves()
 
-        val seasons = seasons.map { season -> season.tree().subtree(depth - 1) }
+        val seasons = seasons.map { season -> season.branch().subbranch(depth - 1) }
 
         return Team(team.number, team.name, team.region, seasons)
     }

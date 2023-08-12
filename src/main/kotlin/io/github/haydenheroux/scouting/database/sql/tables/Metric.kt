@@ -15,7 +15,7 @@ object MetricTable : IntIdTable() {
 }
 
 data class MetricNode(val id: Int, val participantId: Int, val key: String, val value: String) :
-    Node<Tree<Metric>, Metric> {
+    Node<Branch<Metric>, Metric> {
 
     companion object {
         fun from(metricRow: ResultRow): MetricNode {
@@ -28,24 +28,24 @@ data class MetricNode(val id: Int, val participantId: Int, val key: String, val 
         }
     }
 
-    override suspend fun branch(): Branch<Tree<Metric>, Metric> {
+    override suspend fun tree(): Tree<Branch<Metric>, Metric> {
         val participant = SQLDatabase.getParticipantById(participantId).getOrNull()!!
 
-        return MetricBranch(this, participant)
+        return MetricTree(this, participant)
     }
 
-    override fun tree(): Tree<Metric> {
-        return MetricTree(this)
-    }
-}
-
-data class MetricBranch(val metric: MetricNode, val participant: ParticipantNode) : Branch<Tree<Metric>, Metric> {
-    override suspend fun tree(): Tree<Metric> {
-        return MetricTree(metric)
+    override fun root(): Branch<Metric> {
+        return MetricBranch(this)
     }
 }
 
-data class MetricTree(val metric: MetricNode) : Tree<Metric> {
+data class MetricTree(val metric: MetricNode, val participant: ParticipantNode) : Tree<Branch<Metric>, Metric> {
+    override suspend fun branch(): Branch<Metric> {
+        return MetricBranch(metric)
+    }
+}
+
+data class MetricBranch(val metric: MetricNode) : Branch<Metric> {
     override fun leaf(): Metric {
         return Metric(metric.key, metric.value)
     }
@@ -54,11 +54,11 @@ data class MetricTree(val metric: MetricNode) : Tree<Metric> {
         return leaf()
     }
 
-    override suspend fun subtree(): Metric {
+    override suspend fun subbranch(): Metric {
         return leaf()
     }
 
-    override suspend fun subtree(depth: Int): Metric {
-        return subtree()
+    override suspend fun subbranch(depth: Int): Metric {
+        return subbranch()
     }
 }

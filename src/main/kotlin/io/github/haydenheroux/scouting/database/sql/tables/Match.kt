@@ -18,7 +18,7 @@ object MatchTable : IntIdTable() {
 }
 
 data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: Int, val type: MatchType) :
-    Node<Tree<Match>, Match> {
+    Node<Branch<Match>, Match> {
     companion object {
         fun from(matchRow: ResultRow): MatchNode {
             return MatchNode(
@@ -31,50 +31,50 @@ data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: In
         }
     }
 
-    override suspend fun branch(): MatchBranch {
+    override suspend fun tree(): MatchTree {
         val event = SQLDatabase.getEventById(eventId).getOrNull()!!
         val participants = SQLDatabase.getParticipantsByMatch(this).getOrNull()!!
 
-        return MatchBranch(this, event, participants)
+        return MatchTree(this, event, participants)
     }
 
-    override fun tree(): Tree<Match> {
-        return MatchTree(this, emptyList())
-    }
-}
-
-data class MatchBranch(val match: MatchNode, val event: EventNode, val participants: List<ParticipantNode>) :
-    Branch<Tree<Match>, Match> {
-    override suspend fun tree(): Tree<Match> {
-        val participants = participants.map { it.branch() }
-
-        return MatchTree(match, participants)
+    override fun root(): Branch<Match> {
+        return MatchBranch(this, emptyList())
     }
 }
 
-data class MatchTree(val match: MatchNode, val participants: List<Branch<Tree<Participant>, Participant>>) :
-    Tree<Match> {
+data class MatchTree(val match: MatchNode, val event: EventNode, val participants: List<ParticipantNode>) :
+    Tree<Branch<Match>, Match> {
+    override suspend fun branch(): Branch<Match> {
+        val participants = participants.map { it.tree() }
+
+        return MatchBranch(match, participants)
+    }
+}
+
+data class MatchBranch(val match: MatchNode, val participants: List<Tree<Branch<Participant>, Participant>>) :
+    Branch<Match> {
     override fun leaf(): Match {
         return Match(match.set, match.number, match.type, emptyList())
     }
 
     override suspend fun leaves(): Match {
-        val participants = participants.map { participant -> participant.tree().leaf() }
+        val participants = participants.map { participant -> participant.branch().leaf() }
 
         return Match(match.set, match.number, match.type, participants)
     }
 
-    override suspend fun subtree(): Match {
-        val participants = participants.map { participant -> participant.tree().subtree() }
+    override suspend fun subbranch(): Match {
+        val participants = participants.map { participant -> participant.branch().subbranch() }
 
         return Match(match.set, match.number, match.type, participants)
     }
 
-    override suspend fun subtree(depth: Int): Match {
+    override suspend fun subbranch(depth: Int): Match {
         if (depth == 0) return leaf()
         if (depth == 1) return leaves()
 
-        val participants = participants.map { participant -> participant.tree().subtree(depth - 1) }
+        val participants = participants.map { participant -> participant.branch().subbranch(depth - 1) }
 
         return Match(match.set, match.number, match.type, participants)
     }
