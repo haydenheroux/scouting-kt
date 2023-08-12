@@ -399,9 +399,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun insertTeam(team: Team): Result<Unit> {
-        val teamQuery = teamQueryOf(team)
-
-        if (teamExists(teamQuery)) return Result.failure(Exception("Team exists"))
+        if (teamExists(team)) return Result.failure(Exception("Team exists"))
 
         val teamId = query {
             TeamTable.insertAndGetId {
@@ -499,9 +497,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun insertEvent(event: Event): Result<Unit> {
-        val eventQuery = eventQueryOf(event)
-
-        if (eventExists(eventQuery)) return Result.failure(Exception("Event exists"))
+        if (eventExists(event)) return Result.failure(Exception("Event exists"))
 
         val eventId = query {
             EventTable.insertAndGetId {
