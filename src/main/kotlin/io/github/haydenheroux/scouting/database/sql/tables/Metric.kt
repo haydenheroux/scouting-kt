@@ -6,7 +6,6 @@ import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Parent
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Metric
-import io.github.haydenheroux.scouting.models.MetricTree
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 
@@ -63,3 +62,20 @@ data class MetricBranch(val metric: MetricNode) : Branch<Tree<Metric>, Metric> {
     }
 }
 
+data class MetricTree(val metric: MetricNode) : Tree<Metric> {
+    override fun leaf(): Metric {
+        return Metric(metric.key, metric.value)
+    }
+
+    override suspend fun leaves(): Metric {
+        return leaf()
+    }
+
+    override suspend fun subtree(): Metric {
+        return leaf()
+    }
+
+    override suspend fun subtree(depth: Int): Metric {
+        return subtree()
+    }
+}

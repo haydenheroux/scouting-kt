@@ -1,8 +1,8 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
-import io.github.haydenheroux.scouting.models.eventQuery
-import io.github.haydenheroux.scouting.models.matchQuery
+import io.github.haydenheroux.scouting.models.eventQueryOf
+import io.github.haydenheroux.scouting.models.matchQueryOf
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.freemarker.*
@@ -22,7 +22,7 @@ fun Route.events() {
         }
 
         get("/{region}/{year}/{week}/{event}") {
-            val eventQuery = call.parameters.eventQuery().getOrNull()
+            val eventQuery = eventQueryOf(call.parameters).getOrNull()
 
             if (eventQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -43,7 +43,7 @@ fun Route.events() {
         }
 
         get("/{region}/{year}/{week}/{event}/{match}") {
-            val matchQuery = call.parameters.matchQuery().getOrNull()
+            val matchQuery = matchQueryOf(call.parameters).getOrNull()
 
             if (matchQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)

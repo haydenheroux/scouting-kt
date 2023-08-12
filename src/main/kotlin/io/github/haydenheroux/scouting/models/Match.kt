@@ -7,28 +7,27 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Match(val set: Int, val number: Int, val type: MatchType, val participants: List<Participant>)
+
 data class MatchQuery(val set: Int, val number: Int, val type: MatchType, val event: EventQuery)
 
-fun matchQueryOf(match: Match, eventQuery: EventQuery): MatchQuery {
+fun matchQueryOf(match: Match, event: Event): MatchQuery {
+    val eventQuery = eventQueryOf(event)
+
     return MatchQuery(match.set, match.number, match.type, eventQuery)
 }
 
-fun matchQueryOf(matchKey: String, eventQuery: EventQuery): Result<MatchQuery> {
-    val match = parseMatchKey(matchKey).getOrNull() ?: return Result.failure(Exception("Failed parsing match key"))
+fun matchQueryOf(parameters: Parameters): Result<MatchQuery> {
+    val matchKey = parameters["match"] ?: return Result.failure(Exception("Missing `match` in parameters"))
 
-    return Result.success(MatchQuery(match.set, match.number, match.type, eventQuery))
-}
+    val eventQuery = eventQueryOf(parameters)
 
-fun Parameters.matchQuery(): Result<MatchQuery> {
-    val matchKey = this["match"] ?: return Result.failure(Exception("Missing `match` in parameters"))
-
-    val event = this.eventQuery()
-
-    if (event.isFailure) {
-        return Result.failure(event.exceptionOrNull()!!)
+    if (eventQuery.isFailure) {
+        return Result.failure(eventQuery.exceptionOrNull()!!)
     }
 
-    return matchQueryOf(matchKey, event.getOrNull()!!)
+    val match = parseMatchKey(matchKey).getOrNull() ?: return Result.failure(Exception("Failed parsing match key"))
+
+    return Result.success(MatchQuery(match.set, match.number, match.type, eventQuery.getOrNull()!!))
 }
 
 data class MatchKey(val set: Int, val number: Int, val type: MatchType)

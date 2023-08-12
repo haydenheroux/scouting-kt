@@ -5,20 +5,23 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Season(val year: Int, val robots: List<Robot>, val events: List<Event>)
-data class SeasonQuery(val year: Int, val team: TeamQuery)
 
-fun seasonQueryOf(season: Season, teamQuery: TeamQuery): SeasonQuery {
+data class SeasonQuery(val year: Int, val teamQuery: TeamQuery)
+
+fun seasonQueryOf(season: Season, team: Team): SeasonQuery {
+    val teamQuery = teamQueryOf(team)
+
     return SeasonQuery(season.year, teamQuery)
 }
 
-fun Parameters.seasonQuery(): Result<SeasonQuery> {
-    val year = this["year"] ?: return Result.failure(Exception("Missing `year` in parameters"))
+fun seasonQueryOf(parameters: Parameters): Result<SeasonQuery> {
+    val year = parameters["year"] ?: return Result.failure(Exception("Missing `year` in parameters"))
 
-    val team = this.teamQuery()
+    val teamQuery = teamQueryOf(parameters)
 
-    if (team.isFailure) {
-        return Result.failure(team.exceptionOrNull()!!)
+    if (teamQuery.isFailure) {
+        return Result.failure(teamQuery.exceptionOrNull()!!)
     }
 
-    return Result.success(SeasonQuery(year.toInt(), team.getOrNull()!!))
+    return Result.success(SeasonQuery(year.toInt(), teamQuery.getOrNull()!!))
 }

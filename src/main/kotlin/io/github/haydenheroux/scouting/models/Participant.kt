@@ -7,20 +7,21 @@ import kotlinx.serialization.Transient
 
 @Serializable
 data class Participant(val alliance: Alliance, @Transient val team: Team? = null, val metrics: List<Metric>)
+
 data class ParticipantQuery(val team: TeamQuery, val match: MatchQuery)
 
-fun Parameters.participantQuery(): Result<ParticipantQuery> {
-    val team = this.teamQuery()
+fun participantQueryOf(parameters: Parameters): Result<ParticipantQuery> {
+    val teamQuery = teamQueryOf(parameters)
 
-    if (team.isFailure) {
-        return Result.failure(team.exceptionOrNull()!!)
+    if (teamQuery.isFailure) {
+        return Result.failure(teamQuery.exceptionOrNull()!!)
     }
 
-    val match = this.matchQuery()
+    val matchQuery = matchQueryOf(parameters)
 
-    if (match.isFailure) {
-        return Result.failure(match.exceptionOrNull()!!)
+    if (matchQuery.isFailure) {
+        return Result.failure(matchQuery.exceptionOrNull()!!)
     }
 
-    return Result.success(ParticipantQuery(team.getOrNull()!!, match.getOrNull()!!))
+    return Result.success(ParticipantQuery(teamQuery.getOrNull()!!, matchQuery.getOrNull()!!))
 }

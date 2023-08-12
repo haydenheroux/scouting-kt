@@ -1,8 +1,8 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
-import io.github.haydenheroux.scouting.models.seasonQuery
-import io.github.haydenheroux.scouting.models.teamQuery
+import io.github.haydenheroux.scouting.models.seasonQueryOf
+import io.github.haydenheroux.scouting.models.teamQueryOf
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.freemarker.*
@@ -20,7 +20,7 @@ fun Route.teams() {
         }
 
         get("/{team}") {
-            val teamQuery = call.parameters.teamQuery().getOrNull()
+            val teamQuery = teamQueryOf(call.parameters).getOrNull()
 
             if (teamQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -41,7 +41,7 @@ fun Route.teams() {
         }
 
         get("/{team}/{year}") {
-            val seasonQuery = call.parameters.seasonQuery().getOrNull()
+            val seasonQuery = seasonQueryOf(call.parameters).getOrNull()
 
             if (seasonQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)

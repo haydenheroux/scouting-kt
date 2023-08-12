@@ -22,7 +22,7 @@ fun Route.api() {
         }
 
         get("/get-team") {
-            val teamQuery = call.request.queryParameters.teamQuery().getOrNull()
+            val teamQuery = teamQueryOf(call.request.queryParameters).getOrNull()
 
             if (teamQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -40,7 +40,7 @@ fun Route.api() {
         }
 
         get("/get-season") {
-            val seasonQuery = call.request.queryParameters.seasonQuery().getOrNull()
+            val seasonQuery = seasonQueryOf(call.request.queryParameters).getOrNull()
 
             if (seasonQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -58,7 +58,7 @@ fun Route.api() {
         }
 
         get("/get-robot") {
-            val robotQuery = call.request.queryParameters.robotQuery().getOrNull()
+            val robotQuery = robotQueryOf(call.request.queryParameters).getOrNull()
 
             if (robotQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -87,7 +87,7 @@ fun Route.api() {
         }
 
         get("/get-event") {
-            val eventQuery = call.request.queryParameters.eventQuery().getOrNull()
+            val eventQuery = eventQueryOf(call.request.queryParameters).getOrNull()
 
             if (eventQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -105,7 +105,7 @@ fun Route.api() {
         }
 
         get("/get-match") {
-            val matchQuery = call.request.queryParameters.matchQuery().getOrNull()
+            val matchQuery = matchQueryOf(call.request.queryParameters).getOrNull()
 
             if (matchQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -123,7 +123,7 @@ fun Route.api() {
         }
 
         get("/get-participant") {
-            val participantQuery = call.request.queryParameters.participantQuery().getOrNull()
+            val participantQuery = participantQueryOf(call.request.queryParameters).getOrNull()
 
             if (participantQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -153,7 +153,7 @@ fun Route.api() {
         post("/new-season") {
             val season = call.receive<Season>()
 
-            val teamQuery = call.request.queryParameters.teamQuery().getOrNull()
+            val teamQuery = teamQueryOf(call.request.queryParameters).getOrNull()
 
             if (teamQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -170,7 +170,7 @@ fun Route.api() {
         post("/new-robot") {
             val robot = call.receive<Robot>()
 
-            val seasonQuery = call.request.queryParameters.seasonQuery().getOrNull()
+            val seasonQuery = seasonQueryOf(call.request.queryParameters).getOrNull()
 
             if (seasonQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -185,8 +185,8 @@ fun Route.api() {
         }
 
         post("/add-event") {
-            val seasonQuery = call.request.queryParameters.seasonQuery().getOrNull()
-            val eventQuery = call.request.queryParameters.eventQuery().getOrNull()
+            val seasonQuery = seasonQueryOf(call.request.queryParameters).getOrNull()
+            val eventQuery = eventQueryOf(call.request.queryParameters).getOrNull()
 
             if (seasonQuery == null || eventQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -215,7 +215,7 @@ fun Route.api() {
 
             assert(match.participants.isEmpty())
 
-            val eventQuery = call.request.queryParameters.eventQuery().getOrNull()
+            val eventQuery = eventQueryOf(call.request.queryParameters).getOrNull()
 
             if (eventQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -232,8 +232,8 @@ fun Route.api() {
         post("/new-participant") {
             val participant = call.receive<Participant>()
 
-            val teamQuery = call.request.queryParameters.teamQuery().getOrNull()
-            val matchQuery = call.request.queryParameters.matchQuery().getOrNull()
+            val teamQuery = teamQueryOf(call.request.queryParameters).getOrNull()
+            val matchQuery = matchQueryOf(call.request.queryParameters).getOrNull()
 
             if (teamQuery == null || matchQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)

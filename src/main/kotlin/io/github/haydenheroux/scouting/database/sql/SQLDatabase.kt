@@ -125,7 +125,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     private suspend fun getSeasonRow(seasonQuery: SeasonQuery): ResultRow? {
-        val teamId = getTeamId(seasonQuery.team)
+        val teamId = getTeamId(seasonQuery.teamQuery)
 
         return query {
             SeasonTable.select { (SeasonTable.year eq seasonQuery.year) and (SeasonTable.teamId eq teamId) }
@@ -171,7 +171,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     private suspend fun getRobotRow(robotQuery: RobotQuery): ResultRow? {
-        val seasonId = getSeasonId(robotQuery.season)
+        val seasonId = getSeasonId(robotQuery.seasonQuery)
 
         return query {
             RobotTable.select { (RobotTable.name eq robotQuery.name) and (RobotTable.seasonId eq seasonId) }
@@ -402,7 +402,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun insertSeason(season: Season, teamQuery: TeamQuery): Result<Unit> {
-        val seasonQuery = seasonQueryOf(season, teamQuery)
+        val seasonQuery = SeasonQuery(season.year, teamQuery)
 
         if (seasonExists(seasonQuery)) return Result.failure(Exception("Season exists"))
 
@@ -429,7 +429,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun seasonExists(season: Season, team: Team): Boolean {
-        return seasonExists(seasonQueryOf(season, teamQueryOf(team)))
+        return seasonExists(seasonQueryOf(season, team))
     }
 
     override suspend fun insertSeasonEvent(eventQuery: EventQuery, seasonQuery: SeasonQuery): Result<Unit> {
@@ -450,7 +450,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery): Result<Unit> {
-        val robotQuery = robotQueryOf(robot, seasonQuery)
+        val robotQuery = RobotQuery(robot.name, seasonQuery)
 
         if (robotExists(robotQuery)) return Result.failure(Exception("Robot exists"))
 
@@ -467,7 +467,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun robotExists(robot: Robot, season: Season, team: Team): Boolean {
-        return robotExists(robotQueryOf(robot, seasonQueryOf(season, teamQueryOf(team))))
+        return robotExists(robotQueryOf(robot, season, team))
     }
 
     override suspend fun insertEvent(event: Event): Result<Unit> {
@@ -492,7 +492,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun insertMatch(match: Match, eventQuery: EventQuery): Result<Unit> {
-        val matchQuery = matchQueryOf(match, eventQuery)
+        val matchQuery = MatchQuery(match.set, match.number, match.type, eventQuery)
 
         if (matchExists(matchQuery)) return Result.failure(Exception("Match exists"))
 
@@ -515,7 +515,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun matchExists(match: Match, event: Event): Boolean {
-        return matchExists(matchQueryOf(match, eventQueryOf(event)))
+        return matchExists(matchQueryOf(match, event))
     }
 
     override suspend fun insertParticipant(
@@ -553,7 +553,7 @@ object SQLDatabase : DatabaseInterface {
         return participantExists(
             ParticipantQuery(
                 teamQueryOf(participant.team!!),
-                matchQueryOf(match, eventQueryOf(event))
+                matchQueryOf(match, event)
             )
         )
     }

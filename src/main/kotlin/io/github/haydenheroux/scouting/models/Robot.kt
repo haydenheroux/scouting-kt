@@ -5,20 +5,23 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Robot(val name: String)
-data class RobotQuery(val name: String, val season: SeasonQuery)
 
-fun robotQueryOf(robot: Robot, seasonQuery: SeasonQuery): RobotQuery {
+data class RobotQuery(val name: String, val seasonQuery: SeasonQuery)
+
+fun robotQueryOf(robot: Robot, season: Season, team: Team): RobotQuery {
+    val seasonQuery = seasonQueryOf(season, team)
+
     return RobotQuery(robot.name, seasonQuery)
 }
 
-fun Parameters.robotQuery(): Result<RobotQuery> {
-    val name = this["robot"] ?: return Result.failure(Exception("Missing `robot` in parameters"))
+fun robotQueryOf(parameters: Parameters): Result<RobotQuery> {
+    val name = parameters["robot"] ?: return Result.failure(Exception("Missing `robot` in parameters"))
 
-    val season = this.seasonQuery()
+    val seasonQuery = seasonQueryOf(parameters)
 
-    if (season.isFailure) {
-        return Result.failure(season.exceptionOrNull()!!)
+    if (seasonQuery.isFailure) {
+        return Result.failure(seasonQuery.exceptionOrNull()!!)
     }
 
-    return Result.success(RobotQuery(name, season.getOrNull()!!))
+    return Result.success(RobotQuery(name, seasonQuery.getOrNull()!!))
 }
