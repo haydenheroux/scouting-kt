@@ -140,6 +140,24 @@ fun Route.api() {
             call.respond(participant)
         }
 
+        get("/get-metric") {
+            val metricQuery = metricQueryOf(call.request.queryParameters).getOrNull()
+
+            if (metricQuery == null) {
+                call.respond(HttpStatusCode.BadRequest)
+                return@get
+            }
+
+            val metric = SQLDatabase.getMetric(metricQuery).getOrNull()
+
+            if (metric == null) {
+                call.respond(HttpStatusCode.NotFound)
+                return@get
+            }
+
+            call.respond(metric)
+        }
+
         post("/new-team") {
             val team = call.receive<Team>()
 

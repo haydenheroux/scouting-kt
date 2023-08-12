@@ -555,6 +555,23 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
+    private suspend fun getMetricNode(metricQuery: MetricQuery): Result<MetricNode> {
+        return runCatching {
+            val metricRow = getMetricRow(metricQuery)!!
+            MetricNode.from(metricRow)
+        }
+    }
+
+    override suspend fun getMetric(metricQuery: MetricQuery): Result<Metric> {
+        val metricNodeResult = getMetricNode(metricQuery)
+
+        metricNodeResult.getOrNull()?.let { metricNode ->
+            return Result.success(metricNode.tree().leaf())
+        } ?: run {
+            return Result.failure(metricNodeResult.exceptionOrNull()!!)
+        }
+    }
+
     override suspend fun insertTeam(team: Team): Result<Unit> {
         if (teamExists(team)) return Result.failure(Exception("Team exists"))
 
