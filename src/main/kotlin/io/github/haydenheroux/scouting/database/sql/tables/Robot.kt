@@ -3,7 +3,6 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
-import io.github.haydenheroux.scouting.database.sql.tree.Parent
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Robot
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -14,25 +13,22 @@ object RobotTable : IntIdTable() {
     val name = varchar("name", 255)
 }
 
-data class RobotNode(val id: Int, val name: String) : Node<Tree<Robot>, Robot> {
+data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Tree<Robot>, Robot> {
 
     companion object {
         fun from(robotRow: ResultRow): RobotNode {
             return RobotNode(
                 robotRow[RobotTable.id].value,
+                robotRow[RobotTable.seasonId].value,
                 robotRow[RobotTable.name]
             )
         }
     }
 
-    override suspend fun parent(): Parent<Tree<Robot>, Robot> {
+    override suspend fun branch(): Branch<Tree<Robot>, Robot> {
         val season = SQLDatabase.getSeasonByRobot(this).getOrNull()!!
 
-        return RobotParent(this, season)
-    }
-
-    override suspend fun branch(): Branch<Tree<Robot>, Robot> {
-        return RobotBranch(this)
+        return RobotBranch(this, season)
     }
 
     override fun tree(): Tree<Robot> {
@@ -40,21 +36,7 @@ data class RobotNode(val id: Int, val name: String) : Node<Tree<Robot>, Robot> {
     }
 }
 
-data class RobotParent(val robot: RobotNode, val season: SeasonNode) : Parent<Tree<Robot>, Robot> {
-    override suspend fun branch(): Branch<Tree<Robot>, Robot> {
-        return robot.branch()
-    }
-
-    override fun tree(): Tree<Robot> {
-        return robot.tree()
-    }
-}
-
-data class RobotBranch(val robot: RobotNode) : Branch<Tree<Robot>, Robot> {
-    override suspend fun parent(): Parent<Tree<Robot>, Robot> {
-        return robot.parent()
-    }
-
+data class RobotBranch(val robot: RobotNode, val season: SeasonNode) : Branch<Tree<Robot>, Robot> {
     override suspend fun tree(): Tree<Robot> {
         return RobotTree(robot)
     }

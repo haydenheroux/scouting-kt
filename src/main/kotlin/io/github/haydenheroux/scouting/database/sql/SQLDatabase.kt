@@ -155,8 +155,9 @@ object SQLDatabase : DatabaseInterface {
         val seasonNodeResult = getSeasonNode(seasonQuery)
 
         seasonNodeResult.getOrNull()?.let { seasonNode ->
-            val season = seasonNode.branch().tree().subtree(1)
-            val team = seasonNode.parent().team.tree().leaf()
+            val seasonBranch = seasonNode.branch()
+            val season = seasonBranch.tree().subtree(1)
+            val team = seasonBranch.team.tree().leaf()
             return Result.success(Pair(season, team))
         } ?: run {
             return Result.failure(seasonNodeResult.exceptionOrNull()!!)
@@ -167,8 +168,9 @@ object SQLDatabase : DatabaseInterface {
         val seasonNodeResult = getSeasonNode(seasonQuery)
 
         seasonNodeResult.getOrNull()?.let { seasonNode ->
-            val season = seasonNode.branch().tree().subtree(4)
-            val team = seasonNode.parent().team.tree().leaf()
+            val seasonBranch = seasonNode.branch()
+            val season = seasonBranch.tree().subtree(4)
+            val team = seasonBranch.team.tree().leaf()
             return Result.success(Pair(season, team))
         } ?: run {
             return Result.failure(seasonNodeResult.exceptionOrNull()!!)
@@ -407,8 +409,9 @@ object SQLDatabase : DatabaseInterface {
         val matchNodeResult = getMatchNode(matchQuery)
 
         matchNodeResult.getOrNull()?.let { matchNode ->
-            val match = matchNode.branch().tree().subtree(2)
-            val event = matchNode.parent().event.tree().leaf()
+            val matchBranch = matchNode.branch()
+            val match = matchBranch.tree().subtree(2)
+            val event = matchBranch.event.tree().leaf()
 
             return Result.success(Pair(match, event))
         } ?: run {

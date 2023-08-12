@@ -3,7 +3,6 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
-import io.github.haydenheroux.scouting.database.sql.tree.Parent
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Event
 import io.github.haydenheroux.scouting.models.Match
@@ -33,10 +32,6 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
         }
     }
 
-    override suspend fun parent(): Parent<Tree<Event>, Event>? {
-        return null
-    }
-
     override suspend fun branch(): Branch<Tree<Event>, Event> {
         val match = SQLDatabase.getMatchesByEvent(this).getOrNull()!!
 
@@ -50,10 +45,6 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
 
 data class EventBranch(val event: EventNode, val matches: List<Node<Tree<Match>, Match>>) :
     Branch<Tree<Event>, Event> {
-    override suspend fun parent(): Parent<Tree<Event>, Event>? {
-        return event.parent()
-    }
-
     override suspend fun tree(): Tree<Event> {
         val matches = matches.map { it.branch() }
 

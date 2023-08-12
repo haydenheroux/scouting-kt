@@ -3,7 +3,6 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
-import io.github.haydenheroux.scouting.database.sql.tree.Parent
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Match
 import io.github.haydenheroux.scouting.models.Participant
@@ -18,12 +17,13 @@ object MatchTable : IntIdTable() {
     val type = enumerationByName<MatchType>("type", 255)
 }
 
-data class MatchNode(val id: Int, val set: Int, val number: Int, val type: MatchType) : Node<Tree<Match>, Match> {
-
+data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: Int, val type: MatchType) :
+    Node<Tree<Match>, Match> {
     companion object {
         fun from(matchRow: ResultRow): MatchNode {
             return MatchNode(
                 matchRow[MatchTable.id].value,
+                matchRow[MatchTable.eventId].value,
                 matchRow[MatchTable.set],
                 matchRow[MatchTable.number],
                 matchRow[MatchTable.type]
@@ -31,16 +31,11 @@ data class MatchNode(val id: Int, val set: Int, val number: Int, val type: Match
         }
     }
 
-    override suspend fun parent(): MatchParent {
+    override suspend fun branch(): MatchBranch {
         val event = SQLDatabase.getEventByMatch(this).getOrNull()!!
-
-        return MatchParent(this, event)
-    }
-
-    override suspend fun branch(): Branch<Tree<Match>, Match> {
         val participants = SQLDatabase.getParticipantsByMatch(this).getOrNull()!!
 
-        return MatchBranch(this, participants)
+        return MatchBranch(this, event, participants)
     }
 
     override fun tree(): Tree<Match> {
@@ -48,21 +43,8 @@ data class MatchNode(val id: Int, val set: Int, val number: Int, val type: Match
     }
 }
 
-data class MatchParent(val match: MatchNode, val event: EventNode) : Parent<Tree<Match>, Match> {
-    override suspend fun branch(): Branch<Tree<Match>, Match> {
-        return match.branch()
-    }
-
-    override fun tree(): Tree<Match> {
-        return match.tree()
-    }
-}
-
-data class MatchBranch(val match: MatchNode, val participants: List<ParticipantNode>) : Branch<Tree<Match>, Match> {
-    override suspend fun parent(): Parent<Tree<Match>, Match> {
-        return match.parent()
-    }
-
+data class MatchBranch(val match: MatchNode, val event: EventNode, val participants: List<ParticipantNode>) :
+    Branch<Tree<Match>, Match> {
     override suspend fun tree(): Tree<Match> {
         val participants = participants.map { it.branch() }
 

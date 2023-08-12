@@ -3,7 +3,6 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
-import io.github.haydenheroux.scouting.database.sql.tree.Parent
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Season
 import io.github.haydenheroux.scouting.models.Team
@@ -30,10 +29,6 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
         }
     }
 
-    override suspend fun parent(): Parent<Tree<Team>, Team>? {
-        return null
-    }
-
     override suspend fun branch(): Branch<Tree<Team>, Team> {
         val seasons = SQLDatabase.getSeasonsByTeam(this).getOrNull()!!
 
@@ -46,10 +41,6 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
 }
 
 data class TeamBranch(val team: TeamNode, val seasons: List<Node<Tree<Season>, Season>>) : Branch<Tree<Team>, Team> {
-    override suspend fun parent(): Parent<Tree<Team>, Team>? {
-        return team.parent()
-    }
-
     override suspend fun tree(): Tree<Team> {
         val seasons = seasons.map { it.branch() }
 

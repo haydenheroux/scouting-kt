@@ -3,7 +3,6 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
-import io.github.haydenheroux.scouting.database.sql.tree.Parent
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Metric
 import io.github.haydenheroux.scouting.models.Participant
@@ -17,29 +16,25 @@ object ParticipantTable : IntIdTable() {
     val teamNumber = integer("teamNumber")
 }
 
-data class ParticipantNode(val id: Int, val alliance: Alliance, val teamNumber: Int) :
+data class ParticipantNode(val id: Int, val matchId: Int, val alliance: Alliance, val teamNumber: Int) :
     Node<Tree<Participant>, Participant> {
 
     companion object {
         fun from(participantRow: ResultRow): ParticipantNode {
             return ParticipantNode(
                 participantRow[ParticipantTable.id].value,
+                participantRow[ParticipantTable.matchId].value,
                 participantRow[ParticipantTable.alliance],
                 participantRow[ParticipantTable.teamNumber]
             )
         }
     }
 
-    override suspend fun parent(): Parent<Tree<Participant>, Participant> {
-        val match = SQLDatabase.getMatchByParticipant(this).getOrNull()!!
-
-        return ParticipantParent(this, match)
-    }
-
     override suspend fun branch(): Branch<Tree<Participant>, Participant> {
+        val match = SQLDatabase.getMatchByParticipant(this).getOrNull()!!
         val metrics = SQLDatabase.getMetricsByParticipant(this).getOrNull()!!
 
-        return ParticipantBranch(this, metrics)
+        return ParticipantBranch(this, match, metrics)
     }
 
     override fun tree(): Tree<Participant> {
@@ -47,25 +42,12 @@ data class ParticipantNode(val id: Int, val alliance: Alliance, val teamNumber: 
     }
 }
 
-data class ParticipantParent(val participant: ParticipantNode, val match: MatchNode) :
-    Parent<Tree<Participant>, Participant> {
-    override suspend fun branch(): Branch<Tree<Participant>, Participant> {
-        return participant.branch()
-    }
-
-    override fun tree(): Tree<Participant> {
-        return participant.tree()
-    }
-}
-
 data class ParticipantBranch(
     val participant: ParticipantNode,
+    val match: MatchNode,
     val metrics: List<MetricNode>
 ) :
     Branch<Tree<Participant>, Participant> {
-    override suspend fun parent(): Parent<Tree<Participant>, Participant> {
-        return participant.parent()
-    }
 
     override suspend fun tree(): Tree<Participant> {
         val metrics = metrics.map { it.branch() }
