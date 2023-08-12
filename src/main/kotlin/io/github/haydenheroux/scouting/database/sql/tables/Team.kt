@@ -3,8 +3,6 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
-import io.github.haydenheroux.scouting.database.sql.tree.Tree
-import io.github.haydenheroux.scouting.models.Season
 import io.github.haydenheroux.scouting.models.Team
 import io.github.haydenheroux.scouting.models.enums.Region
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -29,10 +27,10 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
         }
     }
 
-    override suspend fun tree(): Tree<Branch<Team>, Team> {
+    override suspend fun branch(): Branch<Team> {
         val seasons = SQLDatabase.getSeasonsByTeam(this).getOrNull()!!
 
-        return TeamTree(this, seasons)
+        return TeamBranch(this, seasons)
     }
 
     override fun root(): Branch<Team> {
@@ -40,15 +38,7 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
     }
 }
 
-data class TeamTree(val team: TeamNode, val seasons: List<Node<Branch<Season>, Season>>) : Tree<Branch<Team>, Team> {
-    override suspend fun branch(): Branch<Team> {
-        val seasons = seasons.map { it.tree() }
-
-        return TeamBranch(team, seasons)
-    }
-}
-
-data class TeamBranch(val team: TeamNode, val seasons: List<Tree<Branch<Season>, Season>>) : Branch<Team> {
+data class TeamBranch(val team: TeamNode, val seasons: List<SeasonNode>) : Branch<Team> {
     override fun leaf(): Team {
         return Team(team.number, team.name, team.region, emptyList())
     }

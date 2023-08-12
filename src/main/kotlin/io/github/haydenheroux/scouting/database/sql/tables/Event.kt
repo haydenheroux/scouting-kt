@@ -3,9 +3,7 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
-import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Event
-import io.github.haydenheroux.scouting.models.Match
 import io.github.haydenheroux.scouting.models.enums.Region
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -32,10 +30,10 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
         }
     }
 
-    override suspend fun tree(): Tree<Branch<Event>, Event> {
-        val match = SQLDatabase.getMatchesByEvent(this).getOrNull()!!
+    override suspend fun branch(): Branch<Event> {
+        val matches = SQLDatabase.getMatchesByEvent(this).getOrNull()!!
 
-        return EventTree(this, match)
+        return EventBranch(this, matches)
     }
 
     override fun root(): Branch<Event> {
@@ -43,16 +41,7 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
     }
 }
 
-data class EventTree(val event: EventNode, val matches: List<Node<Branch<Match>, Match>>) :
-    Tree<Branch<Event>, Event> {
-    override suspend fun branch(): Branch<Event> {
-        val matches = matches.map { it.tree() }
-
-        return EventBranch(event, matches)
-    }
-}
-
-data class EventBranch(val event: EventNode, val matches: List<Tree<Branch<Match>, Match>>) : Branch<Event> {
+data class EventBranch(val event: EventNode, val matches: List<MatchNode>) : Branch<Event> {
     override fun leaf(): Event {
         return Event(event.name, event.region, event.year, event.week, emptyList())
     }

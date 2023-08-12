@@ -3,7 +3,6 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
-import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Metric
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -28,24 +27,18 @@ data class MetricNode(val id: Int, val participantId: Int, val key: String, val 
         }
     }
 
-    override suspend fun tree(): Tree<Branch<Metric>, Metric> {
+    override suspend fun branch(): Branch<Metric> {
         val participant = SQLDatabase.getParticipantById(participantId).getOrNull()!!
 
-        return MetricTree(this, participant)
+        return MetricBranch(this, participant)
     }
 
     override fun root(): Branch<Metric> {
-        return MetricBranch(this)
+        return MetricBranch(this, null)
     }
 }
 
-data class MetricTree(val metric: MetricNode, val participant: ParticipantNode) : Tree<Branch<Metric>, Metric> {
-    override suspend fun branch(): Branch<Metric> {
-        return MetricBranch(metric)
-    }
-}
-
-data class MetricBranch(val metric: MetricNode) : Branch<Metric> {
+data class MetricBranch(val metric: MetricNode, val participant: ParticipantNode?) : Branch<Metric> {
     override fun leaf(): Metric {
         return Metric(metric.key, metric.value)
     }

@@ -3,7 +3,6 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
-import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Robot
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -25,24 +24,18 @@ data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Br
         }
     }
 
-    override suspend fun tree(): Tree<Branch<Robot>, Robot> {
+    override suspend fun branch(): Branch<Robot> {
         val season = SQLDatabase.getSeasonById(seasonId).getOrNull()!!
 
-        return RobotTree(this, season)
+        return RobotBranch(this, season)
     }
 
     override fun root(): Branch<Robot> {
-        return RobotBranch(this)
+        return RobotBranch(this, null)
     }
 }
 
-data class RobotTree(val robot: RobotNode, val season: SeasonNode) : Tree<Branch<Robot>, Robot> {
-    override suspend fun branch(): Branch<Robot> {
-        return RobotBranch(robot)
-    }
-}
-
-data class RobotBranch(val robot: RobotNode) : Branch<Robot> {
+data class RobotBranch(val robot: RobotNode, val season: SeasonNode?) : Branch<Robot> {
     override fun leaf(): Robot {
         return Robot(robot.name)
     }

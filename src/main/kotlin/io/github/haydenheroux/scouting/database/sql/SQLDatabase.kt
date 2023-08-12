@@ -41,7 +41,7 @@ object SQLDatabase : DatabaseInterface {
         val teamNodesResult = getTeamNodes()
 
         teamNodesResult.getOrNull()?.let { teamNodes ->
-            return Result.success(teamNodes.map { teamNode -> teamNode.tree().branch().subbranch() })
+            return Result.success(teamNodes.map { teamNode -> teamNode.branch().subbranch() })
         } ?: run {
             return Result.failure(teamNodesResult.exceptionOrNull()!!)
         }
@@ -51,7 +51,7 @@ object SQLDatabase : DatabaseInterface {
         val teamNodesResult = getTeamNodes()
 
         teamNodesResult.getOrNull()?.let { teamNodes ->
-            return Result.success(teamNodes.map { teamNode -> teamNode.tree().branch().leaf() })
+            return Result.success(teamNodes.map { teamNode -> teamNode.branch().leaf() })
         } ?: run {
             return Result.failure(teamNodesResult.exceptionOrNull()!!)
         }
@@ -68,7 +68,7 @@ object SQLDatabase : DatabaseInterface {
         val teamNodeResult = getTeamNode(teamQuery)
 
         teamNodeResult.getOrNull()?.let { teamNode ->
-            return Result.success(teamNode.tree().branch().subbranch())
+            return Result.success(teamNode.branch().subbranch())
         } ?: run {
             return Result.failure(teamNodeResult.exceptionOrNull()!!)
         }
@@ -78,7 +78,7 @@ object SQLDatabase : DatabaseInterface {
         val teamNodeResult = getTeamNode(teamQuery)
 
         teamNodeResult.getOrNull()?.let { teamNode ->
-            return Result.success(teamNode.tree().branch().subbranch(2))
+            return Result.success(teamNode.branch().subbranch(2))
         } ?: run {
             return Result.failure(teamNodeResult.exceptionOrNull()!!)
         }
@@ -88,7 +88,7 @@ object SQLDatabase : DatabaseInterface {
         val teamNodeResult = getTeamNode(teamQuery)
 
         teamNodeResult.getOrNull()?.let { teamNode ->
-            return Result.success(teamNode.tree().branch().subbranch(4))
+            return Result.success(teamNode.branch().subbranch(4))
         } ?: run {
             return Result.failure(teamNodeResult.exceptionOrNull()!!)
         }
@@ -136,7 +136,7 @@ object SQLDatabase : DatabaseInterface {
         val seasonNodeResult = getSeasonNode(seasonQuery)
 
         seasonNodeResult.getOrNull()?.let { seasonNode ->
-            return Result.success(seasonNode.tree().branch().subbranch())
+            return Result.success(seasonNode.branch().subbranch())
         } ?: run {
             return Result.failure(seasonNodeResult.exceptionOrNull()!!)
         }
@@ -146,9 +146,9 @@ object SQLDatabase : DatabaseInterface {
         val seasonNodeResult = getSeasonNode(seasonQuery)
 
         seasonNodeResult.getOrNull()?.let { seasonNode ->
-            val seasonBranch = seasonNode.tree()
-            val season = seasonBranch.branch().subbranch(1)
-            val team = seasonBranch.team.root().leaf()
+            val seasonBranch = seasonNode.branch()
+            val season = seasonBranch.subbranch(1)
+            val team = seasonBranch.team!!.root().leaf()
             return Result.success(Pair(season, team))
         } ?: run {
             return Result.failure(seasonNodeResult.exceptionOrNull()!!)
@@ -159,9 +159,9 @@ object SQLDatabase : DatabaseInterface {
         val seasonNodeResult = getSeasonNode(seasonQuery)
 
         seasonNodeResult.getOrNull()?.let { seasonNode ->
-            val seasonBranch = seasonNode.tree()
-            val season = seasonBranch.branch().subbranch(4)
-            val team = seasonBranch.team.root().leaf()
+            val seasonBranch = seasonNode.branch()
+            val season = seasonBranch.subbranch(4)
+            val team = seasonBranch.team!!.root().leaf()
             return Result.success(Pair(season, team))
         } ?: run {
             return Result.failure(seasonNodeResult.exceptionOrNull()!!)
@@ -218,7 +218,7 @@ object SQLDatabase : DatabaseInterface {
     override suspend fun getRobot(robotQuery: RobotQuery): Result<Robot> {
         return runCatching {
             val robotRow = getRobotRow(robotQuery)!!
-            RobotNode.from(robotRow).tree().branch().subbranch()
+            RobotNode.from(robotRow).branch().subbranch()
         }
     }
 
@@ -247,7 +247,7 @@ object SQLDatabase : DatabaseInterface {
         val eventNodesResult = getEventNodes()
 
         eventNodesResult.getOrNull()?.let { eventNodes ->
-            return Result.success(eventNodes.map { eventNode -> eventNode.tree().branch().subbranch() })
+            return Result.success(eventNodes.map { eventNode -> eventNode.branch().subbranch() })
         } ?: run {
             return Result.failure(eventNodesResult.exceptionOrNull()!!)
         }
@@ -274,7 +274,7 @@ object SQLDatabase : DatabaseInterface {
         val eventNodeResult = getEventNode(eventQuery)
 
         eventNodeResult.getOrNull()?.let { eventNode ->
-            return Result.success(eventNode.tree().branch().subbranch())
+            return Result.success(eventNode.branch().subbranch())
         } ?: run {
             return Result.failure(eventNodeResult.exceptionOrNull()!!)
         }
@@ -284,7 +284,7 @@ object SQLDatabase : DatabaseInterface {
         val eventNodeResult = getEventNode(eventQuery)
 
         eventNodeResult.getOrNull()?.let { eventNode ->
-            return Result.success(eventNode.tree().branch().subbranch(1))
+            return Result.success(eventNode.branch().subbranch(1))
         } ?: run {
             return Result.failure(eventNodeResult.exceptionOrNull()!!)
         }
@@ -294,7 +294,7 @@ object SQLDatabase : DatabaseInterface {
         val eventNodeResult = getEventNode(eventQuery)
 
         eventNodeResult.getOrNull()?.let { eventNode ->
-            return Result.success(eventNode.tree().branch().subbranch(2))
+            return Result.success(eventNode.branch().subbranch(2))
         } ?: run {
             return Result.failure(eventNodeResult.exceptionOrNull()!!)
         }
@@ -355,7 +355,7 @@ object SQLDatabase : DatabaseInterface {
         val matchNodeResult = getMatchNode(matchQuery)
 
         matchNodeResult.getOrNull()?.let { matchNode ->
-            return Result.success(matchNode.tree().branch().subbranch())
+            return Result.success(matchNode.branch().subbranch())
         } ?: run {
             return Result.failure(matchNodeResult.exceptionOrNull()!!)
         }
@@ -365,9 +365,9 @@ object SQLDatabase : DatabaseInterface {
         val matchNodeResult = getMatchNode(matchQuery)
 
         matchNodeResult.getOrNull()?.let { matchNode ->
-            val matchBranch = matchNode.tree()
-            val match = matchBranch.branch().subbranch(2)
-            val event = matchBranch.event.root().leaf()
+            val matchBranch = matchNode.branch()
+            val match = matchBranch.subbranch(2)
+            val event = matchBranch.event!!.root().leaf()
 
             return Result.success(Pair(match, event))
         } ?: run {
@@ -416,7 +416,7 @@ object SQLDatabase : DatabaseInterface {
     override suspend fun getParticipant(participantQuery: ParticipantQuery): Result<Participant> {
         return runCatching {
             val participantRow = getParticipantRow(participantQuery)!!
-            ParticipantNode.from(participantRow).tree().branch().subbranch()
+            ParticipantNode.from(participantRow).branch().subbranch()
         }
     }
 
