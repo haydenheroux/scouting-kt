@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Team(val number: Int, val name: String, val region: Region, val seasons: List<Season>)
 
-data class TeamQuery(val number: Int)
+data class TeamQuery(val teamNumber: Int)
 
 fun teamQueryOf(team: Team): TeamQuery {
     return TeamQuery(team.number)

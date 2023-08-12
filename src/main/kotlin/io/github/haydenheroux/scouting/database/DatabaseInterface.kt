@@ -72,7 +72,7 @@ interface DatabaseInterface {
     suspend fun getMatchWithMetricsAndEvent(matchQuery: MatchQuery): Result<Pair<Match, Event>>
 
 
-    suspend fun insertParticipant(participant: Participant, teamQuery: TeamQuery, matchQuery: MatchQuery): Result<Unit>
+    suspend fun insertParticipant(participant: Participant, matchQuery: MatchQuery): Result<Unit>
 
     suspend fun participantExists(participantQuery: ParticipantQuery): Boolean
 

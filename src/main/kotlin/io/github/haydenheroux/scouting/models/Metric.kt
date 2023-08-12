@@ -8,8 +8,8 @@ data class Metric(val key: String, val value: String)
 
 data class MetricQuery(val key: String, val participantQuery: ParticipantQuery)
 
-fun metricQueryOf(metric: Metric, team: Team, match: Match, event: Event): MetricQuery {
-    val teamQuery = teamQueryOf(team)
+fun metricQueryOf(metric: Metric, participant: Participant, match: Match, event: Event): MetricQuery {
+    val teamQuery = TeamQuery(participant.teamNumber)
     val matchQuery = matchQueryOf(match, event)
     val participantQuery = ParticipantQuery(teamQuery, matchQuery)
 

@@ -103,15 +103,6 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun getTeamByParticipant(participantData: ParticipantNode): Result<TeamNode> {
-        return query {
-            val participantRow = ParticipantTable.select { ParticipantTable.id eq participantData.id }.single()
-            val teamId = participantRow[ParticipantTable.teamId].value
-
-            getTeamById(teamId)
-        }
-    }
-
     private suspend fun getTeamById(teamId: Int): Result<TeamNode> {
         return runCatching {
             val teamRow = getTeamRow(teamId)!!
@@ -121,7 +112,7 @@ object SQLDatabase : DatabaseInterface {
 
     private suspend fun getTeamRow(teamQuery: TeamQuery): ResultRow? {
         return query {
-            TeamTable.select { TeamTable.number eq teamQuery.number }.singleOrNull()
+            TeamTable.select { TeamTable.number eq teamQuery.teamNumber }.singleOrNull()
         }
     }
 
@@ -336,7 +327,7 @@ object SQLDatabase : DatabaseInterface {
         val eventNodeResult = getEventNode(eventQuery)
 
         eventNodeResult.getOrNull()?.let { eventNode ->
-            return Result.success(eventNode.branch().tree().subtree(3))
+            return Result.success(eventNode.branch().tree().subtree(2))
         } ?: run {
             return Result.failure(eventNodeResult.exceptionOrNull()!!)
         }
@@ -506,11 +497,11 @@ object SQLDatabase : DatabaseInterface {
     }
 
     private suspend fun getParticipantRow(participantQuery: ParticipantQuery): ResultRow? {
-        val teamId = getTeamId(participantQuery.team)
-        val matchId = getMatchId(participantQuery.match)
+        val teamQuery = participantQuery.teamQuery
+        val matchId = getMatchId(participantQuery.matchQuery)
 
         return query {
-            ParticipantTable.select { (ParticipantTable.teamId eq teamId) and (ParticipantTable.matchId eq matchId) }
+            ParticipantTable.select { (ParticipantTable.teamNumber eq teamQuery.teamNumber) and (ParticipantTable.matchId eq matchId) }
                 .singleOrNull()
         }
     }
@@ -700,12 +691,7 @@ object SQLDatabase : DatabaseInterface {
         }
 
         for (participant in match.participants) {
-            if (participant.team == null) {
-                println("TODO: Unable to insert participant because team was null")
-            } else {
-                val teamId = getTeamId(teamQueryOf(participant.team))
-                insertParticipant(participant, teamId, matchId)
-            }
+            insertParticipant(participant, matchId)
         }
 
         return Result.success(Unit)
@@ -725,11 +711,11 @@ object SQLDatabase : DatabaseInterface {
         return matchExists(matchQueryOf(match, event))
     }
 
-    private suspend fun insertParticipant(participant: Participant, teamId: Int, matchId: Int): Result<Unit> {
+    private suspend fun insertParticipant(participant: Participant, matchId: Int): Result<Unit> {
         val participantId = query {
             ParticipantTable.insertAndGetId {
                 it[this.matchId] = matchId
-                it[this.teamId] = teamId
+                it[teamNumber] = participant.teamNumber
                 it[alliance] = participant.alliance
             }.value
         }
@@ -743,23 +729,22 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun insertParticipant(
         participant: Participant,
-        teamQuery: TeamQuery,
         matchQuery: MatchQuery,
     ): Result<Unit> {
+        val teamQuery = TeamQuery(participant.teamNumber)
         val participantQuery = ParticipantQuery(teamQuery, matchQuery)
 
         if (participantExists(participantQuery)) return Result.failure(Exception("Participant exists"))
 
-        val teamId = getTeamId(teamQuery)
         val matchId = getMatchId(matchQuery)
 
-        return insertParticipant(participant, teamId, matchId)
+        return insertParticipant(participant, matchId)
     }
 
     override suspend fun participantExists(participant: Participant, match: Match, event: Event): Boolean {
         return participantExists(
             ParticipantQuery(
-                teamQueryOf(participant.team!!),
+                TeamQuery(participant.teamNumber),
                 matchQueryOf(match, event)
             )
         )
@@ -786,6 +771,6 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun metricExists(metric: Metric, participant: Participant, match: Match, event: Event): Boolean {
-        return metricExists(metricQueryOf(metric, participant.team!!, match, event))
+        return metricExists(metricQueryOf(metric, participant, match, event))
     }
 }

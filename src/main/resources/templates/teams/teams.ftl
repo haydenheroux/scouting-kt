@@ -14,7 +14,7 @@
         <tbody>
         <#list teams?sort_by("number") as team>
             <tr>
-                <td><@links.team_number_link team=team /></td>
+                <td><@links.team_number_link team_number=team.number /></td>
                 <td>${team.name}</td>
                 <td>${enums.region_to_text(team.region)}</td>
             </tr>

@@ -50,7 +50,7 @@
             <tr>
                 <td><@links.match_link match=match event=event /></td>
                 <#list match.participants as participant>
-                <td><@links.team_number_link team=participant.team /></td>
+                <td><@links.team_number_link team_number=participant.teamNumber /></td>
                 </#list>
             </tr>
         </#list>

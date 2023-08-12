@@ -6,8 +6,12 @@
     <a href="/teams/${team.number?c}">Team ${team.number?c} - ${team.name}</a>
 </#macro>
 
-<#macro team_number_link team>
-    <a href="/teams/${team.number?c}">${team.number?c}</a>
+<#macro team_number_link team_number>
+    <a href="/teams/${team_number?c}">${team_number?c}</a>
+</#macro>
+
+<#macro team_number_year_link team_number year>
+    <a href="/teams/${team_number?c}/${year?c}">Team ${team_number?c}</a>
 </#macro>
 
 <#macro team_year_link team year>

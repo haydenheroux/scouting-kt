@@ -3,12 +3,11 @@ package io.github.haydenheroux.scouting.models
 import io.github.haydenheroux.scouting.models.enums.Alliance
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 
 @Serializable
-data class Participant(val alliance: Alliance, @Transient val team: Team? = null, val metrics: List<Metric>)
+data class Participant(val alliance: Alliance, val teamNumber: Int, val metrics: List<Metric>)
 
-data class ParticipantQuery(val team: TeamQuery, val match: MatchQuery)
+data class ParticipantQuery(val teamQuery: TeamQuery, val matchQuery: MatchQuery)
 
 fun participantQueryOf(parameters: Parameters): Result<ParticipantQuery> {
     val teamQuery = teamQueryOf(parameters)
