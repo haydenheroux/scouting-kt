@@ -31,7 +31,7 @@ data class ParticipantNode(val id: Int, val matchId: Int, val alliance: Alliance
     }
 
     override suspend fun branch(): Branch<Tree<Participant>, Participant> {
-        val match = SQLDatabase.getMatchByParticipant(this).getOrNull()!!
+        val match = SQLDatabase.getMatchById(matchId).getOrNull()!!
         val metrics = SQLDatabase.getMetricsByParticipant(this).getOrNull()!!
 
         return ParticipantBranch(this, match, metrics)

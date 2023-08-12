@@ -94,16 +94,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun getTeamBySeason(seasonData: SeasonNode): Result<TeamNode> {
-        return query {
-            val seasonRow = SeasonTable.select { SeasonTable.id eq seasonData.id }.single()
-            val teamId = seasonRow[SeasonTable.teamId].value
-
-            getTeamById(teamId)
-        }
-    }
-
-    private suspend fun getTeamById(teamId: Int): Result<TeamNode> {
+    suspend fun getTeamById(teamId: Int): Result<TeamNode> {
         return runCatching {
             val teamRow = getTeamRow(teamId)!!
             TeamNode.from(teamRow)
@@ -177,16 +168,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun getSeasonByRobot(robotData: RobotNode): Result<SeasonNode> {
-        return query {
-            val robotRow = RobotTable.select { RobotTable.id eq robotData.id }.single()
-            val seasonId = robotRow[RobotTable.seasonId].value
-
-            getSeasonById(seasonId)
-        }
-    }
-
-    private suspend fun getSeasonById(seasonId: Int): Result<SeasonNode> {
+    suspend fun getSeasonById(seasonId: Int): Result<SeasonNode> {
         return runCatching {
             val seasonRow = getSeasonRow(seasonId)!!
             SeasonNode.from(seasonRow)
@@ -240,13 +222,6 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun getRobotById(robotId: Int): Result<RobotNode> {
-        return runCatching {
-            val robotRow = getRobotRow(robotId)!!
-            RobotNode.from(robotRow)
-        }
-    }
-
     private suspend fun getRobotRow(robotQuery: RobotQuery): ResultRow? {
         val seasonId = getSeasonId(robotQuery.seasonQuery)
 
@@ -254,16 +229,6 @@ object SQLDatabase : DatabaseInterface {
             RobotTable.select { (RobotTable.name eq robotQuery.name) and (RobotTable.seasonId eq seasonId) }
                 .singleOrNull()
         }
-    }
-
-    private suspend fun getRobotRow(robotId: Int): ResultRow? {
-        return query {
-            RobotTable.select { RobotTable.id eq robotId }.singleOrNull()
-        }
-    }
-
-    private suspend fun getRobotId(robotQuery: RobotQuery): Int {
-        return getRobotRow(robotQuery)!![RobotTable.id].value
     }
 
     override suspend fun robotExists(robotQuery: RobotQuery): Boolean {
@@ -347,16 +312,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun getEventByMatch(matchData: MatchNode): Result<EventNode> {
-        return query {
-            val matchRow = MatchTable.select { MatchTable.id eq matchData.id }.single()
-            val eventId = matchRow[MatchTable.eventId].value
-
-            getEventById(eventId)
-        }
-    }
-
-    private suspend fun getEventById(eventId: Int): Result<EventNode> {
+    suspend fun getEventById(eventId: Int): Result<EventNode> {
         return runCatching {
             val eventRow = getEventRow(eventId)!!
             EventNode.from(eventRow)
@@ -419,17 +375,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun getMatchByParticipant(participantData: ParticipantNode): Result<MatchNode> {
-        return query {
-            val participantRow =
-                ParticipantTable.select { ParticipantTable.id eq participantData.id }.single()
-            val matchId = participantRow[ParticipantTable.matchId].value
-
-            getMatchById(matchId)
-        }
-    }
-
-    private suspend fun getMatchById(matchId: Int): Result<MatchNode> {
+    suspend fun getMatchById(matchId: Int): Result<MatchNode> {
         return runCatching {
             val matchRow = getMatchRow(matchId)!!
             MatchNode.from(matchRow)
@@ -474,16 +420,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun getParticipantByMetric(metricData: MetricNode): Result<ParticipantNode> {
-        return query {
-            val metricRow = MetricTable.select { MetricTable.id eq metricData.id }.single()
-            val participantId = metricRow[MetricTable.participantId].value
-
-            getParticipantById(participantId)
-        }
-    }
-
-    private suspend fun getParticipantById(participantId: Int): Result<ParticipantNode> {
+    suspend fun getParticipantById(participantId: Int): Result<ParticipantNode> {
         return runCatching {
             val participantRow = getParticipantRow(participantId)!!
             ParticipantNode.from(participantRow)

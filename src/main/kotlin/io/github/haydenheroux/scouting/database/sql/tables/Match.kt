@@ -32,7 +32,7 @@ data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: In
     }
 
     override suspend fun branch(): MatchBranch {
-        val event = SQLDatabase.getEventByMatch(this).getOrNull()!!
+        val event = SQLDatabase.getEventById(eventId).getOrNull()!!
         val participants = SQLDatabase.getParticipantsByMatch(this).getOrNull()!!
 
         return MatchBranch(this, event, participants)

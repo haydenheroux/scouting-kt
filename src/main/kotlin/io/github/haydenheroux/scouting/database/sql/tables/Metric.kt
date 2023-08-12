@@ -29,7 +29,7 @@ data class MetricNode(val id: Int, val participantId: Int, val key: String, val 
     }
 
     override suspend fun branch(): Branch<Tree<Metric>, Metric> {
-        val participant = SQLDatabase.getParticipantByMetric(this).getOrNull()!!
+        val participant = SQLDatabase.getParticipantById(participantId).getOrNull()!!
 
         return MetricBranch(this, participant)
     }

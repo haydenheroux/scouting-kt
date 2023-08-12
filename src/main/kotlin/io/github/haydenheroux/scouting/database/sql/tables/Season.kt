@@ -36,7 +36,7 @@ data class SeasonNode(val id: Int, val teamId: Int, val year: Int) : Node<Tree<S
     }
 
     override suspend fun branch(): SeasonBranch {
-        val team = SQLDatabase.getTeamBySeason(this).getOrNull()!!
+        val team = SQLDatabase.getTeamById(teamId).getOrNull()!!
         val robots = SQLDatabase.getRobotsBySeason(this).getOrNull()!!
         val events = SQLDatabase.getEventsBySeason(this).getOrNull()!!
 
