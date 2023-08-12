@@ -29,14 +29,14 @@ fun Route.api() {
                 return@get
             }
 
-            val team = SQLDatabase.getTeamByQuery(teamQuery).getOrNull()
+            val team = SQLDatabase.getTeam(teamQuery).getOrNull()
 
             if (team == null) {
                 call.respond(HttpStatusCode.NotFound)
                 return@get
             }
 
-            call.respond(team.branch().tree().subtree())
+            call.respond(team)
         }
 
         get("/get-season") {

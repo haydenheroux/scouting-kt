@@ -27,13 +27,7 @@ fun Route.teams() {
                 return@get
             }
 
-            val EVENTS_ONLY = 2
-            val EVENTS_AND_MATCHES = 4
-
-
-            SQLDatabase.getTeamByQuery(teamQuery).getOrNull()?.let { node ->
-                val team = node.branch().tree().subtree(EVENTS_ONLY)
-
+            SQLDatabase.getTeamWithEvents(teamQuery).getOrNull()?.let { team ->
                 call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
             } ?: run {
                 call.respond(HttpStatusCode.NotFound)

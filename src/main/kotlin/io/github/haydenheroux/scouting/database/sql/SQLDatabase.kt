@@ -45,14 +45,44 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    override suspend fun getTeamByQuery(teamQuery: TeamQuery): Result<TeamNode> {
+    private suspend fun getTeamNode(teamQuery: TeamQuery): Result<TeamNode> {
         return runCatching {
             val teamRow = getTeamRow(teamQuery)!!
             TeamNode.from(teamRow)
         }
     }
 
-    override suspend fun getTeamBySeason(seasonData: SeasonNode): Result<TeamNode> {
+    override suspend fun getTeam(teamQuery: TeamQuery): Result<Team> {
+        val teamNodeResult = getTeamNode(teamQuery)
+
+        teamNodeResult.getOrNull()?.let { teamNode ->
+            return Result.success(teamNode.branch().tree().subtree())
+        } ?: run {
+            return Result.failure(teamNodeResult.exceptionOrNull()!!)
+        }
+    }
+
+    override suspend fun getTeamWithEvents(teamQuery: TeamQuery): Result<Team> {
+        val teamNodeResult = getTeamNode(teamQuery)
+
+        teamNodeResult.getOrNull()?.let { teamNode ->
+            return Result.success(teamNode.branch().tree().subtree(2))
+        } ?: run {
+            return Result.failure(teamNodeResult.exceptionOrNull()!!)
+        }
+    }
+
+    override suspend fun getTeamWithMatches(teamQuery: TeamQuery): Result<Team> {
+        val teamNodeResult = getTeamNode(teamQuery)
+
+        teamNodeResult.getOrNull()?.let { teamNode ->
+            return Result.success(teamNode.branch().tree().subtree(4))
+        } ?: run {
+            return Result.failure(teamNodeResult.exceptionOrNull()!!)
+        }
+    }
+
+    suspend fun getTeamBySeason(seasonData: SeasonNode): Result<TeamNode> {
         return query {
             val seasonRow = SeasonTable.select { SeasonTable.id eq seasonData.id }.single()
             val teamId = seasonRow[SeasonTable.teamId].value
@@ -61,7 +91,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    override suspend fun getTeamByParticipant(participantData: ParticipantNode): Result<TeamNode> {
+    suspend fun getTeamByParticipant(participantData: ParticipantNode): Result<TeamNode> {
         return query {
             val participantRow = ParticipantTable.select { ParticipantTable.id eq participantData.id }.single()
             val teamId = participantRow[ParticipantTable.teamId].value
@@ -70,7 +100,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    override suspend fun getTeamById(teamId: Int): Result<TeamNode> {
+    private suspend fun getTeamById(teamId: Int): Result<TeamNode> {
         return runCatching {
             val teamRow = getTeamRow(teamId)!!
             TeamNode.from(teamRow)
