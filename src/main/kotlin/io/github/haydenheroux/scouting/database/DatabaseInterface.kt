@@ -10,15 +10,6 @@ interface DatabaseInterface {
 
     suspend fun getRobotById(robotId: Int): Result<RobotNode>
 
-    suspend fun getEvents(): Result<List<EventNode>>
-
-    suspend fun getEventsBySeason(seasonData: SeasonNode): Result<List<EventNode>>
-
-    suspend fun getEventByQuery(eventQuery: EventQuery): Result<EventNode>
-
-    suspend fun getEventByMatch(matchData: MatchNode): Result<EventNode>
-
-    suspend fun getEventById(eventId: Int): Result<EventNode>
 
     suspend fun getMatchesByEvent(eventData: EventNode): Result<List<MatchNode>>
 
@@ -77,11 +68,17 @@ interface DatabaseInterface {
 
     suspend fun robotExists(robot: Robot, season: Season, team: Team): Boolean
 
+
     suspend fun insertEvent(event: Event): Result<Unit>
 
     suspend fun eventExists(eventQuery: EventQuery): Boolean
 
     suspend fun eventExists(event: Event): Boolean
+
+    suspend fun getEvents(): Result<List<Event>>
+
+    suspend fun getEventsSimple(): Result<List<Event>>
+
 
     suspend fun insertMatch(match: Match, eventQuery: EventQuery): Result<Unit>
 

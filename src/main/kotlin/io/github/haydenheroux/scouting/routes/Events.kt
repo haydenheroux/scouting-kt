@@ -12,9 +12,7 @@ import io.ktor.server.routing.*
 fun Route.events() {
     route("/events") {
         get {
-            SQLDatabase.getEvents().getOrNull()?.let { nodes ->
-                val events = nodes.map { node -> node.tree().leaf() }
-
+            SQLDatabase.getEventsSimple().getOrNull()?.let { events ->
                 call.respond(FreeMarkerContent("events/events.ftl", mapOf("events" to events)))
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)

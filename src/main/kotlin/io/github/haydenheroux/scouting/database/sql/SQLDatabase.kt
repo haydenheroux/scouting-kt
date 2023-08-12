@@ -28,20 +28,32 @@ object SQLDatabase : DatabaseInterface {
 
     private suspend fun <T> query(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
 
-
-    override suspend fun getTeams(): Result<List<Team>> {
+    private suspend fun getTeamNodes(): Result<List<TeamNode>> {
         return runCatching {
             query {
-                TeamTable.selectAll().map { teamRow -> TeamNode.from(teamRow).branch().tree().subtree() }
+                TeamTable.selectAll().map { teamRow -> TeamNode.from(teamRow) }
             }
         }
     }
 
+
+    override suspend fun getTeams(): Result<List<Team>> {
+        val teamNodesResult = getTeamNodes()
+
+        teamNodesResult.getOrNull()?.let { teamNodes ->
+            return Result.success(teamNodes.map { teamNode -> teamNode.branch().tree().subtree() })
+        } ?: run {
+            return Result.failure(teamNodesResult.exceptionOrNull()!!)
+        }
+    }
+
     override suspend fun getTeamsSimple(): Result<List<Team>> {
-        return runCatching {
-            query {
-                TeamTable.selectAll().map { teamRow -> TeamNode.from(teamRow).tree().leaf() }
-            }
+        val teamNodesResult = getTeamNodes()
+
+        teamNodesResult.getOrNull()?.let { teamNodes ->
+            return Result.success(teamNodes.map { teamNode -> teamNode.branch().tree().leaf() })
+        } ?: run {
+            return Result.failure(teamNodesResult.exceptionOrNull()!!)
         }
     }
 
@@ -265,7 +277,7 @@ object SQLDatabase : DatabaseInterface {
         return getRobotRow(robotQuery)?.let { true } ?: false
     }
 
-    override suspend fun getEvents(): Result<List<EventNode>> {
+    private suspend fun getEventNodes(): Result<List<EventNode>> {
         return runCatching {
             query {
                 EventTable.selectAll().map { eventRow -> EventNode.from(eventRow) }
@@ -273,7 +285,34 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    override suspend fun getEventsBySeason(seasonData: SeasonNode): Result<List<EventNode>> {
+    override suspend fun getEvents(): Result<List<Event>> {
+        val eventNodesResult = getEventNodes()
+
+        eventNodesResult.getOrNull()?.let { eventNodes ->
+            return Result.success(eventNodes.map { eventNode -> eventNode.branch().tree().subtree() })
+        } ?: run {
+            return Result.failure(eventNodesResult.exceptionOrNull()!!)
+        }
+    }
+
+    override suspend fun getEventsSimple(): Result<List<Event>> {
+        val eventNodesResult = getEventNodes()
+
+        eventNodesResult.getOrNull()?.let { eventNodes ->
+            return Result.success(eventNodes.map { eventNode -> eventNode.tree().leaf() })
+        } ?: run {
+            return Result.failure(eventNodesResult.exceptionOrNull()!!)
+        }
+    }
+
+    suspend fun getEventByQuery(eventQuery: EventQuery): Result<EventNode> {
+        return runCatching {
+            val eventRow = getEventRow(eventQuery)!!
+            EventNode.from(eventRow)
+        }
+    }
+
+    suspend fun getEventsBySeason(seasonData: SeasonNode): Result<List<EventNode>> {
         return runCatching {
             query {
                 SeasonEventTable.select { SeasonEventTable.seasonId eq seasonData.id }.map { seasonEventRow ->
@@ -285,7 +324,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    override suspend fun getEventByMatch(matchData: MatchNode): Result<EventNode> {
+    suspend fun getEventByMatch(matchData: MatchNode): Result<EventNode> {
         return query {
             val matchRow = MatchTable.select { MatchTable.id eq matchData.id }.single()
             val eventId = matchRow[MatchTable.eventId].value
@@ -294,14 +333,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    override suspend fun getEventByQuery(eventQuery: EventQuery): Result<EventNode> {
-        return runCatching {
-            val eventRow = getEventRow(eventQuery)!!
-            EventNode.from(eventRow)
-        }
-    }
-
-    override suspend fun getEventById(eventId: Int): Result<EventNode> {
+    private suspend fun getEventById(eventId: Int): Result<EventNode> {
         return runCatching {
             val eventRow = getEventRow(eventId)!!
             EventNode.from(eventRow)

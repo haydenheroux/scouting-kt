@@ -83,7 +83,7 @@ fun Route.api() {
                 return@get
             }
 
-            call.respond(events.map { it.branch().tree().subtree() })
+            call.respond(events)
         }
 
         get("/get-event") {
