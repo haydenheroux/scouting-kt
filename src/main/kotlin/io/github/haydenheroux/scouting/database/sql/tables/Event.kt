@@ -1,8 +1,8 @@
 package io.github.haydenheroux.scouting.database.sql.tables
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
-import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
+import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Event
 import io.github.haydenheroux.scouting.models.enums.Region
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -16,7 +16,7 @@ object EventTable : IntIdTable() {
 }
 
 data class EventNode(val id: Int, val name: String, val region: Region, val year: Int, val week: Int) :
-    Node<Branch<Event>, Event> {
+    Node<Tree<Event>, Event> {
 
     companion object {
         fun from(eventRow: ResultRow): EventNode {
@@ -30,39 +30,39 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
         }
     }
 
-    override suspend fun branch(): Branch<Event> {
+    override suspend fun tree(): Tree<Event> {
         val matches = SQLDatabase.getMatchesByEvent(this).getOrNull()!!
 
-        return EventBranch(this, matches)
+        return EventTree(this, matches)
     }
 
-    override fun root(): Branch<Event> {
-        return EventBranch(this, emptyList())
+    override fun root(): Tree<Event> {
+        return EventTree(this, emptyList())
     }
 }
 
-data class EventBranch(val event: EventNode, val matches: List<MatchNode>) : Branch<Event> {
+data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<Event> {
     override fun leaf(): Event {
         return Event(event.name, event.region, event.year, event.week, emptyList())
     }
 
     override suspend fun leaves(): Event {
-        val matches = matches.map { match -> match.branch().leaf() }
+        val matches = matches.map { match -> match.tree().leaf() }
 
         return Event(event.name, event.region, event.year, event.week, matches)
     }
 
-    override suspend fun subbranch(): Event {
-        val matches = matches.map { match -> match.branch().subbranch() }
+    override suspend fun subtree(): Event {
+        val matches = matches.map { match -> match.tree().subtree() }
 
         return Event(event.name, event.region, event.year, event.week, matches)
     }
 
-    override suspend fun subbranch(depth: Int): Event {
+    override suspend fun subtree(depth: Int): Event {
         if (depth == 0) return leaf()
         if (depth == 1) return leaves()
 
-        val matches = matches.map { match -> match.branch().subbranch(depth - 1) }
+        val matches = matches.map { match -> match.tree().subtree(depth - 1) }
 
         return Event(event.name, event.region, event.year, event.week, matches)
     }

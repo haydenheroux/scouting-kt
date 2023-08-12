@@ -1,8 +1,8 @@
 package io.github.haydenheroux.scouting.database.sql.tables
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
-import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
+import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Season
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -20,7 +20,7 @@ object SeasonEventTable : Table() {
     override val primaryKey = PrimaryKey(seasonId, eventId)
 }
 
-data class SeasonNode(val id: Int, val teamId: Int, val year: Int) : Node<Branch<Season>, Season> {
+data class SeasonNode(val id: Int, val teamId: Int, val year: Int) : Node<Tree<Season>, Season> {
 
     companion object {
         fun from(seasonRow: ResultRow): SeasonNode {
@@ -32,49 +32,49 @@ data class SeasonNode(val id: Int, val teamId: Int, val year: Int) : Node<Branch
         }
     }
 
-    override suspend fun branch(): SeasonBranch {
+    override suspend fun tree(): SeasonTree {
         val team = SQLDatabase.getTeamById(teamId).getOrNull()!!
         val robots = SQLDatabase.getRobotsBySeason(this).getOrNull()!!
         val events = SQLDatabase.getEventsBySeason(this).getOrNull()!!
 
-        return SeasonBranch(this, team, robots, events)
+        return SeasonTree(this, team, robots, events)
     }
 
-    override fun root(): Branch<Season> {
-        return SeasonBranch(this, null, emptyList(), emptyList())
+    override fun root(): Tree<Season> {
+        return SeasonTree(this, null, emptyList(), emptyList())
     }
 }
 
-data class SeasonBranch(
+data class SeasonTree(
     val season: SeasonNode,
     val team: TeamNode?,
     val robots: List<RobotNode>,
     val events: List<EventNode>
-) : Branch<Season> {
+) : Tree<Season> {
     override fun leaf(): Season {
         return Season(season.year, emptyList(), emptyList())
     }
 
     override suspend fun leaves(): Season {
-        val robots = robots.map { robot -> robot.branch().leaf() }
-        val events = events.map { event -> event.branch().leaf() }
+        val robots = robots.map { robot -> robot.tree().leaf() }
+        val events = events.map { event -> event.tree().leaf() }
 
         return Season(season.year, robots, events)
     }
 
-    override suspend fun subbranch(): Season {
-        val robots = robots.map { robot -> robot.branch().subbranch() }
-        val events = events.map { event -> event.branch().subbranch() }
+    override suspend fun subtree(): Season {
+        val robots = robots.map { robot -> robot.tree().subtree() }
+        val events = events.map { event -> event.tree().subtree() }
 
         return Season(season.year, robots, events)
     }
 
-    override suspend fun subbranch(depth: Int): Season {
+    override suspend fun subtree(depth: Int): Season {
         if (depth == 0) return leaf()
         if (depth == 1) return leaves()
 
-        val robots = robots.map { robot -> robot.branch().subbranch(depth - 1) }
-        val events = events.map { event -> event.branch().subbranch(depth - 1) }
+        val robots = robots.map { robot -> robot.tree().subtree(depth - 1) }
+        val events = events.map { event -> event.tree().subtree(depth - 1) }
 
         return Season(season.year, robots, events)
     }

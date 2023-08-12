@@ -1,8 +1,8 @@
 package io.github.haydenheroux.scouting.database.sql.tables
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
-import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
+import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Metric
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -14,7 +14,7 @@ object MetricTable : IntIdTable() {
 }
 
 data class MetricNode(val id: Int, val participantId: Int, val key: String, val value: String) :
-    Node<Branch<Metric>, Metric> {
+    Node<Tree<Metric>, Metric> {
 
     companion object {
         fun from(metricRow: ResultRow): MetricNode {
@@ -27,18 +27,18 @@ data class MetricNode(val id: Int, val participantId: Int, val key: String, val 
         }
     }
 
-    override suspend fun branch(): Branch<Metric> {
+    override suspend fun tree(): Tree<Metric> {
         val participant = SQLDatabase.getParticipantById(participantId).getOrNull()!!
 
-        return MetricBranch(this, participant)
+        return MetricTree(this, participant)
     }
 
-    override fun root(): Branch<Metric> {
-        return MetricBranch(this, null)
+    override fun root(): Tree<Metric> {
+        return MetricTree(this, null)
     }
 }
 
-data class MetricBranch(val metric: MetricNode, val participant: ParticipantNode?) : Branch<Metric> {
+data class MetricTree(val metric: MetricNode, val participant: ParticipantNode?) : Tree<Metric> {
     override fun leaf(): Metric {
         return Metric(metric.key, metric.value)
     }
@@ -47,11 +47,11 @@ data class MetricBranch(val metric: MetricNode, val participant: ParticipantNode
         return leaf()
     }
 
-    override suspend fun subbranch(): Metric {
+    override suspend fun subtree(): Metric {
         return leaf()
     }
 
-    override suspend fun subbranch(depth: Int): Metric {
-        return subbranch()
+    override suspend fun subtree(depth: Int): Metric {
+        return subtree()
     }
 }

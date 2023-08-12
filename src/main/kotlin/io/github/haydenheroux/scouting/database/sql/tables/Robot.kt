@@ -1,8 +1,8 @@
 package io.github.haydenheroux.scouting.database.sql.tables
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
-import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
+import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Robot
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -12,7 +12,7 @@ object RobotTable : IntIdTable() {
     val name = varchar("name", 255)
 }
 
-data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Branch<Robot>, Robot> {
+data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Tree<Robot>, Robot> {
 
     companion object {
         fun from(robotRow: ResultRow): RobotNode {
@@ -24,18 +24,18 @@ data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Br
         }
     }
 
-    override suspend fun branch(): Branch<Robot> {
+    override suspend fun tree(): Tree<Robot> {
         val season = SQLDatabase.getSeasonById(seasonId).getOrNull()!!
 
-        return RobotBranch(this, season)
+        return RobotTree(this, season)
     }
 
-    override fun root(): Branch<Robot> {
-        return RobotBranch(this, null)
+    override fun root(): Tree<Robot> {
+        return RobotTree(this, null)
     }
 }
 
-data class RobotBranch(val robot: RobotNode, val season: SeasonNode?) : Branch<Robot> {
+data class RobotTree(val robot: RobotNode, val season: SeasonNode?) : Tree<Robot> {
     override fun leaf(): Robot {
         return Robot(robot.name)
     }
@@ -44,12 +44,12 @@ data class RobotBranch(val robot: RobotNode, val season: SeasonNode?) : Branch<R
         return leaf()
     }
 
-    override suspend fun subbranch(): Robot {
+    override suspend fun subtree(): Robot {
         return leaf()
     }
 
-    override suspend fun subbranch(depth: Int): Robot {
-        return subbranch()
+    override suspend fun subtree(depth: Int): Robot {
+        return subtree()
     }
 }
 

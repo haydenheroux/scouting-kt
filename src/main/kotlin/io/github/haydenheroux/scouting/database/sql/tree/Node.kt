@@ -1,7 +1,7 @@
 package io.github.haydenheroux.scouting.database.sql.tree
 
-interface Node<A : Branch<B>, B> {
-    suspend fun branch(): A
+interface Node<A : Tree<B>, B> {
+    suspend fun tree(): A
 
     fun root(): A
 }
