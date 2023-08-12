@@ -1,8 +1,8 @@
 package io.github.haydenheroux.scouting.routes
 
-import io.github.haydenheroux.scouting.database.sql.db
-import io.github.haydenheroux.scouting.models.team.seasonQuery
-import io.github.haydenheroux.scouting.models.team.teamQuery
+import io.github.haydenheroux.scouting.database.sql.SQLDatabase
+import io.github.haydenheroux.scouting.models.seasonQuery
+import io.github.haydenheroux.scouting.models.teamQuery
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.freemarker.*
@@ -12,7 +12,7 @@ import io.ktor.server.routing.*
 fun Route.teams() {
     route("/teams") {
         get {
-            db.getTeams().getOrNull()?.let { nodes ->
+            SQLDatabase.getTeams().getOrNull()?.let { nodes ->
                 val teams = nodes.map { node -> node.tree().leaf() }
 
                 call.respond(FreeMarkerContent("teams/teams.ftl", mapOf("teams" to teams)))
@@ -31,7 +31,7 @@ fun Route.teams() {
             val EVENTS_AND_MATCHES = 4
 
 
-            db.getTeamByQuery(teamQuery).getOrNull()?.let { node ->
+            SQLDatabase.getTeamByQuery(teamQuery).getOrNull()?.let { node ->
                 val team = node.branch().tree().subtree(EVENTS_ONLY)
 
                 call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
@@ -51,7 +51,7 @@ fun Route.teams() {
             val EVENTS_ONLY = 1
             val EVENTS_AND_MATCHES = 4
 
-            db.getSeasonByQuery(seasonQuery).getOrNull()?.let { node ->
+            SQLDatabase.getSeasonByQuery(seasonQuery).getOrNull()?.let { node ->
                 val team = node.parent().team.tree().leaf()
                 val season = node.branch().tree().subtree(EVENTS_AND_MATCHES)
 

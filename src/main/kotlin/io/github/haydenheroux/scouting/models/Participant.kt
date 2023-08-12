@@ -1,15 +1,11 @@
-package io.github.haydenheroux.scouting.models.match
+package io.github.haydenheroux.scouting.models
 
-import io.github.haydenheroux.scouting.database.sql.db
+import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Parent
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.enums.Alliance
-import io.github.haydenheroux.scouting.models.team.Team
-import io.github.haydenheroux.scouting.models.team.TeamQuery
-import io.github.haydenheroux.scouting.models.team.TeamTable
-import io.github.haydenheroux.scouting.models.team.teamQuery
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -35,14 +31,14 @@ data class ParticipantNode(val id: Int, val alliance: Alliance) :
     }
 
     override suspend fun parent(): Parent<Tree<Participant>, Participant> {
-        val match = db.getMatchByParticipant(this).getOrNull()!!
+        val match = SQLDatabase.getMatchByParticipant(this).getOrNull()!!
 
         return ParticipantParent(this, match)
     }
 
     override suspend fun branch(): Branch<Tree<Participant>, Participant> {
-        val team = db.getTeamByParticipant(this).getOrNull()!!
-        val metrics = db.getMetricsByParticipant(this).getOrNull()!!
+        val team = SQLDatabase.getTeamByParticipant(this).getOrNull()!!
+        val metrics = SQLDatabase.getMetricsByParticipant(this).getOrNull()!!
 
         return ParticipantBranch(this, team, metrics)
     }

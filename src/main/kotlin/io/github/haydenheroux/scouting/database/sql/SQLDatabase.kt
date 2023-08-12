@@ -1,16 +1,32 @@
 package io.github.haydenheroux.scouting.database.sql
 
 import io.github.haydenheroux.scouting.database.DatabaseInterface
-import io.github.haydenheroux.scouting.database.sql.SQLDatabase.query
-import io.github.haydenheroux.scouting.models.event.*
-import io.github.haydenheroux.scouting.models.match.*
-import io.github.haydenheroux.scouting.models.team.*
+import io.github.haydenheroux.scouting.models.*
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class SQLDatabaseImplementation : DatabaseInterface {
+object SQLDatabase : DatabaseInterface {
+    fun init() {
+        val url = "jdbc:sqlite:./build/db"
+        val driver = "org.sqlite.JDBC"
+        transaction(Database.connect(url, driver)) {
+            SchemaUtils.create(
+                TeamTable,
+                SeasonTable,
+                RobotTable,
+                ParticipantTable,
+                MetricTable,
+                MatchTable,
+                EventTable,
+                SeasonEventTable
+            )
+        }
+    }
+
+    private suspend fun <T> query(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
+
 
     override suspend fun getTeams(): Result<List<TeamNode>> {
         return runCatching {
@@ -511,28 +527,5 @@ class SQLDatabaseImplementation : DatabaseInterface {
 
         return Result.success(Unit)
     }
-}
 
-val db = SQLDatabaseImplementation()
-
-object SQLDatabase {
-    fun init() {
-        val url = "jdbc:sqlite:./build/db"
-        val driver = "org.sqlite.JDBC"
-        val database = Database.connect(url, driver)
-        transaction(database) {
-            SchemaUtils.create(
-                TeamTable,
-                SeasonTable,
-                RobotTable,
-                ParticipantTable,
-                MetricTable,
-                MatchTable,
-                EventTable,
-                SeasonEventTable
-            )
-        }
-    }
-
-    suspend fun <T> query(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
 }

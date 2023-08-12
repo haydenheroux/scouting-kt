@@ -1,13 +1,12 @@
-package io.github.haydenheroux.scouting.models.event
+package io.github.haydenheroux.scouting.models
 
-import io.github.haydenheroux.scouting.database.sql.db
+import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Parent
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.enums.regionOf
-import io.github.haydenheroux.scouting.models.match.Match
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -40,7 +39,7 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
     }
 
     override suspend fun branch(): Branch<Tree<Event>, Event> {
-        val match = db.getMatchesByEvent(this).getOrNull()!!
+        val match = SQLDatabase.getMatchesByEvent(this).getOrNull()!!
 
         return EventBranch(this, match)
     }

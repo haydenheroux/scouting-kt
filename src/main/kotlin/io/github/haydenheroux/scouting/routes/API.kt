@@ -1,13 +1,7 @@
 package io.github.haydenheroux.scouting.routes
 
-import io.github.haydenheroux.scouting.database.sql.db
-import io.github.haydenheroux.scouting.models.event.Event
-import io.github.haydenheroux.scouting.models.event.eventQuery
-import io.github.haydenheroux.scouting.models.match.Match
-import io.github.haydenheroux.scouting.models.match.Participant
-import io.github.haydenheroux.scouting.models.match.matchQuery
-import io.github.haydenheroux.scouting.models.match.participantQuery
-import io.github.haydenheroux.scouting.models.team.*
+import io.github.haydenheroux.scouting.database.sql.SQLDatabase
+import io.github.haydenheroux.scouting.models.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -17,7 +11,7 @@ import io.ktor.server.routing.*
 fun Route.api() {
     route("/api") {
         get("/get-teams") {
-            val teams = db.getTeams().getOrNull()
+            val teams = SQLDatabase.getTeams().getOrNull()
 
             if (teams == null) {
                 call.respond(HttpStatusCode.InternalServerError)
@@ -35,7 +29,7 @@ fun Route.api() {
                 return@get
             }
 
-            val team = db.getTeamByQuery(teamQuery).getOrNull()
+            val team = SQLDatabase.getTeamByQuery(teamQuery).getOrNull()
 
             if (team == null) {
                 call.respond(HttpStatusCode.NotFound)
@@ -53,7 +47,7 @@ fun Route.api() {
                 return@get
             }
 
-            val season = db.getSeasonByQuery(seasonQuery).getOrNull()
+            val season = SQLDatabase.getSeasonByQuery(seasonQuery).getOrNull()
 
             if (season == null) {
                 call.respond(HttpStatusCode.NotFound)
@@ -71,7 +65,7 @@ fun Route.api() {
                 return@get
             }
 
-            val robot = db.getRobotByQuery(robotQuery).getOrNull()
+            val robot = SQLDatabase.getRobotByQuery(robotQuery).getOrNull()
 
             if (robot == null) {
                 call.respond(HttpStatusCode.NotFound)
@@ -82,7 +76,7 @@ fun Route.api() {
         }
 
         get("/get-events") {
-            val events = db.getEvents().getOrNull()
+            val events = SQLDatabase.getEvents().getOrNull()
 
             if (events == null) {
                 call.respond(HttpStatusCode.InternalServerError)
@@ -100,7 +94,7 @@ fun Route.api() {
                 return@get
             }
 
-            val event = db.getEventByQuery(eventQuery).getOrNull()
+            val event = SQLDatabase.getEventByQuery(eventQuery).getOrNull()
 
             if (event == null) {
                 call.respond(HttpStatusCode.NotFound)
@@ -118,7 +112,7 @@ fun Route.api() {
                 return@get
             }
 
-            val match = db.getMatchByQuery(matchQuery).getOrNull()
+            val match = SQLDatabase.getMatchByQuery(matchQuery).getOrNull()
 
             if (match == null) {
                 call.respond(HttpStatusCode.NotFound)
@@ -136,7 +130,7 @@ fun Route.api() {
                 return@get
             }
 
-            val participant = db.getParticipantByQuery(participantQuery).getOrNull()
+            val participant = SQLDatabase.getParticipantByQuery(participantQuery).getOrNull()
 
             if (participant == null) {
                 call.respond(HttpStatusCode.NotFound)
@@ -149,7 +143,7 @@ fun Route.api() {
         post("/new-team") {
             val team = call.receive<Team>()
 
-            db.insertTeam(team).getOrNull()?.let {
+            SQLDatabase.insertTeam(team).getOrNull()?.let {
                 call.respond(HttpStatusCode.OK)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
@@ -166,7 +160,7 @@ fun Route.api() {
                 return@post
             }
 
-            db.insertSeason(season, teamQuery).getOrNull()?.let {
+            SQLDatabase.insertSeason(season, teamQuery).getOrNull()?.let {
                 call.respond(HttpStatusCode.OK)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
@@ -183,7 +177,7 @@ fun Route.api() {
                 return@post
             }
 
-            db.insertRobot(robot, seasonQuery).getOrNull()?.let {
+            SQLDatabase.insertRobot(robot, seasonQuery).getOrNull()?.let {
                 call.respond(HttpStatusCode.OK)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
@@ -199,7 +193,7 @@ fun Route.api() {
                 return@post
             }
 
-            db.insertSeasonEvent(eventQuery, seasonQuery).getOrNull()?.let {
+            SQLDatabase.insertSeasonEvent(eventQuery, seasonQuery).getOrNull()?.let {
                 call.respond(HttpStatusCode.OK)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
@@ -209,7 +203,7 @@ fun Route.api() {
         post("/new-event") {
             val event = call.receive<Event>()
 
-            db.insertEvent(event).getOrNull()?.let {
+            SQLDatabase.insertEvent(event).getOrNull()?.let {
                 call.respond(HttpStatusCode.OK)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
@@ -228,7 +222,7 @@ fun Route.api() {
                 return@post
             }
 
-            db.insertMatch(match, eventQuery).getOrNull()?.let {
+            SQLDatabase.insertMatch(match, eventQuery).getOrNull()?.let {
                 call.respond(HttpStatusCode.OK)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
@@ -246,7 +240,7 @@ fun Route.api() {
                 return@post
             }
 
-            db.insertParticipant(participant, teamQuery, matchQuery).getOrNull()?.let {
+            SQLDatabase.insertParticipant(participant, teamQuery, matchQuery).getOrNull()?.let {
                 call.respond(HttpStatusCode.OK)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)

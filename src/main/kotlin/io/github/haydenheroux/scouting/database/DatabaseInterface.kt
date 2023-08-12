@@ -1,10 +1,6 @@
 package io.github.haydenheroux.scouting.database
 
-import io.github.haydenheroux.scouting.models.event.Event
-import io.github.haydenheroux.scouting.models.event.EventNode
-import io.github.haydenheroux.scouting.models.event.EventQuery
-import io.github.haydenheroux.scouting.models.match.*
-import io.github.haydenheroux.scouting.models.team.*
+import io.github.haydenheroux.scouting.models.*
 
 interface DatabaseInterface {
     suspend fun getTeams(): Result<List<TeamNode>>

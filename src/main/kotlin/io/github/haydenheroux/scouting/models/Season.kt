@@ -1,13 +1,10 @@
-package io.github.haydenheroux.scouting.models.team
+package io.github.haydenheroux.scouting.models
 
-import io.github.haydenheroux.scouting.database.sql.db
+import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Parent
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
-import io.github.haydenheroux.scouting.models.event.Event
-import io.github.haydenheroux.scouting.models.event.EventNode
-import io.github.haydenheroux.scouting.models.event.EventTable
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -38,14 +35,14 @@ data class SeasonNode(val id: Int, val year: Int) : Node<Tree<Season>, Season> {
     }
 
     override suspend fun parent(): SeasonParent {
-        val team = db.getTeamBySeason(this).getOrNull()!!
+        val team = SQLDatabase.getTeamBySeason(this).getOrNull()!!
 
         return SeasonParent(this, team)
     }
 
     override suspend fun branch(): Branch<Tree<Season>, Season> {
-        val robots = db.getRobotsBySeason(this).getOrNull()!!
-        val events = db.getEventsBySeason(this).getOrNull()!!
+        val robots = SQLDatabase.getRobotsBySeason(this).getOrNull()!!
+        val events = SQLDatabase.getEventsBySeason(this).getOrNull()!!
 
         return SeasonBranch(this, robots, events)
     }

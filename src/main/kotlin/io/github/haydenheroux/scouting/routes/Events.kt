@@ -1,8 +1,8 @@
 package io.github.haydenheroux.scouting.routes
 
-import io.github.haydenheroux.scouting.database.sql.db
-import io.github.haydenheroux.scouting.models.event.eventQuery
-import io.github.haydenheroux.scouting.models.match.matchQuery
+import io.github.haydenheroux.scouting.database.sql.SQLDatabase
+import io.github.haydenheroux.scouting.models.eventQuery
+import io.github.haydenheroux.scouting.models.matchQuery
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.freemarker.*
@@ -12,7 +12,7 @@ import io.ktor.server.routing.*
 fun Route.events() {
     route("/events") {
         get {
-            db.getEvents().getOrNull()?.let { nodes ->
+            SQLDatabase.getEvents().getOrNull()?.let { nodes ->
                 val events = nodes.map { node -> node.tree().leaf() }
 
                 call.respond(FreeMarkerContent("events/events.ftl", mapOf("events" to events)))
@@ -33,7 +33,7 @@ fun Route.events() {
             // TODO Store team number on Participant to avoid getting .metrics along with .team
             val MATCHES_AND_TEAMS = 3
 
-            db.getEventByQuery(eventQuery).getOrNull()?.let { node ->
+            SQLDatabase.getEventByQuery(eventQuery).getOrNull()?.let { node ->
                 val event = node.branch().tree().subtree(MATCHES_AND_TEAMS)
 
                 call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
@@ -53,7 +53,7 @@ fun Route.events() {
             // TODO = 3 bug, long wait time, cycle?
             val TEAM_AND_METRICS = 2
 
-            db.getMatchByQuery(matchQuery).getOrNull()?.let { node ->
+            SQLDatabase.getMatchByQuery(matchQuery).getOrNull()?.let { node ->
                 val event = node.parent().event.branch().tree().leaf()
                 val match = node.branch().tree().subtree(TEAM_AND_METRICS)
 

@@ -1,6 +1,6 @@
-package io.github.haydenheroux.scouting.models.team
+package io.github.haydenheroux.scouting.models
 
-import io.github.haydenheroux.scouting.database.sql.db
+import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Parent
@@ -35,7 +35,7 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
     }
 
     override suspend fun branch(): Branch<Tree<Team>, Team> {
-        val seasons = db.getSeasonsByTeam(this).getOrNull()!!
+        val seasons = SQLDatabase.getSeasonsByTeam(this).getOrNull()!!
 
         return TeamBranch(this, seasons)
     }

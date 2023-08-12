@@ -1,6 +1,6 @@
-package io.github.haydenheroux.scouting.models.match
+package io.github.haydenheroux.scouting.models
 
-import io.github.haydenheroux.scouting.database.sql.db
+import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Parent
@@ -28,7 +28,7 @@ data class MetricNode(val id: Int, val key: String, val value: String) : Node<Tr
     }
 
     override suspend fun parent(): Parent<Tree<Metric>, Metric> {
-        val participant = db.getParticipantByMetric(this).getOrNull()!!
+        val participant = SQLDatabase.getParticipantByMetric(this).getOrNull()!!
 
         return MetricParent(this, participant)
     }

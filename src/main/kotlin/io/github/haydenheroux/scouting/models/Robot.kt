@@ -1,6 +1,6 @@
-package io.github.haydenheroux.scouting.models.team
+package io.github.haydenheroux.scouting.models
 
-import io.github.haydenheroux.scouting.database.sql.db
+import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Branch
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Parent
@@ -27,7 +27,7 @@ data class RobotNode(val id: Int, val name: String) : Node<Tree<Robot>, Robot> {
     }
 
     override suspend fun parent(): Parent<Tree<Robot>, Robot> {
-        val season = db.getSeasonByRobot(this).getOrNull()!!
+        val season = SQLDatabase.getSeasonByRobot(this).getOrNull()!!
 
         return RobotParent(this, season)
     }
