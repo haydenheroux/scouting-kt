@@ -79,6 +79,12 @@ interface DatabaseInterface {
 
     suspend fun getEventsSimple(): Result<List<Event>>
 
+    suspend fun getEvent(eventQuery: EventQuery): Result<Event>
+
+    suspend fun getEventWithMatches(eventQuery: EventQuery): Result<Event>
+
+    suspend fun getEventWithParticipants(eventQuery: EventQuery): Result<Event>
+
 
     suspend fun insertMatch(match: Match, eventQuery: EventQuery): Result<Unit>
 

@@ -305,10 +305,40 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun getEventByQuery(eventQuery: EventQuery): Result<EventNode> {
+    private suspend fun getEventNode(eventQuery: EventQuery): Result<EventNode> {
         return runCatching {
             val eventRow = getEventRow(eventQuery)!!
             EventNode.from(eventRow)
+        }
+    }
+
+    override suspend fun getEvent(eventQuery: EventQuery): Result<Event> {
+        val eventNodeResult = getEventNode(eventQuery)
+
+        eventNodeResult.getOrNull()?.let { eventNode ->
+            return Result.success(eventNode.branch().tree().subtree())
+        } ?: run {
+            return Result.failure(eventNodeResult.exceptionOrNull()!!)
+        }
+    }
+
+    override suspend fun getEventWithMatches(eventQuery: EventQuery): Result<Event> {
+        val eventNodeResult = getEventNode(eventQuery)
+
+        eventNodeResult.getOrNull()?.let { eventNode ->
+            return Result.success(eventNode.branch().tree().subtree(1))
+        } ?: run {
+            return Result.failure(eventNodeResult.exceptionOrNull()!!)
+        }
+    }
+
+    override suspend fun getEventWithParticipants(eventQuery: EventQuery): Result<Event> {
+        val eventNodeResult = getEventNode(eventQuery)
+
+        eventNodeResult.getOrNull()?.let { eventNode ->
+            return Result.success(eventNode.branch().tree().subtree(3))
+        } ?: run {
+            return Result.failure(eventNodeResult.exceptionOrNull()!!)
         }
     }
 

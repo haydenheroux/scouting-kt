@@ -27,13 +27,7 @@ fun Route.events() {
                 return@get
             }
 
-            val MATCHES_ONLY = 1
-            // TODO Store team number on Participant to avoid getting .metrics along with .team
-            val MATCHES_AND_TEAMS = 3
-
-            SQLDatabase.getEventByQuery(eventQuery).getOrNull()?.let { node ->
-                val event = node.branch().tree().subtree(MATCHES_AND_TEAMS)
-
+            SQLDatabase.getEventWithParticipants(eventQuery).getOrNull()?.let { event ->
                 call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
             } ?: run {
                 call.respond(HttpStatusCode.NotFound)

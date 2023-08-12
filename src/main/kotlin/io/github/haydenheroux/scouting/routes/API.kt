@@ -94,14 +94,14 @@ fun Route.api() {
                 return@get
             }
 
-            val event = SQLDatabase.getEventByQuery(eventQuery).getOrNull()
+            val event = SQLDatabase.getEvent(eventQuery).getOrNull()
 
             if (event == null) {
                 call.respond(HttpStatusCode.NotFound)
                 return@get
             }
 
-            call.respond(event.branch().tree().subtree())
+            call.respond(event)
         }
 
         get("/get-match") {
