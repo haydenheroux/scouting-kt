@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.database.sql
 
 import io.github.haydenheroux.scouting.database.DatabaseInterface
+import io.github.haydenheroux.scouting.database.sql.tables.*
 import io.github.haydenheroux.scouting.models.*
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*

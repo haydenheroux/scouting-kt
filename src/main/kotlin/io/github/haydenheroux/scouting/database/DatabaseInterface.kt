@@ -1,5 +1,6 @@
 package io.github.haydenheroux.scouting.database
 
+import io.github.haydenheroux.scouting.database.sql.tables.*
 import io.github.haydenheroux.scouting.models.*
 
 interface DatabaseInterface {

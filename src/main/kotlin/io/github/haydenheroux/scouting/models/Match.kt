@@ -1,107 +1,12 @@
 package io.github.haydenheroux.scouting.models
 
-import io.github.haydenheroux.scouting.database.sql.SQLDatabase
-import io.github.haydenheroux.scouting.database.sql.tree.Branch
-import io.github.haydenheroux.scouting.database.sql.tree.Node
-import io.github.haydenheroux.scouting.database.sql.tree.Parent
-import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.enums.MatchType
 import io.github.haydenheroux.scouting.models.enums.matchTypeOf
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.ResultRow
-
-object MatchTable : IntIdTable() {
-    val eventId = reference("eventId", EventTable)
-    val set = integer("set")
-    val number = integer("number")
-    val type = enumerationByName<MatchType>("type", 255)
-}
-
-data class MatchNode(val id: Int, val set: Int, val number: Int, val type: MatchType) : Node<Tree<Match>, Match> {
-
-    companion object {
-        fun from(matchRow: ResultRow): MatchNode {
-            return MatchNode(
-                matchRow[MatchTable.id].value,
-                matchRow[MatchTable.set],
-                matchRow[MatchTable.number],
-                matchRow[MatchTable.type]
-            )
-        }
-    }
-
-    override suspend fun parent(): MatchParent {
-        val event = SQLDatabase.getEventByMatch(this).getOrNull()!!
-
-        return MatchParent(this, event)
-    }
-
-    override suspend fun branch(): Branch<Tree<Match>, Match> {
-        val participants = SQLDatabase.getParticipantsByMatch(this).getOrNull()!!
-
-        return MatchBranch(this, participants)
-    }
-
-    override fun tree(): Tree<Match> {
-        return MatchTree(this, emptyList())
-    }
-}
-
-data class MatchParent(val match: MatchNode, val event: EventNode) : Parent<Tree<Match>, Match> {
-    override suspend fun branch(): Branch<Tree<Match>, Match> {
-        return match.branch()
-    }
-
-    override fun tree(): Tree<Match> {
-        return match.tree()
-    }
-}
-
-data class MatchBranch(val match: MatchNode, val participants: List<ParticipantNode>) : Branch<Tree<Match>, Match> {
-    override suspend fun parent(): Parent<Tree<Match>, Match> {
-        return match.parent()
-    }
-
-    override suspend fun tree(): Tree<Match> {
-        val participants = participants.map { it.branch() }
-
-        return MatchTree(match, participants)
-    }
-}
-
-data class MatchTree(val match: MatchNode, val participants: List<Branch<Tree<Participant>, Participant>>) :
-    Tree<Match> {
-    override fun leaf(): Match {
-        return Match(match.set, match.number, match.type, emptyList())
-    }
-
-    override suspend fun leaves(): Match {
-        val participants = participants.map { participant -> participant.tree().leaf() }
-
-        return Match(match.set, match.number, match.type, participants)
-    }
-
-    override suspend fun subtree(): Match {
-        val participants = participants.map { participant -> participant.tree().subtree() }
-
-        return Match(match.set, match.number, match.type, participants)
-    }
-
-    override suspend fun subtree(depth: Int): Match {
-        if (depth == 0) return leaf()
-        if (depth == 1) return leaves()
-
-        val participants = participants.map { participant -> participant.tree().subtree(depth - 1) }
-
-        return Match(match.set, match.number, match.type, participants)
-    }
-}
 
 @Serializable
 data class Match(val set: Int, val number: Int, val type: MatchType, val participants: List<Participant>)
-
 data class MatchQuery(val set: Int, val number: Int, val type: MatchType, val event: EventQuery)
 
 fun matchQueryOf(match: Match, eventQuery: EventQuery): MatchQuery {
