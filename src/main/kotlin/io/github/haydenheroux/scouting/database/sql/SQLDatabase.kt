@@ -1,13 +1,16 @@
-package io.github.haydenheroux.scouting.database
+package io.github.haydenheroux.scouting.database.sql
 
-import io.github.haydenheroux.scouting.database.Database.query
+import io.github.haydenheroux.scouting.database.DatabaseInterface
+import io.github.haydenheroux.scouting.database.sql.SQLDatabase.query
 import io.github.haydenheroux.scouting.models.event.*
 import io.github.haydenheroux.scouting.models.match.*
 import io.github.haydenheroux.scouting.models.team.*
+import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class DatabaseImplementation : DatabaseInterface {
+class SQLDatabaseImplementation : DatabaseInterface {
 
     override suspend fun getTeams(): Result<List<TeamNode>> {
         return runCatching {
@@ -510,4 +513,26 @@ class DatabaseImplementation : DatabaseInterface {
     }
 }
 
-val db = DatabaseImplementation()
+val db = SQLDatabaseImplementation()
+
+object SQLDatabase {
+    fun init() {
+        val url = "jdbc:sqlite:./build/db"
+        val driver = "org.sqlite.JDBC"
+        val database = Database.connect(url, driver)
+        transaction(database) {
+            SchemaUtils.create(
+                TeamTable,
+                SeasonTable,
+                RobotTable,
+                ParticipantTable,
+                MetricTable,
+                MatchTable,
+                EventTable,
+                SeasonEventTable
+            )
+        }
+    }
+
+    suspend fun <T> query(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
+}

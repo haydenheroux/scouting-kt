@@ -1,12 +1,12 @@
 package io.github.haydenheroux.scouting.models.event
 
-import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.database.sql.db
+import io.github.haydenheroux.scouting.database.sql.tree.Branch
+import io.github.haydenheroux.scouting.database.sql.tree.Node
+import io.github.haydenheroux.scouting.database.sql.tree.Parent
+import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.enums.Region
 import io.github.haydenheroux.scouting.models.enums.regionOf
-import io.github.haydenheroux.scouting.models.interfaces.Branch
-import io.github.haydenheroux.scouting.models.interfaces.Node
-import io.github.haydenheroux.scouting.models.interfaces.Parent
-import io.github.haydenheroux.scouting.models.interfaces.Tree
 import io.github.haydenheroux.scouting.models.match.Match
 import io.ktor.http.*
 import kotlinx.serialization.Serializable

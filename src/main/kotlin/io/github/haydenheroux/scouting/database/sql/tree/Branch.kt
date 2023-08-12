@@ -1,4 +1,4 @@
-package io.github.haydenheroux.scouting.models.interfaces
+package io.github.haydenheroux.scouting.database.sql.tree
 
 interface Branch<A : Tree<B>, B> {
     suspend fun parent(): Parent<A, B>?

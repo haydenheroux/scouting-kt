@@ -1,4 +1,4 @@
-package io.github.haydenheroux.scouting.models.interfaces
+package io.github.haydenheroux.scouting.database.sql.tree
 
 interface Tree<T> {
     fun leaf(): T

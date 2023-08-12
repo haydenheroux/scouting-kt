@@ -1,6 +1,6 @@
 package io.github.haydenheroux.scouting.routes
 
-import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.database.sql.db
 import io.github.haydenheroux.scouting.models.team.seasonQuery
 import io.github.haydenheroux.scouting.models.team.teamQuery
 import io.ktor.http.*

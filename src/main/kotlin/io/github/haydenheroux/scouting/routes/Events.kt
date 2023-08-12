@@ -1,6 +1,6 @@
 package io.github.haydenheroux.scouting.routes
 
-import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.database.sql.db
 import io.github.haydenheroux.scouting.models.event.eventQuery
 import io.github.haydenheroux.scouting.models.match.matchQuery
 import io.ktor.http.*

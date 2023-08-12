@@ -1,11 +1,11 @@
 package io.github.haydenheroux.scouting.models.match
 
-import io.github.haydenheroux.scouting.database.db
+import io.github.haydenheroux.scouting.database.sql.db
+import io.github.haydenheroux.scouting.database.sql.tree.Branch
+import io.github.haydenheroux.scouting.database.sql.tree.Node
+import io.github.haydenheroux.scouting.database.sql.tree.Parent
+import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.enums.Alliance
-import io.github.haydenheroux.scouting.models.interfaces.Branch
-import io.github.haydenheroux.scouting.models.interfaces.Node
-import io.github.haydenheroux.scouting.models.interfaces.Parent
-import io.github.haydenheroux.scouting.models.interfaces.Tree
 import io.github.haydenheroux.scouting.models.team.Team
 import io.github.haydenheroux.scouting.models.team.TeamQuery
 import io.github.haydenheroux.scouting.models.team.TeamTable
