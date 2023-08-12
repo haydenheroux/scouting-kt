@@ -381,6 +381,23 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
+    private suspend fun getMetricId(metricQuery: MetricQuery): Int {
+        return getMetricRow(metricQuery)!![ParticipantTable.id].value
+    }
+
+    override suspend fun metricExists(metricQuery: MetricQuery): Boolean {
+        return getMetricRow(metricQuery)?.let { true } ?: false
+    }
+
+    private suspend fun getMetricRow(metricQuery: MetricQuery): ResultRow? {
+        val participantId = getParticipantId(metricQuery.participantQuery)
+
+        return query {
+            MetricTable.select { (MetricTable.key eq metricQuery.key) and (MetricTable.participantId eq participantId) }
+                .singleOrNull()
+        }
+    }
+
     override suspend fun insertTeam(team: Team): Result<Unit> {
         val teamQuery = teamQueryOf(team)
 
@@ -531,19 +548,15 @@ object SQLDatabase : DatabaseInterface {
         val matchId = getMatchId(matchQuery)
 
         transaction {
-            val participantId = ParticipantTable.insertAndGetId {
+            ParticipantTable.insert {
                 it[this.matchId] = matchId
                 it[this.teamId] = teamId
                 it[alliance] = participant.alliance
             }
+        }
 
-            for (metric in participant.metrics) {
-                MetricTable.insert {
-                    it[MetricTable.participantId] = participantId
-                    it[key] = metric.key
-                    it[value] = metric.value
-                }
-            }
+        for (metric in participant.metrics) {
+            insertMetric(metric, participantQuery)
         }
 
         return Result.success(Unit)
@@ -558,4 +571,23 @@ object SQLDatabase : DatabaseInterface {
         )
     }
 
+    override suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Result<Unit> {
+        val participantId = getParticipantId(participantQuery)
+
+        if (metricExists(MetricQuery(metric.key, participantQuery))) return Result.failure(Exception("Metric exists"))
+
+        transaction {
+            MetricTable.insert {
+                it[MetricTable.participantId] = participantId
+                it[key] = metric.key
+                it[value] = metric.value
+            }
+        }
+
+        return Result.success(Unit)
+    }
+
+    override suspend fun metricExists(metric: Metric, participant: Participant, match: Match, event: Event): Boolean {
+        return metricExists(metricQueryOf(metric, participant.team!!, match, event))
+    }
 }

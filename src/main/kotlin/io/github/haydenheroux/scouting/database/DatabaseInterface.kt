@@ -93,4 +93,10 @@ interface DatabaseInterface {
     suspend fun participantExists(participantQuery: ParticipantQuery): Boolean
 
     suspend fun participantExists(participant: Participant, match: Match, event: Event): Boolean
+
+    suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Result<Unit>
+
+    suspend fun metricExists(metricQuery: MetricQuery): Boolean
+
+    suspend fun metricExists(metric: Metric, participant: Participant, match: Match, event: Event): Boolean
 }
