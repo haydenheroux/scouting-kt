@@ -1,22 +1,8 @@
 package io.github.haydenheroux.scouting.database
 
-import io.github.haydenheroux.scouting.database.sql.tables.MatchNode
-import io.github.haydenheroux.scouting.database.sql.tables.MetricNode
-import io.github.haydenheroux.scouting.database.sql.tables.ParticipantNode
 import io.github.haydenheroux.scouting.models.*
 
 interface DatabaseInterface {
-    suspend fun getParticipantsByMatch(matchData: MatchNode): Result<List<ParticipantNode>>
-
-    suspend fun getParticipantByQuery(participantQuery: ParticipantQuery): Result<ParticipantNode>
-
-    suspend fun getParticipantByMetric(metricData: MetricNode): Result<ParticipantNode>
-
-    suspend fun getParticipantById(participantId: Int): Result<ParticipantNode>
-
-    suspend fun getMetricsByParticipant(participantData: ParticipantNode): Result<List<MetricNode>>
-
-
     suspend fun insertTeam(team: Team): Result<Unit>
 
     suspend fun teamExists(teamQuery: TeamQuery): Boolean
@@ -91,6 +77,9 @@ interface DatabaseInterface {
     suspend fun participantExists(participantQuery: ParticipantQuery): Boolean
 
     suspend fun participantExists(participant: Participant, match: Match, event: Event): Boolean
+
+    suspend fun getParticipant(participantQuery: ParticipantQuery): Result<Participant>
+
 
     suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Result<Unit>
 

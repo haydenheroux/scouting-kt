@@ -473,14 +473,14 @@ object SQLDatabase : DatabaseInterface {
         return getMatchRow(matchQuery)?.let { true } ?: false
     }
 
-    override suspend fun getParticipantByQuery(participantQuery: ParticipantQuery): Result<ParticipantNode> {
+    override suspend fun getParticipant(participantQuery: ParticipantQuery): Result<Participant> {
         return runCatching {
             val participantRow = getParticipantRow(participantQuery)!!
-            ParticipantNode.from(participantRow)
+            ParticipantNode.from(participantRow).branch().tree().subtree()
         }
     }
 
-    override suspend fun getParticipantByMetric(metricData: MetricNode): Result<ParticipantNode> {
+    suspend fun getParticipantByMetric(metricData: MetricNode): Result<ParticipantNode> {
         return query {
             val metricRow = MetricTable.select { MetricTable.id eq metricData.id }.single()
             val participantId = metricRow[MetricTable.participantId].value
@@ -489,14 +489,14 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    override suspend fun getParticipantById(participantId: Int): Result<ParticipantNode> {
+    private suspend fun getParticipantById(participantId: Int): Result<ParticipantNode> {
         return runCatching {
             val participantRow = getParticipantRow(participantId)!!
             ParticipantNode.from(participantRow)
         }
     }
 
-    override suspend fun getParticipantsByMatch(matchData: MatchNode): Result<List<ParticipantNode>> {
+    suspend fun getParticipantsByMatch(matchData: MatchNode): Result<List<ParticipantNode>> {
         return runCatching {
             query {
                 ParticipantTable.select { ParticipantTable.matchId eq matchData.id }
@@ -529,7 +529,7 @@ object SQLDatabase : DatabaseInterface {
         return getParticipantRow(participantQuery)?.let { true } ?: false
     }
 
-    override suspend fun getMetricsByParticipant(participantData: ParticipantNode): Result<List<MetricNode>> {
+    suspend fun getMetricsByParticipant(participantData: ParticipantNode): Result<List<MetricNode>> {
         return runCatching {
             query {
                 MetricTable.select { MetricTable.participantId eq participantData.id }

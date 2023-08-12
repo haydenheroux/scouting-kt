@@ -130,14 +130,14 @@ fun Route.api() {
                 return@get
             }
 
-            val participant = SQLDatabase.getParticipantByQuery(participantQuery).getOrNull()
+            val participant = SQLDatabase.getParticipant(participantQuery).getOrNull()
 
             if (participant == null) {
                 call.respond(HttpStatusCode.NotFound)
                 return@get
             }
 
-            call.respond(participant.branch().tree().subtree())
+            call.respond(participant)
         }
 
         post("/new-team") {
