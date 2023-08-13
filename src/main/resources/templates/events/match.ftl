@@ -20,7 +20,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                <#list participant.metrics as metric>
+                <#list participant.metrics?sort_by("key") as metric>
                     <tr>
                         <td>${metric.key}</td>
                         <td>${metric.value}</td>
