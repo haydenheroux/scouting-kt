@@ -160,7 +160,7 @@ object SQLDatabase : DatabaseInterface {
 
         seasonNodeResult.getOrNull()?.let { seasonNode ->
             val seasonBranch = seasonNode.tree(true)
-            val season = seasonBranch.subtree(4)
+            val season = seasonBranch.subtree(3)
             val team = seasonBranch.team!!.leaf()
             return Result.success(Pair(season, team))
         } ?: run {
