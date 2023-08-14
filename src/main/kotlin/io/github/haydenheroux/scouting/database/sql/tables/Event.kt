@@ -4,6 +4,7 @@ import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Event
+import io.github.haydenheroux.scouting.models.Match
 import io.github.haydenheroux.scouting.models.enums.Region
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -37,7 +38,7 @@ data class EventNode(val id: Int, val name: String, val region: Region, val year
     }
 
     override fun leaf(): Event {
-        return Event(name, region, year, week, emptyList())
+        return createEvent(this, emptyList())
     }
 }
 
@@ -45,13 +46,13 @@ data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<
     override suspend fun leaves(): Event {
         val matches = matches.map { match -> match.leaf() }
 
-        return Event(event.name, event.region, event.year, event.week, matches)
+        return createEvent(event, matches)
     }
 
     override suspend fun subtree(): Event {
         val matches = matches.map { match -> match.tree(false).subtree() }
 
-        return Event(event.name, event.region, event.year, event.week, matches)
+        return createEvent(event, matches)
     }
 
     override suspend fun subtree(depth: Int): Event {
@@ -60,7 +61,10 @@ data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<
 
         val matches = matches.map { match -> match.tree(false).subtree(depth - 1) }
 
-        return Event(event.name, event.region, event.year, event.week, matches)
+        return createEvent(event, matches)
     }
 }
 
+fun createEvent(event: EventNode, matches: List<Match>): Event {
+    return Event(event.name, event.region, event.year, event.week, matches)
+}

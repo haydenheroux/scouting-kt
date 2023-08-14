@@ -3,6 +3,8 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
+import io.github.haydenheroux.scouting.models.Event
+import io.github.haydenheroux.scouting.models.Robot
 import io.github.haydenheroux.scouting.models.Season
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -41,7 +43,7 @@ data class SeasonNode(val id: Int, val teamId: Int, val year: Int) : Node<Tree<S
     }
 
     override fun leaf(): Season {
-        return Season(year, emptyList(), emptyList())
+        return createSeason(this, emptyList(), emptyList())
     }
 }
 
@@ -55,14 +57,14 @@ data class SeasonTree(
         val robots = robots.map { robot -> robot.leaf() }
         val events = events.map { event -> event.leaf() }
 
-        return Season(season.year, robots, events)
+        return createSeason(season, robots, events)
     }
 
     override suspend fun subtree(): Season {
         val robots = robots.map { robot -> robot.tree(false).subtree() }
         val events = events.map { event -> event.tree(false).subtree() }
 
-        return Season(season.year, robots, events)
+        return createSeason(season, robots, events)
     }
 
     override suspend fun subtree(depth: Int): Season {
@@ -72,7 +74,10 @@ data class SeasonTree(
         val robots = robots.map { robot -> robot.tree(false).subtree(depth - 1) }
         val events = events.map { event -> event.tree(false).subtree(depth - 1) }
 
-        return Season(season.year, robots, events)
+        return createSeason(season, robots, events)
     }
 }
 
+fun createSeason(season: SeasonNode, robots: List<Robot>, events: List<Event>): Season {
+    return Season(season.year, robots, events)
+}

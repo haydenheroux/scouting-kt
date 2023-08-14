@@ -4,6 +4,7 @@ import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.models.Match
+import io.github.haydenheroux.scouting.models.Participant
 import io.github.haydenheroux.scouting.models.enums.MatchType
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -37,7 +38,7 @@ data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: In
     }
 
     override fun leaf(): Match {
-        return Match(set, number, type, emptyList())
+        return createMatch(this, emptyList())
     }
 }
 
@@ -46,13 +47,13 @@ data class MatchTree(val match: MatchNode, val event: EventNode?, val participan
     override suspend fun leaves(): Match {
         val participants = participants.map { participant -> participant.leaf() }
 
-        return Match(match.set, match.number, match.type, participants)
+        return createMatch(match, participants)
     }
 
     override suspend fun subtree(): Match {
         val participants = participants.map { participant -> participant.tree(false).subtree() }
 
-        return Match(match.set, match.number, match.type, participants)
+        return createMatch(match, participants)
     }
 
     override suspend fun subtree(depth: Int): Match {
@@ -61,7 +62,10 @@ data class MatchTree(val match: MatchNode, val event: EventNode?, val participan
 
         val participants = participants.map { participant -> participant.tree(false).subtree(depth - 1) }
 
-        return Match(match.set, match.number, match.type, participants)
+        return createMatch(match, participants)
     }
 }
 
+fun createMatch(match: MatchNode, participants: List<Participant>): Match {
+    return Match(match.set, match.number, match.type, participants)
+}

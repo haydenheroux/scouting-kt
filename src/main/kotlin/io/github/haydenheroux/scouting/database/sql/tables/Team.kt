@@ -3,6 +3,7 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
+import io.github.haydenheroux.scouting.models.Season
 import io.github.haydenheroux.scouting.models.Team
 import io.github.haydenheroux.scouting.models.enums.Region
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -34,7 +35,7 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
     }
 
     override fun leaf(): Team {
-        return Team(number, name, region, emptyList())
+        return createTeam(this, emptyList())
     }
 }
 
@@ -42,13 +43,13 @@ data class TeamTree(val team: TeamNode, val seasons: List<SeasonNode>) : Tree<Te
     override suspend fun leaves(): Team {
         val seasons = seasons.map { season -> season.leaf() }
 
-        return Team(team.number, team.name, team.region, seasons)
+        return createTeam(team, seasons)
     }
 
     override suspend fun subtree(): Team {
         val seasons = seasons.map { season -> season.tree(false).subtree() }
 
-        return Team(team.number, team.name, team.region, seasons)
+        return createTeam(team, seasons)
     }
 
     override suspend fun subtree(depth: Int): Team {
@@ -57,7 +58,10 @@ data class TeamTree(val team: TeamNode, val seasons: List<SeasonNode>) : Tree<Te
 
         val seasons = seasons.map { season -> season.tree(false).subtree(depth - 1) }
 
-        return Team(team.number, team.name, team.region, seasons)
+        return createTeam(team, seasons)
     }
 }
 
+fun createTeam(team: TeamNode, seasons: List<Season>): Team {
+    return Team(team.number, team.name, team.region, seasons)
+}

@@ -31,7 +31,7 @@ data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Tr
     }
 
     override fun leaf(): Robot {
-        return Robot(name)
+        return createRobot(this)
     }
 }
 
@@ -49,3 +49,6 @@ data class RobotTree(val robot: RobotNode, val season: SeasonNode?) : Tree<Robot
     }
 }
 
+fun createRobot(robot: RobotNode): Robot {
+    return Robot(robot.name)
+}

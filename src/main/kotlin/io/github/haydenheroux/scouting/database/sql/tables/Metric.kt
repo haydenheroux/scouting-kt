@@ -34,7 +34,7 @@ data class MetricNode(val id: Int, val participantId: Int, val key: String, val 
     }
 
     override fun leaf(): Metric {
-        return Metric(key, value)
+        return createMetric(this)
     }
 }
 
@@ -50,4 +50,8 @@ data class MetricTree(val metric: MetricNode, val participant: ParticipantNode?)
     override suspend fun subtree(depth: Int): Metric {
         return metric.leaf()
     }
+}
+
+fun createMetric(metric: MetricNode): Metric {
+    return Metric(metric.key, metric.value)
 }
