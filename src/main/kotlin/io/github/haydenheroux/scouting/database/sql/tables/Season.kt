@@ -3,6 +3,8 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
+import io.github.haydenheroux.scouting.errors.Error
+import io.github.haydenheroux.scouting.errors.Success
 import io.github.haydenheroux.scouting.models.Event
 import io.github.haydenheroux.scouting.models.Robot
 import io.github.haydenheroux.scouting.models.Season
@@ -35,11 +37,26 @@ data class SeasonNode(val id: Int, val teamId: Int, val year: Int) : Node<Tree<S
     }
 
     override suspend fun tree(parent: Boolean): SeasonTree {
-        val team = if (parent) SQLDatabase.getTeamById(teamId).getOrNull()!! else null
-        val robots = SQLDatabase.getRobotsBySeason(this).getOrNull()!!
-        val events = SQLDatabase.getEventsBySeason(this).getOrNull()!!
+        val teamOrError = if (parent) SQLDatabase.getTeamById(teamId) else Success(null)
+        val robotsOrError = SQLDatabase.getRobotsBySeason(this)
+        val eventsOrError = SQLDatabase.getEventsBySeason(this)
 
-        return SeasonTree(this, team, robots, events)
+        val team = when (teamOrError) {
+            is Success -> teamOrError.value
+            is Error -> null
+        }
+
+        val robots = when (robotsOrError) {
+            is Success -> robotsOrError.value
+            is Error -> null
+        }
+
+        val events = when (eventsOrError) {
+            is Success -> eventsOrError.value
+            is Error -> null
+        }
+
+        return SeasonTree(this, team, robots!!, events!!)
     }
 
     override fun leaf(): Season {

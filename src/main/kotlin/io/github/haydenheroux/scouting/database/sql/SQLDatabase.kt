@@ -2,6 +2,7 @@ package io.github.haydenheroux.scouting.database.sql
 
 import io.github.haydenheroux.scouting.database.DatabaseInterface
 import io.github.haydenheroux.scouting.database.sql.tables.*
+import io.github.haydenheroux.scouting.errors.*
 import io.github.haydenheroux.scouting.models.*
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
@@ -28,77 +29,68 @@ object SQLDatabase : DatabaseInterface {
 
     private suspend fun <T> query(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
 
-    private suspend fun getTeamNodes(): Result<List<TeamNode>> {
-        return runCatching {
+    private suspend fun getTeamNodes(): Either<List<TeamNode>, DatabaseError> {
+        val result = runCatching {
             query {
                 TeamTable.selectAll().map { teamRow -> TeamNode.from(teamRow) }
             }
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
 
-    override suspend fun getTeams(): Result<List<Team>> {
-        val teamNodesResult = getTeamNodes()
-
-        teamNodesResult.getOrNull()?.let { teamNodes ->
-            return Result.success(teamNodes.map { teamNode -> teamNode.tree(false).subtree() })
-        } ?: run {
-            return Result.failure(teamNodesResult.exceptionOrNull()!!)
+    override suspend fun getTeams(): Either<List<Team>, DatabaseError> {
+        return when (val teamNodesOrError = getTeamNodes()) {
+            is Success -> Success(teamNodesOrError.value.map { teamNode -> teamNode.tree(false).subtree() })
+            is Error -> teamNodesOrError
         }
     }
 
-    override suspend fun getTeamsSimple(): Result<List<Team>> {
-        val teamNodesResult = getTeamNodes()
-
-        teamNodesResult.getOrNull()?.let { teamNodes ->
-            return Result.success(teamNodes.map { teamNode -> teamNode.leaf() })
-        } ?: run {
-            return Result.failure(teamNodesResult.exceptionOrNull()!!)
+    override suspend fun getTeamsSimple(): Either<List<Team>, DatabaseError> {
+        return when (val teamNodesOrError = getTeamNodes()) {
+            is Success -> Success(teamNodesOrError.value.map { teamNode -> teamNode.leaf() })
+            is Error -> teamNodesOrError
         }
     }
 
-    private suspend fun getTeamNode(teamQuery: TeamQuery): Result<TeamNode> {
-        return runCatching {
+    private suspend fun getTeamNode(teamQuery: TeamQuery): Either<TeamNode, DatabaseError> {
+        val result = runCatching {
             val teamRow = getTeamRow(teamQuery)!!
             TeamNode.from(teamRow)
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    override suspend fun getTeam(teamQuery: TeamQuery): Result<Team> {
-        val teamNodeResult = getTeamNode(teamQuery)
-
-        teamNodeResult.getOrNull()?.let { teamNode ->
-            return Result.success(teamNode.tree(false).subtree())
-        } ?: run {
-            return Result.failure(teamNodeResult.exceptionOrNull()!!)
+    override suspend fun getTeam(teamQuery: TeamQuery): Either<Team, DatabaseError> {
+        return when (val teamNodeOrError = getTeamNode(teamQuery)) {
+            is Success -> Success(teamNodeOrError.value.tree(false).subtree())
+            is Error -> teamNodeOrError
         }
     }
 
-    override suspend fun getTeamWithEvents(teamQuery: TeamQuery): Result<Team> {
-        val teamNodeResult = getTeamNode(teamQuery)
-
-        teamNodeResult.getOrNull()?.let { teamNode ->
-            return Result.success(teamNode.tree(false).subtree(2))
-        } ?: run {
-            return Result.failure(teamNodeResult.exceptionOrNull()!!)
+    override suspend fun getTeamWithEvents(teamQuery: TeamQuery): Either<Team, DatabaseError> {
+        return when (val teamNodeOrError = getTeamNode(teamQuery)) {
+            is Success -> Success(teamNodeOrError.value.tree(false).subtree(2))
+            is Error -> teamNodeOrError
         }
     }
 
-    override suspend fun getTeamWithMatches(teamQuery: TeamQuery): Result<Team> {
-        val teamNodeResult = getTeamNode(teamQuery)
-
-        teamNodeResult.getOrNull()?.let { teamNode ->
-            return Result.success(teamNode.tree(false).subtree(4))
-        } ?: run {
-            return Result.failure(teamNodeResult.exceptionOrNull()!!)
+    override suspend fun getTeamWithMatches(teamQuery: TeamQuery): Either<Team, DatabaseError> {
+        return when (val teamNodeOrError = getTeamNode(teamQuery)) {
+            is Success -> Success(teamNodeOrError.value.tree(false).subtree(4))
+            is Error -> teamNodeOrError
         }
     }
 
-    suspend fun getTeamById(teamId: Int): Result<TeamNode> {
-        return runCatching {
+    suspend fun getTeamById(teamId: Int): Either<TeamNode, DatabaseError> {
+        val result = runCatching {
             val teamRow = getTeamRow(teamId)!!
             TeamNode.from(teamRow)
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
     private suspend fun getTeamRow(teamQuery: TeamQuery): ResultRow? {
@@ -125,62 +117,65 @@ object SQLDatabase : DatabaseInterface {
         return teamExists(teamQueryOf(team))
     }
 
-    private suspend fun getSeasonNode(seasonQuery: SeasonQuery): Result<SeasonNode> {
-        return runCatching {
+    private suspend fun getSeasonNode(seasonQuery: SeasonQuery): Either<SeasonNode, DatabaseError> {
+        val result = runCatching {
             val seasonRow = getSeasonRow(seasonQuery)!!
             SeasonNode.from(seasonRow)
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    override suspend fun getSeason(seasonQuery: SeasonQuery): Result<Season> {
-        val seasonNodeResult = getSeasonNode(seasonQuery)
-
-        seasonNodeResult.getOrNull()?.let { seasonNode ->
-            return Result.success(seasonNode.tree(false).subtree())
-        } ?: run {
-            return Result.failure(seasonNodeResult.exceptionOrNull()!!)
+    override suspend fun getSeason(seasonQuery: SeasonQuery): Either<Season, DatabaseError> {
+        return when (val seasonNodeOrError = getSeasonNode(seasonQuery)) {
+            is Success -> Success(seasonNodeOrError.value.tree(false).subtree())
+            is Error -> seasonNodeOrError
         }
     }
 
-    override suspend fun getSeasonWithEventsAndTeam(seasonQuery: SeasonQuery): Result<Pair<Season, Team>> {
-        val seasonNodeResult = getSeasonNode(seasonQuery)
+    override suspend fun getSeasonWithEventsAndTeam(seasonQuery: SeasonQuery): Either<Pair<Season, Team>, DatabaseError> {
+        return when (val seasonNodeOrError = getSeasonNode(seasonQuery)) {
+            is Success -> {
+                val seasonTree = seasonNodeOrError.value.tree(true)
+                val season = seasonTree.subtree(1)
+                val team = seasonTree.team!!.leaf()
+                Success(Pair(season, team))
+            }
 
-        seasonNodeResult.getOrNull()?.let { seasonNode ->
-            val seasonBranch = seasonNode.tree(true)
-            val season = seasonBranch.subtree(1)
-            val team = seasonBranch.team!!.leaf()
-            return Result.success(Pair(season, team))
-        } ?: run {
-            return Result.failure(seasonNodeResult.exceptionOrNull()!!)
+            is Error -> seasonNodeOrError
         }
     }
 
-    override suspend fun getSeasonWithMatchesAndTeam(seasonQuery: SeasonQuery): Result<Pair<Season, Team>> {
-        val seasonNodeResult = getSeasonNode(seasonQuery)
+    override suspend fun getSeasonWithMatchesAndTeam(seasonQuery: SeasonQuery): Either<Pair<Season, Team>, DatabaseError> {
+        return when (val seasonNodeOrError = getSeasonNode(seasonQuery)) {
+            is Success -> {
+                val seasonTree = seasonNodeOrError.value.tree(true)
+                val season = seasonTree.subtree(3)
+                val team = seasonTree.team!!.leaf()
+                Success(Pair(season, team))
+            }
 
-        seasonNodeResult.getOrNull()?.let { seasonNode ->
-            val seasonBranch = seasonNode.tree(true)
-            val season = seasonBranch.subtree(3)
-            val team = seasonBranch.team!!.leaf()
-            return Result.success(Pair(season, team))
-        } ?: run {
-            return Result.failure(seasonNodeResult.exceptionOrNull()!!)
+            is Error -> seasonNodeOrError
         }
     }
 
-    suspend fun getSeasonById(seasonId: Int): Result<SeasonNode> {
-        return runCatching {
+    suspend fun getSeasonById(seasonId: Int): Either<SeasonNode, DatabaseError> {
+        val result = runCatching {
             val seasonRow = getSeasonRow(seasonId)!!
             SeasonNode.from(seasonRow)
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    suspend fun getSeasonsByTeam(teamData: TeamNode): Result<List<SeasonNode>> {
-        return runCatching {
+    suspend fun getSeasonsByTeam(teamData: TeamNode): Either<List<SeasonNode>, DatabaseError> {
+        val result = runCatching {
             query {
                 SeasonTable.select { SeasonTable.teamId eq teamData.id }.map { seasonRow -> SeasonNode.from(seasonRow) }
             }
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
     private suspend fun getSeasonRow(seasonQuery: SeasonQuery): ResultRow? {
@@ -206,19 +201,30 @@ object SQLDatabase : DatabaseInterface {
         return getSeasonRow(seasonQuery)?.let { true } ?: false
     }
 
-    suspend fun getRobotsBySeason(seasonData: SeasonNode): Result<List<RobotNode>> {
-        return runCatching {
+    suspend fun getRobotsBySeason(seasonData: SeasonNode): Either<List<RobotNode>, DatabaseError> {
+        val result = runCatching {
             query {
                 RobotTable.select { RobotTable.seasonId eq seasonData.id }
                     .map { robotRow -> RobotNode.from(robotRow) }
             }
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    override suspend fun getRobot(robotQuery: RobotQuery): Result<Robot> {
-        return runCatching {
+    private suspend fun getRobotNode(robotQuery: RobotQuery): Either<RobotNode, DatabaseError> {
+        val result = runCatching {
             val robotRow = getRobotRow(robotQuery)!!
-            RobotNode.from(robotRow).tree(false).subtree()
+            RobotNode.from(robotRow)
+        }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
+    }
+
+    override suspend fun getRobot(robotQuery: RobotQuery): Either<Robot, DatabaseError> {
+        return when (val robotNodeOrError = getRobotNode(robotQuery)) {
+            is Success -> Success(robotNodeOrError.value.tree(false).subtree())
+            is Error -> robotNodeOrError
         }
     }
 
@@ -235,88 +241,89 @@ object SQLDatabase : DatabaseInterface {
         return getRobotRow(robotQuery)?.let { true } ?: false
     }
 
-    private suspend fun getEventNodes(): Result<List<EventNode>> {
-        return runCatching {
+    private suspend fun getEventNodes(): Either<List<EventNode>, DatabaseError> {
+        val result = runCatching {
             query {
                 EventTable.selectAll().map { eventRow -> EventNode.from(eventRow) }
             }
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    override suspend fun getEvents(): Result<List<Event>> {
-        val eventNodesResult = getEventNodes()
-
-        eventNodesResult.getOrNull()?.let { eventNodes ->
-            return Result.success(eventNodes.map { eventNode -> eventNode.tree(false).subtree() })
-        } ?: run {
-            return Result.failure(eventNodesResult.exceptionOrNull()!!)
+    override suspend fun getEvents(): Either<List<Event>, DatabaseError> {
+        return when (val eventNodesOrError = getEventNodes()) {
+            is Success -> Success(eventNodesOrError.value.map { eventNode -> eventNode.tree(false).subtree() })
+            is Error -> eventNodesOrError
         }
     }
 
-    override suspend fun getEventsSimple(): Result<List<Event>> {
-        val eventNodesResult = getEventNodes()
-
-        eventNodesResult.getOrNull()?.let { eventNodes ->
-            return Result.success(eventNodes.map { eventNode -> eventNode.leaf() })
-        } ?: run {
-            return Result.failure(eventNodesResult.exceptionOrNull()!!)
+    override suspend fun getEventsSimple(): Either<List<Event>, DatabaseError> {
+        return when (val eventNodesOrError = getEventNodes()) {
+            is Success -> Success(eventNodesOrError.value.map { eventNode -> eventNode.leaf() })
+            is Error -> eventNodesOrError
         }
     }
 
-    private suspend fun getEventNode(eventQuery: EventQuery): Result<EventNode> {
-        return runCatching {
+    private suspend fun getEventNode(eventQuery: EventQuery): Either<EventNode, DatabaseError> {
+        val result = runCatching {
             val eventRow = getEventRow(eventQuery)!!
             EventNode.from(eventRow)
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    override suspend fun getEvent(eventQuery: EventQuery): Result<Event> {
-        val eventNodeResult = getEventNode(eventQuery)
-
-        eventNodeResult.getOrNull()?.let { eventNode ->
-            return Result.success(eventNode.tree(false).subtree())
-        } ?: run {
-            return Result.failure(eventNodeResult.exceptionOrNull()!!)
+    override suspend fun getEvent(eventQuery: EventQuery): Either<Event, DatabaseError> {
+        return when (val eventNodeOrError = getEventNode(eventQuery)) {
+            is Success -> Success(eventNodeOrError.value.tree(false).subtree())
+            is Error -> eventNodeOrError
         }
     }
 
-    override suspend fun getEventWithMatches(eventQuery: EventQuery): Result<Event> {
-        val eventNodeResult = getEventNode(eventQuery)
-
-        eventNodeResult.getOrNull()?.let { eventNode ->
-            return Result.success(eventNode.tree(false).subtree(1))
-        } ?: run {
-            return Result.failure(eventNodeResult.exceptionOrNull()!!)
+    override suspend fun getEventWithMatches(eventQuery: EventQuery): Either<Event, DatabaseError> {
+        return when (val eventNodeOrError = getEventNode(eventQuery)) {
+            is Success -> Success(eventNodeOrError.value.tree(false).subtree(1))
+            is Error -> eventNodeOrError
         }
     }
 
-    override suspend fun getEventWithTeamNumbers(eventQuery: EventQuery): Result<Event> {
-        val eventNodeResult = getEventNode(eventQuery)
-
-        eventNodeResult.getOrNull()?.let { eventNode ->
-            return Result.success(eventNode.tree(false).subtree(2))
-        } ?: run {
-            return Result.failure(eventNodeResult.exceptionOrNull()!!)
+    override suspend fun getEventWithTeamNumbers(eventQuery: EventQuery): Either<Event, DatabaseError> {
+        return when (val eventNodeOrError = getEventNode(eventQuery)) {
+            is Success -> Success(eventNodeOrError.value.tree(false).subtree(2))
+            is Error -> eventNodeOrError
         }
     }
 
-    suspend fun getEventsBySeason(seasonData: SeasonNode): Result<List<EventNode>> {
-        return runCatching {
+    suspend fun getEventsBySeason(seasonData: SeasonNode): Either<List<EventNode>, DatabaseError> {
+        val result = runCatching {
             query {
-                SeasonEventTable.select { SeasonEventTable.seasonId eq seasonData.id }.map { seasonEventRow ->
-                    val eventId = seasonEventRow[SeasonEventTable.eventId].value
-
-                    getEventById(eventId).getOrThrow()
-                }
+                SeasonEventTable.select { SeasonEventTable.seasonId eq seasonData.id }
             }
         }
+
+        val seasonEventRows = result.getOrNull() ?: return Error(DatabaseUnknownError)
+
+        val seasonEventNodeOrErrors = seasonEventRows.map { seasonEventRow ->
+            val eventId = seasonEventRow[SeasonEventTable.eventId].value
+
+            getEventById(eventId)
+        }
+
+        return if (seasonEventNodeOrErrors.all { it is Success }) {
+            Success(seasonEventNodeOrErrors.map { (it as Success).value })
+        } else {
+            seasonEventNodeOrErrors.first { it is Error } as Error
+        }
     }
 
-    suspend fun getEventById(eventId: Int): Result<EventNode> {
-        return runCatching {
+    suspend fun getEventById(eventId: Int): Either<EventNode, DatabaseError> {
+        val result = runCatching {
             val eventRow = getEventRow(eventId)!!
             EventNode.from(eventRow)
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
     private suspend fun getEventRow(eventQuery: EventQuery): ResultRow? {
@@ -344,50 +351,53 @@ object SQLDatabase : DatabaseInterface {
         return eventExists(eventQueryOf(event))
     }
 
-    private suspend fun getMatchNode(matchQuery: MatchQuery): Result<MatchNode> {
-        return runCatching {
+    private suspend fun getMatchNode(matchQuery: MatchQuery): Either<MatchNode, DatabaseError> {
+        val result = runCatching {
             val matchRow = getMatchRow(matchQuery)!!
             MatchNode.from(matchRow)
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    override suspend fun getMatch(matchQuery: MatchQuery): Result<Match> {
-        val matchNodeResult = getMatchNode(matchQuery)
-
-        matchNodeResult.getOrNull()?.let { matchNode ->
-            return Result.success(matchNode.tree(false).subtree())
-        } ?: run {
-            return Result.failure(matchNodeResult.exceptionOrNull()!!)
+    override suspend fun getMatch(matchQuery: MatchQuery): Either<Match, DatabaseError> {
+        return when (val matchNodeOrError = getMatchNode(matchQuery)) {
+            is Success -> Success(matchNodeOrError.value.tree(false).subtree())
+            is Error -> matchNodeOrError
         }
     }
 
-    override suspend fun getMatchWithMetricsAndEvent(matchQuery: MatchQuery): Result<Pair<Match, Event>> {
-        val matchNodeResult = getMatchNode(matchQuery)
+    override suspend fun getMatchWithMetricsAndEvent(matchQuery: MatchQuery): Either<Pair<Match, Event>, DatabaseError> {
+        return when (val matchNodeOrError = getMatchNode(matchQuery)) {
+            is Success -> {
+                val matchTree = matchNodeOrError.value.tree(true)
+                val match = matchTree.subtree(2)
+                val event = matchTree.event!!.leaf()
 
-        matchNodeResult.getOrNull()?.let { matchNode ->
-            val matchBranch = matchNode.tree(true)
-            val match = matchBranch.subtree(2)
-            val event = matchBranch.event!!.leaf()
+                return Success(Pair(match, event))
+            }
 
-            return Result.success(Pair(match, event))
-        } ?: run {
-            return Result.failure(matchNodeResult.exceptionOrNull()!!)
+            is Error -> matchNodeOrError
         }
     }
 
-    suspend fun getMatchById(matchId: Int): Result<MatchNode> {
-        return runCatching {
+    suspend fun getMatchById(matchId: Int): Either<MatchNode, DatabaseError> {
+        val result = runCatching {
             val matchRow = getMatchRow(matchId)!!
             MatchNode.from(matchRow)
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    suspend fun getMatchesByEvent(eventData: EventNode): Result<List<MatchNode>> {
-        return runCatching {
+    suspend fun getMatchesByEvent(eventData: EventNode): Either<List<MatchNode>, DatabaseError> {
+        val result = runCatching {
             query {
                 MatchTable.select { MatchTable.eventId eq eventData.id }.map { matchRow -> MatchNode.from(matchRow) }
             }
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
     private suspend fun getMatchRow(matchQuery: MatchQuery): ResultRow? {
@@ -413,27 +423,40 @@ object SQLDatabase : DatabaseInterface {
         return getMatchRow(matchQuery)?.let { true } ?: false
     }
 
-    override suspend fun getParticipant(participantQuery: ParticipantQuery): Result<Participant> {
-        return runCatching {
+    private suspend fun getParticipantNode(participantQuery: ParticipantQuery): Either<ParticipantNode, DatabaseError> {
+        val result = runCatching {
             val participantRow = getParticipantRow(participantQuery)!!
-            ParticipantNode.from(participantRow).tree(false).subtree()
+            ParticipantNode.from(participantRow)
+        }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
+    }
+
+    override suspend fun getParticipant(participantQuery: ParticipantQuery): Either<Participant, DatabaseError> {
+        return when (val participantNodeOrError = getParticipantNode(participantQuery)) {
+            is Success -> Success(participantNodeOrError.value.tree(false).subtree())
+            is Error -> participantNodeOrError
         }
     }
 
-    suspend fun getParticipantById(participantId: Int): Result<ParticipantNode> {
-        return runCatching {
+    suspend fun getParticipantById(participantId: Int): Either<ParticipantNode, DatabaseError> {
+        val result = runCatching {
             val participantRow = getParticipantRow(participantId)!!
             ParticipantNode.from(participantRow)
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    suspend fun getParticipantsByMatch(matchData: MatchNode): Result<List<ParticipantNode>> {
-        return runCatching {
+    suspend fun getParticipantsByMatch(matchData: MatchNode): Either<List<ParticipantNode>, DatabaseError> {
+        val result = runCatching {
             query {
                 ParticipantTable.select { ParticipantTable.matchId eq matchData.id }
                     .map { participantRow -> ParticipantNode.from(participantRow) }
             }
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
     private suspend fun getParticipantRow(participantQuery: ParticipantQuery): ResultRow? {
@@ -460,13 +483,15 @@ object SQLDatabase : DatabaseInterface {
         return getParticipantRow(participantQuery)?.let { true } ?: false
     }
 
-    suspend fun getMetricsByParticipant(participantData: ParticipantNode): Result<List<MetricNode>> {
-        return runCatching {
+    suspend fun getMetricsByParticipant(participantData: ParticipantNode): Either<List<MetricNode>, DatabaseError> {
+        val result = runCatching {
             query {
                 MetricTable.select { MetricTable.participantId eq participantData.id }
                     .map { metricRow -> MetricNode.from(metricRow) }
             }
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
     private suspend fun getMetricId(metricQuery: MetricQuery): Int {
@@ -486,25 +511,24 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    private suspend fun getMetricNode(metricQuery: MetricQuery): Result<MetricNode> {
-        return runCatching {
+    private suspend fun getMetricNode(metricQuery: MetricQuery): Either<MetricNode, DatabaseError> {
+        val result = runCatching {
             val metricRow = getMetricRow(metricQuery)!!
             MetricNode.from(metricRow)
         }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    override suspend fun getMetric(metricQuery: MetricQuery): Result<Metric> {
-        val metricNodeResult = getMetricNode(metricQuery)
-
-        metricNodeResult.getOrNull()?.let { metricNode ->
-            return Result.success(metricNode.leaf())
-        } ?: run {
-            return Result.failure(metricNodeResult.exceptionOrNull()!!)
+    override suspend fun getMetric(metricQuery: MetricQuery): Either<Metric, DatabaseError> {
+        return when (val metricNodeOrError = getMetricNode(metricQuery)) {
+            is Success -> Success(metricNodeOrError.value.leaf())
+            is Error -> metricNodeOrError
         }
     }
 
-    override suspend fun insertTeam(team: Team): Result<Unit> {
-        if (teamExists(team)) return Result.failure(Exception("Team exists"))
+    override suspend fun insertTeam(team: Team): Either<Unit, DatabaseError> {
+        if (teamExists(team)) return Error(DatabaseThingExists)
 
         val teamId = query {
             TeamTable.insertAndGetId {
@@ -518,10 +542,10 @@ object SQLDatabase : DatabaseInterface {
             insertSeason(season, teamId)
         }
 
-        return Result.success(Unit)
+        return Success(Unit)
     }
 
-    private suspend fun insertSeason(season: Season, teamId: Int): Result<Unit> {
+    private suspend fun insertSeason(season: Season, teamId: Int): Either<Unit, DatabaseError> {
         val seasonId = query {
             SeasonTable.insertAndGetId {
                 it[this.teamId] = teamId
@@ -538,13 +562,13 @@ object SQLDatabase : DatabaseInterface {
             insertRobot(robot, seasonId)
         }
 
-        return Result.success(Unit)
+        return Success(Unit)
     }
 
-    override suspend fun insertSeason(season: Season, teamQuery: TeamQuery): Result<Unit> {
+    override suspend fun insertSeason(season: Season, teamQuery: TeamQuery): Either<Unit, DatabaseError> {
         val seasonQuery = SeasonQuery(season.year, teamQuery)
 
-        if (seasonExists(seasonQuery)) return Result.failure(Exception("Season exists"))
+        if (seasonExists(seasonQuery)) return Error(DatabaseThingExists)
 
         val teamId = getTeamId(teamQuery)
 
@@ -555,7 +579,7 @@ object SQLDatabase : DatabaseInterface {
         return seasonExists(seasonQueryOf(season, team))
     }
 
-    private suspend fun insertSeasonEvent(seasonId: Int, eventId: Int): Result<Unit> {
+    private suspend fun insertSeasonEvent(seasonId: Int, eventId: Int): Either<Unit, DatabaseError> {
         query {
             SeasonEventTable.insert {
                 it[this.seasonId] = seasonId
@@ -563,12 +587,15 @@ object SQLDatabase : DatabaseInterface {
             }
         }
 
-        return Result.success(Unit)
+        return Success(Unit)
     }
 
-    override suspend fun insertSeasonEvent(eventQuery: EventQuery, seasonQuery: SeasonQuery): Result<Unit> {
-        if (!eventExists(eventQuery)) return Result.failure(Exception("Event does not exist"))
-        if (!seasonExists(seasonQuery)) return Result.failure(Exception("Season does not exist"))
+    override suspend fun insertSeasonEvent(
+        eventQuery: EventQuery,
+        seasonQuery: SeasonQuery
+    ): Either<Unit, DatabaseError> {
+        if (!eventExists(eventQuery)) return Error(DatabaseThingDoesNotExist)
+        if (!seasonExists(seasonQuery)) return Error(DatabaseThingDoesNotExist)
 
         val seasonId = getSeasonId(seasonQuery)
         val eventId = getEventId(eventQuery)
@@ -576,7 +603,7 @@ object SQLDatabase : DatabaseInterface {
         return insertSeasonEvent(seasonId, eventId)
     }
 
-    private suspend fun insertRobot(robot: Robot, seasonId: Int): Result<Unit> {
+    private suspend fun insertRobot(robot: Robot, seasonId: Int): Either<Unit, DatabaseError> {
         query {
             RobotTable.insert {
                 it[this.seasonId] = seasonId
@@ -584,13 +611,13 @@ object SQLDatabase : DatabaseInterface {
             }
         }
 
-        return Result.success(Unit)
+        return Success(Unit)
     }
 
-    override suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery): Result<Unit> {
+    override suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery): Either<Unit, DatabaseError> {
         val robotQuery = RobotQuery(robot.name, seasonQuery)
 
-        if (robotExists(robotQuery)) return Result.failure(Exception("Robot exists"))
+        if (robotExists(robotQuery)) return Error(DatabaseThingExists)
 
         val seasonId = getSeasonId(seasonQuery)
 
@@ -601,8 +628,8 @@ object SQLDatabase : DatabaseInterface {
         return robotExists(robotQueryOf(robot, season, team))
     }
 
-    override suspend fun insertEvent(event: Event): Result<Unit> {
-        if (eventExists(event)) return Result.failure(Exception("Event exists"))
+    override suspend fun insertEvent(event: Event): Either<Unit, DatabaseError> {
+        if (eventExists(event)) return Error(DatabaseThingExists)
 
         val eventId = query {
             EventTable.insertAndGetId {
@@ -617,10 +644,10 @@ object SQLDatabase : DatabaseInterface {
             insertMatch(match, eventId)
         }
 
-        return Result.success(Unit)
+        return Success(Unit)
     }
 
-    private suspend fun insertMatch(match: Match, eventId: Int): Result<Unit> {
+    private suspend fun insertMatch(match: Match, eventId: Int): Either<Unit, DatabaseError> {
         val matchId = query {
             MatchTable.insertAndGetId {
                 it[this.eventId] = eventId
@@ -634,13 +661,13 @@ object SQLDatabase : DatabaseInterface {
             insertParticipant(participant, matchId)
         }
 
-        return Result.success(Unit)
+        return Success(Unit)
     }
 
-    override suspend fun insertMatch(match: Match, eventQuery: EventQuery): Result<Unit> {
+    override suspend fun insertMatch(match: Match, eventQuery: EventQuery): Either<Unit, DatabaseError> {
         val matchQuery = MatchQuery(match.set, match.number, match.type, eventQuery)
 
-        if (matchExists(matchQuery)) return Result.failure(Exception("Match exists"))
+        if (matchExists(matchQuery)) return Error(DatabaseThingExists)
 
         val eventId = getEventId(eventQuery)
 
@@ -651,7 +678,7 @@ object SQLDatabase : DatabaseInterface {
         return matchExists(matchQueryOf(match, event))
     }
 
-    private suspend fun insertParticipant(participant: Participant, matchId: Int): Result<Unit> {
+    private suspend fun insertParticipant(participant: Participant, matchId: Int): Either<Unit, DatabaseError> {
         val participantId = query {
             ParticipantTable.insertAndGetId {
                 it[this.matchId] = matchId
@@ -664,17 +691,17 @@ object SQLDatabase : DatabaseInterface {
             insertMetric(metric, participantId)
         }
 
-        return Result.success(Unit)
+        return Success(Unit)
     }
 
     override suspend fun insertParticipant(
         participant: Participant,
         matchQuery: MatchQuery,
-    ): Result<Unit> {
+    ): Either<Unit, DatabaseError> {
         val teamQuery = TeamQuery(participant.teamNumber)
         val participantQuery = ParticipantQuery(teamQuery, matchQuery)
 
-        if (participantExists(participantQuery)) return Result.failure(Exception("Participant exists"))
+        if (participantExists(participantQuery)) return Error(DatabaseThingExists)
 
         val matchId = getMatchId(matchQuery)
 
@@ -690,7 +717,7 @@ object SQLDatabase : DatabaseInterface {
         )
     }
 
-    private suspend fun insertMetric(metric: Metric, participantId: Int): Result<Unit> {
+    private suspend fun insertMetric(metric: Metric, participantId: Int): Either<Unit, DatabaseError> {
         query {
             MetricTable.insert {
                 it[MetricTable.participantId] = participantId
@@ -699,11 +726,11 @@ object SQLDatabase : DatabaseInterface {
             }
         }
 
-        return Result.success(Unit)
+        return Success(Unit)
     }
 
-    override suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Result<Unit> {
-        if (metricExists(MetricQuery(metric.key, participantQuery))) return Result.failure(Exception("Metric exists"))
+    override suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Either<Unit, DatabaseError> {
+        if (metricExists(MetricQuery(metric.key, participantQuery))) return Error(DatabaseThingExists)
 
         val participantId = getParticipantId(participantQuery)
 

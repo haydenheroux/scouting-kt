@@ -3,6 +3,8 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
+import io.github.haydenheroux.scouting.errors.Error
+import io.github.haydenheroux.scouting.errors.Success
 import io.github.haydenheroux.scouting.models.Robot
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -25,7 +27,12 @@ data class RobotNode(val id: Int, val seasonId: Int, val name: String) : Node<Tr
     }
 
     override suspend fun tree(parent: Boolean): Tree<Robot> {
-        val season = if (parent) SQLDatabase.getSeasonById(seasonId).getOrNull()!! else null
+        val seasonOrError = if (parent) SQLDatabase.getSeasonById(seasonId) else Success(null)
+
+        val season = when (seasonOrError) {
+            is Success -> seasonOrError.value
+            is Error -> null
+        }
 
         return RobotTree(this, season)
     }

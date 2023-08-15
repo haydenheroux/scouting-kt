@@ -3,6 +3,8 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
+import io.github.haydenheroux.scouting.errors.Error
+import io.github.haydenheroux.scouting.errors.Success
 import io.github.haydenheroux.scouting.models.Season
 import io.github.haydenheroux.scouting.models.Team
 import io.github.haydenheroux.scouting.models.enums.Region
@@ -29,9 +31,14 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
     }
 
     override suspend fun tree(parent: Boolean): Tree<Team> {
-        val seasons = SQLDatabase.getSeasonsByTeam(this).getOrNull()!!
+        val seasonsOrError = SQLDatabase.getSeasonsByTeam(this)
 
-        return TeamTree(this, seasons)
+        val seasons = when (seasonsOrError) {
+            is Success -> seasonsOrError.value
+            is Error -> null
+        }
+
+        return TeamTree(this, seasons!!)
     }
 
     override fun leaf(): Team {

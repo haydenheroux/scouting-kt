@@ -1,6 +1,9 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
+import io.github.haydenheroux.scouting.errors.Error
+import io.github.haydenheroux.scouting.errors.Success
+import io.github.haydenheroux.scouting.errors.getHttpStatusCode
 import io.github.haydenheroux.scouting.models.seasonQueryOf
 import io.github.haydenheroux.scouting.models.teamQueryOf
 import io.ktor.http.*
@@ -12,11 +15,15 @@ import io.ktor.server.routing.*
 fun Route.teams() {
     route("/teams") {
         get {
-            SQLDatabase.getTeamsSimple().getOrNull()?.let { teams ->
-                call.respond(FreeMarkerContent("teams/teams.ftl", mapOf("teams" to teams)))
-            } ?: run {
-                call.respond(HttpStatusCode.InternalServerError)
+            val teamsOrError = SQLDatabase.getTeamsSimple()
+
+            if (teamsOrError is Error) {
+                call.respond(teamsOrError.error.getHttpStatusCode())
+                return@get
             }
+
+            val teams = (teamsOrError as Success).value
+            call.respond(FreeMarkerContent("teams/teams.ftl", mapOf("teams" to teams)))
         }
 
         get("/{team}") {
@@ -27,11 +34,16 @@ fun Route.teams() {
                 return@get
             }
 
-            SQLDatabase.getTeamWithEvents(teamQuery).getOrNull()?.let { team ->
-                call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
-            } ?: run {
-                call.respond(HttpStatusCode.NotFound)
+            val teamOrError = SQLDatabase.getTeamWithEvents(teamQuery)
+
+            if (teamOrError is Error) {
+                call.respond(teamOrError.error.getHttpStatusCode())
+                return@get
             }
+
+            val team = (teamOrError as Success).value
+
+            call.respond(FreeMarkerContent("teams/team.ftl", mapOf("team" to team)))
         }
 
         get("/{team}/{year}") {
@@ -42,17 +54,22 @@ fun Route.teams() {
                 return@get
             }
 
-            // perf: SQLDatabase.getSeasonWithEventsAndTeam(seasonQuery).getOrNull()?.let { seasonAndTeam ->
-            SQLDatabase.getSeasonWithMatchesAndTeam(seasonQuery).getOrNull()?.let { seasonAndTeam ->
-                call.respond(
-                    FreeMarkerContent(
-                        "teams/season.ftl",
-                        mapOf("season" to seasonAndTeam.first, "team" to seasonAndTeam.second)
-                    )
-                )
-            } ?: run {
-                call.respond(HttpStatusCode.NotFound)
+            // perf: SQLDatabase.getSeasonWithEventsAndTeam(seasonQuery)
+            val seasonAndTeamOrError = SQLDatabase.getSeasonWithMatchesAndTeam(seasonQuery)
+
+            if (seasonAndTeamOrError is Error) {
+                call.respond(seasonAndTeamOrError.error.getHttpStatusCode())
+                return@get
             }
+
+            val seasonAndTeam = (seasonAndTeamOrError as Success).value
+
+            call.respond(
+                FreeMarkerContent(
+                    "teams/season.ftl",
+                    mapOf("season" to seasonAndTeam.first, "team" to seasonAndTeam.second)
+                )
+            )
         }
     }
 }

@@ -3,6 +3,8 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
+import io.github.haydenheroux.scouting.errors.Error
+import io.github.haydenheroux.scouting.errors.Success
 import io.github.haydenheroux.scouting.models.Match
 import io.github.haydenheroux.scouting.models.Participant
 import io.github.haydenheroux.scouting.models.enums.MatchType
@@ -31,10 +33,20 @@ data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: In
     }
 
     override suspend fun tree(parent: Boolean): MatchTree {
-        val event = if (parent) SQLDatabase.getEventById(eventId).getOrNull()!! else null
-        val participants = SQLDatabase.getParticipantsByMatch(this).getOrNull()!!
+        val eventOrError = if (parent) SQLDatabase.getEventById(eventId) else Success(null)
+        val participantsOrError = SQLDatabase.getParticipantsByMatch(this)
 
-        return MatchTree(this, event, participants)
+        val event = when (eventOrError) {
+            is Success -> eventOrError.value
+            is Error -> null
+        }
+
+        val participants = when (participantsOrError) {
+            is Success -> participantsOrError.value
+            is Error -> null
+        }
+
+        return MatchTree(this, event, participants!!)
     }
 
     override fun leaf(): Match {

@@ -3,6 +3,8 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
+import io.github.haydenheroux.scouting.errors.Error
+import io.github.haydenheroux.scouting.errors.Success
 import io.github.haydenheroux.scouting.models.Metric
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -28,9 +30,14 @@ data class MetricNode(val id: Int, val participantId: Int, val key: String, val 
     }
 
     override suspend fun tree(parent: Boolean): Tree<Metric> {
-        val participant = if (parent) SQLDatabase.getParticipantById(participantId).getOrNull()!! else null
+        val participantOrError = if (parent) SQLDatabase.getParticipantById(participantId) else Success(null)
 
-        return MetricTree(this, participant)
+        val participant = when (participantOrError) {
+            is Success -> participantOrError.value
+            is Error -> null
+        }
+
+        return MetricTree(this, participant!!)
     }
 
     override fun leaf(): Metric {
