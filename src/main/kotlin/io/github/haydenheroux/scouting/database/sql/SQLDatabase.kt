@@ -72,14 +72,14 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getTeamWithEvents(teamQuery: TeamQuery): Either<Team, DatabaseError> {
         return when (val teamNodeOrError = getTeamNode(teamQuery)) {
-            is Success -> Success(teamNodeOrError.value.tree(false).subtree(2))
+            is Success -> Success(teamNodeOrError.value.tree(false).subtree(2, emptyList()))
             is Error -> teamNodeOrError
         }
     }
 
     override suspend fun getTeamWithMatches(teamQuery: TeamQuery): Either<Team, DatabaseError> {
         return when (val teamNodeOrError = getTeamNode(teamQuery)) {
-            is Success -> Success(teamNodeOrError.value.tree(false).subtree(4))
+            is Success -> Success(teamNodeOrError.value.tree(false).subtree(4, emptyList()))
             is Error -> teamNodeOrError
         }
     }
@@ -137,7 +137,7 @@ object SQLDatabase : DatabaseInterface {
         return when (val seasonNodeOrError = getSeasonNode(seasonQuery)) {
             is Success -> {
                 val seasonTree = seasonNodeOrError.value.tree(true)
-                val season = seasonTree.subtree(1)
+                val season = seasonTree.subtree(1, emptyList())
                 val team = seasonTree.team!!.leaf()
                 Success(Pair(season, team))
             }
@@ -150,7 +150,7 @@ object SQLDatabase : DatabaseInterface {
         return when (val seasonNodeOrError = getSeasonNode(seasonQuery)) {
             is Success -> {
                 val seasonTree = seasonNodeOrError.value.tree(true)
-                val season = seasonTree.subtree(3)
+                val season = seasonTree.subtree(3, emptyList())
                 val team = seasonTree.team!!.leaf()
                 Success(Pair(season, team))
             }
@@ -283,14 +283,14 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getEventWithMatches(eventQuery: EventQuery): Either<Event, DatabaseError> {
         return when (val eventNodeOrError = getEventNode(eventQuery)) {
-            is Success -> Success(eventNodeOrError.value.tree(false).subtree(1))
+            is Success -> Success(eventNodeOrError.value.tree(false).subtree(1, emptyList()))
             is Error -> eventNodeOrError
         }
     }
 
     override suspend fun getEventWithTeamNumbers(eventQuery: EventQuery): Either<Event, DatabaseError> {
         return when (val eventNodeOrError = getEventNode(eventQuery)) {
-            is Success -> Success(eventNodeOrError.value.tree(false).subtree(2))
+            is Success -> Success(eventNodeOrError.value.tree(false).subtree(2, emptyList()))
             is Error -> eventNodeOrError
         }
     }
@@ -304,10 +304,12 @@ object SQLDatabase : DatabaseInterface {
 
         val seasonEventRows = result.getOrNull() ?: return Error(DatabaseUnknownError)
 
-        val seasonEventNodeOrErrors = seasonEventRows.map { seasonEventRow ->
-            val eventId = seasonEventRow[SeasonEventTable.eventId].value
+        val seasonEventNodeOrErrors = query {
+            seasonEventRows.map { seasonEventRow ->
+                val eventId = seasonEventRow[SeasonEventTable.eventId].value
 
-            getEventById(eventId)
+                getEventById(eventId)
+            }
         }
 
         return if (seasonEventNodeOrErrors.all { it is Success }) {
@@ -371,7 +373,7 @@ object SQLDatabase : DatabaseInterface {
         return when (val matchNodeOrError = getMatchNode(matchQuery)) {
             is Success -> {
                 val matchTree = matchNodeOrError.value.tree(true)
-                val match = matchTree.subtree(2)
+                val match = matchTree.subtree(2, emptyList())
                 val event = matchTree.event!!.leaf()
 
                 return Success(Pair(match, event))

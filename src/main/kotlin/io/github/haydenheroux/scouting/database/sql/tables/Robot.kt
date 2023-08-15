@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.database.sql.tables
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
+import io.github.haydenheroux.scouting.database.sql.excludes.Exclude
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.errors.Error
@@ -51,7 +52,7 @@ data class RobotTree(val robot: RobotNode, val season: SeasonNode?) : Tree<Robot
         return robot.leaf()
     }
 
-    override suspend fun subtree(depth: Int): Robot {
+    override suspend fun subtree(depth: Int, excludes: List<Exclude>): Robot {
         return robot.leaf()
     }
 }

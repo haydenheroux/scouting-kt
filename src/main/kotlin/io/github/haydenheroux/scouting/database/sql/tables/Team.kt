@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.database.sql.tables
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
+import io.github.haydenheroux.scouting.database.sql.excludes.Exclude
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.errors.Error
@@ -59,11 +60,13 @@ data class TeamTree(val team: TeamNode, val seasons: List<SeasonNode>) : Tree<Te
         return createTeam(team, seasons)
     }
 
-    override suspend fun subtree(depth: Int): Team {
+    override suspend fun subtree(depth: Int, excludes: List<Exclude>): Team {
         if (depth == 0) return team.leaf()
         if (depth == 1) return leaves()
 
-        val seasons = seasons.map { season -> season.tree(false).subtree(depth - 1) }
+        val seasons = if (Exclude.TEAM_SEASONS in excludes) emptyList() else seasons.map { season ->
+            season.tree(false).subtree(depth - 1, excludes)
+        }
 
         return createTeam(team, seasons)
     }

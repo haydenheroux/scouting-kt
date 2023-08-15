@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.database.sql.tables
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
+import io.github.haydenheroux.scouting.database.sql.excludes.Exclude
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.errors.Error
@@ -71,11 +72,13 @@ data class ParticipantTree(
         return createParticipant(participant, metrics)
     }
 
-    override suspend fun subtree(depth: Int): Participant {
+    override suspend fun subtree(depth: Int, excludes: List<Exclude>): Participant {
         if (depth == 0) return participant.leaf()
         if (depth == 1) return leaves()
 
-        val metrics = metrics.map { metric -> metric.tree(false).subtree(depth - 1) }
+        val metrics = if (Exclude.PARTICIPANT_METRICS in excludes) emptyList() else metrics.map { metric ->
+            metric.tree(false).subtree(depth - 1, excludes)
+        }
 
         return createParticipant(participant, metrics)
     }

@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.database.sql.tables
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
+import io.github.haydenheroux.scouting.database.sql.excludes.Exclude
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.errors.Error
@@ -62,11 +63,13 @@ data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<
         return createEvent(event, matches)
     }
 
-    override suspend fun subtree(depth: Int): Event {
+    override suspend fun subtree(depth: Int, excludes: List<Exclude>): Event {
         if (depth == 0) return event.leaf()
         if (depth == 1) return leaves()
 
-        val matches = matches.map { match -> match.tree(false).subtree(depth - 1) }
+        val matches = if (Exclude.EVENT_MATCHES in excludes) emptyList() else matches.map { match ->
+            match.tree(false).subtree(depth - 1, excludes)
+        }
 
         return createEvent(event, matches)
     }
