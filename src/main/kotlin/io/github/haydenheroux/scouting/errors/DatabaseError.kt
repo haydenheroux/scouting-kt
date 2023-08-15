@@ -5,8 +5,8 @@ import io.ktor.http.*
 sealed class DatabaseError
 
 object DatabaseUnknownError : DatabaseError()
-object DatabaseThingExists : DatabaseError()
-object DatabaseThingDoesNotExist : DatabaseError()
+data class DatabaseThingExists(val thing: String) : DatabaseError()
+data class DatabaseThingDoesNotExist(val thing: String) : DatabaseError()
 
 fun DatabaseError.getHttpStatusCode(): HttpStatusCode {
     return when (this) {

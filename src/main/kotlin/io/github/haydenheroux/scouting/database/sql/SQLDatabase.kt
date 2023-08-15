@@ -528,7 +528,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun insertTeam(team: Team): Either<Unit, DatabaseError> {
-        if (teamExists(team)) return Error(DatabaseThingExists)
+        if (teamExists(team)) return Error(DatabaseThingExists("team"))
 
         val teamId = query {
             TeamTable.insertAndGetId {
@@ -568,7 +568,7 @@ object SQLDatabase : DatabaseInterface {
     override suspend fun insertSeason(season: Season, teamQuery: TeamQuery): Either<Unit, DatabaseError> {
         val seasonQuery = SeasonQuery(season.year, teamQuery)
 
-        if (seasonExists(seasonQuery)) return Error(DatabaseThingExists)
+        if (seasonExists(seasonQuery)) return Error(DatabaseThingExists("season"))
 
         val teamId = getTeamId(teamQuery)
 
@@ -594,8 +594,8 @@ object SQLDatabase : DatabaseInterface {
         eventQuery: EventQuery,
         seasonQuery: SeasonQuery
     ): Either<Unit, DatabaseError> {
-        if (!eventExists(eventQuery)) return Error(DatabaseThingDoesNotExist)
-        if (!seasonExists(seasonQuery)) return Error(DatabaseThingDoesNotExist)
+        if (!eventExists(eventQuery)) return Error(DatabaseThingDoesNotExist("event"))
+        if (!seasonExists(seasonQuery)) return Error(DatabaseThingDoesNotExist("season"))
 
         val seasonId = getSeasonId(seasonQuery)
         val eventId = getEventId(eventQuery)
@@ -617,7 +617,7 @@ object SQLDatabase : DatabaseInterface {
     override suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery): Either<Unit, DatabaseError> {
         val robotQuery = RobotQuery(robot.name, seasonQuery)
 
-        if (robotExists(robotQuery)) return Error(DatabaseThingExists)
+        if (robotExists(robotQuery)) return Error(DatabaseThingExists("robot"))
 
         val seasonId = getSeasonId(seasonQuery)
 
@@ -629,7 +629,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun insertEvent(event: Event): Either<Unit, DatabaseError> {
-        if (eventExists(event)) return Error(DatabaseThingExists)
+        if (eventExists(event)) return Error(DatabaseThingExists("event"))
 
         val eventId = query {
             EventTable.insertAndGetId {
@@ -667,7 +667,7 @@ object SQLDatabase : DatabaseInterface {
     override suspend fun insertMatch(match: Match, eventQuery: EventQuery): Either<Unit, DatabaseError> {
         val matchQuery = MatchQuery(match.set, match.number, match.type, eventQuery)
 
-        if (matchExists(matchQuery)) return Error(DatabaseThingExists)
+        if (matchExists(matchQuery)) return Error(DatabaseThingExists("match"))
 
         val eventId = getEventId(eventQuery)
 
@@ -701,7 +701,7 @@ object SQLDatabase : DatabaseInterface {
         val teamQuery = TeamQuery(participant.teamNumber)
         val participantQuery = ParticipantQuery(teamQuery, matchQuery)
 
-        if (participantExists(participantQuery)) return Error(DatabaseThingExists)
+        if (participantExists(participantQuery)) return Error(DatabaseThingExists("participant"))
 
         val matchId = getMatchId(matchQuery)
 
@@ -730,7 +730,7 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Either<Unit, DatabaseError> {
-        if (metricExists(MetricQuery(metric.key, participantQuery))) return Error(DatabaseThingExists)
+        if (metricExists(MetricQuery(metric.key, participantQuery))) return Error(DatabaseThingExists("metric"))
 
         val participantId = getParticipantId(participantQuery)
 
