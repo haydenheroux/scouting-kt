@@ -2,7 +2,7 @@
     <#if region == "NEW_ENGLAND">
         <#return "New England">
     <#else>
-        <#return region>
+        <#return "TODO: ${region}">
     </#if>
 </#function>
 
@@ -10,7 +10,7 @@
     <#if region == "NEW_ENGLAND">
         <#return "ne">
     <#else>
-        <#return region>
+        <#return "TODO: ${region}">
     </#if>
 </#function>
 
