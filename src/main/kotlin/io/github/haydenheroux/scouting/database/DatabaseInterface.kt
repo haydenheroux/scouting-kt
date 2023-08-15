@@ -30,6 +30,8 @@ interface DatabaseInterface {
 
     suspend fun seasonExists(season: Season, team: Team): Boolean
 
+    suspend fun seasonEventExists(eventQuery: EventQuery, seasonQuery: SeasonQuery): Boolean
+
     suspend fun getSeason(seasonQuery: SeasonQuery): Either<Season, DatabaseError>
 
     suspend fun getSeasonWithEventsAndTeam(seasonQuery: SeasonQuery): Either<Pair<Season, Team>, DatabaseError>

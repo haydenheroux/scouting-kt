@@ -590,12 +590,25 @@ object SQLDatabase : DatabaseInterface {
         return Success(Unit)
     }
 
+    override suspend fun seasonEventExists(eventQuery: EventQuery, seasonQuery: SeasonQuery): Boolean {
+        val seasonId = getSeasonId(seasonQuery)
+        val eventId = getEventId(eventQuery)
+
+        val seasonEventRow = query {
+            SeasonEventTable.select { (SeasonEventTable.seasonId eq seasonId) and (SeasonEventTable.eventId eq eventId) }
+                .singleOrNull()
+        }
+
+        return seasonEventRow?.let { true } ?: false
+    }
+
     override suspend fun insertSeasonEvent(
         eventQuery: EventQuery,
         seasonQuery: SeasonQuery
     ): Either<Unit, DatabaseError> {
         if (!eventExists(eventQuery)) return Error(DatabaseThingDoesNotExist("event"))
         if (!seasonExists(seasonQuery)) return Error(DatabaseThingDoesNotExist("season"))
+        if (seasonEventExists(eventQuery, seasonQuery)) return Error(DatabaseThingExists("seasonEvent"))
 
         val seasonId = getSeasonId(seasonQuery)
         val eventId = getEventId(eventQuery)
