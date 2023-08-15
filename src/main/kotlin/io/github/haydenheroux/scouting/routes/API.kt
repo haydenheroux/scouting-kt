@@ -162,7 +162,7 @@ fun Route.api() {
             val team = call.receive<Team>()
 
             SQLDatabase.insertTeam(team).getOrNull()?.let {
-                call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.Created)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
             }
@@ -179,7 +179,7 @@ fun Route.api() {
             }
 
             SQLDatabase.insertSeason(season, teamQuery).getOrNull()?.let {
-                call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.Created)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
             }
@@ -196,7 +196,7 @@ fun Route.api() {
             }
 
             SQLDatabase.insertRobot(robot, seasonQuery).getOrNull()?.let {
-                call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.Created)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
             }
@@ -212,7 +212,7 @@ fun Route.api() {
             }
 
             SQLDatabase.insertSeasonEvent(eventQuery, seasonQuery).getOrNull()?.let {
-                call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.Created)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
             }
@@ -222,7 +222,7 @@ fun Route.api() {
             val event = call.receive<Event>()
 
             SQLDatabase.insertEvent(event).getOrNull()?.let {
-                call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.Created)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
             }
@@ -241,7 +241,7 @@ fun Route.api() {
             }
 
             SQLDatabase.insertMatch(match, eventQuery).getOrNull()?.let {
-                call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.Created)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
             }
@@ -258,7 +258,7 @@ fun Route.api() {
             }
 
             SQLDatabase.insertParticipant(participant, matchQuery).getOrNull()?.let {
-                call.respond(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.Created)
             } ?: run {
                 call.respond(HttpStatusCode.InternalServerError)
             }
