@@ -647,6 +647,7 @@ object SQLDatabase : DatabaseInterface {
 
         val eventId = query {
             EventTable.insertAndGetId {
+                it[code] = event.code
                 it[name] = event.name
                 it[region] = event.region
                 it[year] = event.year
