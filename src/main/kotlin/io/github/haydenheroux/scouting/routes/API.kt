@@ -282,23 +282,34 @@ fun Route.api() {
                 return@post
             }
 
-            // TODO: hack
-            val participantQuery = ParticipantQuery(TeamQuery(participant.teamNumber), matchQuery)
-
-            if (SQLDatabase.participantExists(participantQuery)) {
-                for (metric in participant.metrics) {
-                    SQLDatabase.insertMetric(metric, participantQuery)
-                }
-
-                call.respond(HttpStatusCode.OK)
-            }
-
             val httpStatusCode = when (val result = SQLDatabase.insertParticipant(participant, matchQuery)) {
                 is Success -> HttpStatusCode.Created
                 is Error -> result.error.getHttpStatusCode()
             }
 
             call.respond(httpStatusCode)
+        }
+
+        post("/add-metrics") {
+            val metrics = call.receive<List<Metric>>()
+
+            val participantQuery = participantQueryOf(call.request.queryParameters).getOrNull()
+
+            if (participantQuery == null) {
+                call.respond(HttpStatusCode.BadRequest)
+                return@post
+            }
+
+            for (metric in metrics) {
+                val result = SQLDatabase.insertMetric(metric, participantQuery)
+
+                if (result is Error) {
+                    call.respond(result.error.getHttpStatusCode())
+                    return@post
+                }
+            }
+
+            call.respond(HttpStatusCode.Created)
         }
     }
 }
