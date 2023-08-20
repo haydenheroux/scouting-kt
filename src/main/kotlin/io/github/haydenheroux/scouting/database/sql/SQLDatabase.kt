@@ -330,8 +330,7 @@ object SQLDatabase : DatabaseInterface {
 
     private suspend fun getEventRow(eventQuery: EventQuery): ResultRow? {
         return query {
-            EventTable.select { (EventTable.name eq eventQuery.name) and (EventTable.region eq eventQuery.region) and (EventTable.year eq eventQuery.year) and (EventTable.week eq eventQuery.week) }
-                .singleOrNull()
+            EventTable.select { (EventTable.code eq eventQuery.code) }.singleOrNull()
         }
     }
 

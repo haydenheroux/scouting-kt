@@ -13,19 +13,28 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 
 object EventTable : IntIdTable() {
+    val code = varchar("code", 255)
     val name = varchar("name", 255)
     val region = enumerationByName<Region>("region", 255)
     val year = integer("year")
     val week = integer("week")
 }
 
-data class EventNode(val id: Int, val name: String, val region: Region, val year: Int, val week: Int) :
+data class EventNode(
+    val id: Int,
+    val code: String,
+    val name: String,
+    val region: Region,
+    val year: Int,
+    val week: Int
+) :
     Node<Tree<Event>, Event> {
 
     companion object {
         fun from(eventRow: ResultRow): EventNode {
             return EventNode(
                 eventRow[EventTable.id].value,
+                eventRow[EventTable.code],
                 eventRow[EventTable.name],
                 eventRow[EventTable.region],
                 eventRow[EventTable.year],
@@ -76,5 +85,5 @@ data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<
 }
 
 fun createEvent(event: EventNode, matches: List<Match>): Event {
-    return Event(event.name, event.region, event.year, event.week, matches)
+    return Event(event.code, event.name, event.region, event.year, event.week, matches)
 }

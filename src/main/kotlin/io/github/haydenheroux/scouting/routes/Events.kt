@@ -27,7 +27,7 @@ fun Route.events() {
             call.respond(FreeMarkerContent("events/events.ftl", mapOf("events" to events)))
         }
 
-        get("/{region}/{year}/{week}/{event}") {
+        get("/{event}") {
             val eventQuery = eventQueryOf(call.parameters).getOrNull()
 
             if (eventQuery == null) {
@@ -47,7 +47,7 @@ fun Route.events() {
             call.respond(FreeMarkerContent("events/event.ftl", mapOf("event" to event)))
         }
 
-        get("/{region}/{year}/{week}/{event}/{match}") {
+        get("/{event}/{match}") {
             val matchQuery = matchQueryOf(call.parameters).getOrNull()
 
             if (matchQuery == null) {
