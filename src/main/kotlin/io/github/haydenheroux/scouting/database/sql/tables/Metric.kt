@@ -13,7 +13,7 @@ import org.jetbrains.exposed.sql.ResultRow
 object MetricTable : IntIdTable() {
     val participantId = reference("participantId", ParticipantTable)
     val key = varchar("key", 255)
-    val value = varchar("value", 255)
+    val value = varchar("value", 2048)
 }
 
 data class MetricNode(val id: Int, val participantId: Int, val key: String, val value: String) :

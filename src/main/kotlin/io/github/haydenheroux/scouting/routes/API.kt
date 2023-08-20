@@ -282,6 +282,17 @@ fun Route.api() {
                 return@post
             }
 
+            // TODO: hack
+            val participantQuery = ParticipantQuery(TeamQuery(participant.teamNumber), matchQuery)
+
+            if (SQLDatabase.participantExists(participantQuery)) {
+                for (metric in participant.metrics) {
+                    SQLDatabase.insertMetric(metric, participantQuery)
+                }
+
+                call.respond(HttpStatusCode.OK)
+            }
+
             val httpStatusCode = when (val result = SQLDatabase.insertParticipant(participant, matchQuery)) {
                 is Success -> HttpStatusCode.Created
                 is Error -> result.error.getHttpStatusCode()
