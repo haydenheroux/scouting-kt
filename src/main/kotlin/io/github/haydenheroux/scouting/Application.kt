@@ -1,10 +1,7 @@
 package io.github.haydenheroux.scouting
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
-import io.github.haydenheroux.scouting.plugins.configureIgnoreTrailingSlash
-import io.github.haydenheroux.scouting.plugins.configureRouting
-import io.github.haydenheroux.scouting.plugins.configureSerialization
-import io.github.haydenheroux.scouting.plugins.configureTemplating
+import io.github.haydenheroux.scouting.plugins.*
 import io.ktor.server.application.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -15,4 +12,5 @@ fun Application.module() {
     configureSerialization()
     configureTemplating()
     configureIgnoreTrailingSlash()
+    configureCORS()
 }
