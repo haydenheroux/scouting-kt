@@ -19,10 +19,10 @@
 </#macro>
 
 <#macro event_link event>
-    <a href="/events/${enums.region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}">${event.name}</a>
+    <a href="/events/${event.code}">${event.name}</a>
 </#macro>
 
 <#macro match_link match event>
-    <a href="/events/${enums.region_to_serial(event.region)}/${event.year?c}/${event.week?c}/${event.name}/${match_to_serial(match)}">${match_to_text(match)}</a>
+    <a href="/events/${event.code}/${match_to_serial(match)}">${match_to_text(match)}</a>
 </#macro>
 
