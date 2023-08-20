@@ -9,9 +9,8 @@
     <hr/>
     <#list match.participants as participant>
         <section>
-            <h2><@links.team_number_year_link team_number=participant.teamNumber year=event.year /><h2>
+            <h2><@links.team_number_year_link team_number=participant.teamNumber year=event.year /></h2>
             <@enums.alliance alliance=participant.alliance />
-            <h3>Metrics</h3>
             <table>
                 <thead>
                     <tr>
