@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.routes
 
 import io.github.haydenheroux.scouting.database.sql.SQLDatabase
+import io.github.haydenheroux.scouting.errors.DatabaseError
 import io.github.haydenheroux.scouting.errors.Error
 import io.github.haydenheroux.scouting.errors.Success
 import io.github.haydenheroux.scouting.errors.getHttpStatusCode
@@ -300,13 +301,19 @@ fun Route.api() {
                 return@post
             }
 
+            var error: DatabaseError? = null
+
             for (metric in metrics) {
                 val result = SQLDatabase.insertMetric(metric, participantQuery)
 
                 if (result is Error) {
-                    call.respond(result.error.getHttpStatusCode())
-                    return@post
+                    error = result.error
                 }
+            }
+
+            if (error != null) {
+                call.respond(error.getHttpStatusCode())
+                return@post
             }
 
             call.respond(HttpStatusCode.Created)
