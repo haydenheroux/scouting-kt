@@ -8,9 +8,8 @@
     <h1>${_match.match_to_text_short(match)} - <@links.event_link event=event /></h1>
     <hr/>
     <#list match.alliances as alliance>
-    <#list alliance.participants as participant>
         <section>
-            <h2><@links.team_number_year_link team_number=participant.teamNumber year=event.year /></h2>
+            <@enums.alliance alliance=alliance.color />
             <table>
                 <thead>
                     <tr>
@@ -19,7 +18,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                <#list participant.metrics?sort_by("key") as metric>
+                <#list alliance.metrics?sort_by("key") as metric>
                     <tr>
                         <td>${metric.key}</td>
                         <td>${metric.value}</td>
@@ -28,7 +27,28 @@
                 </tbody>
             </table>
         </section>
-        <hr/>
-    </#list>
+        <#list alliance.participants as participant>
+            <section>
+                <h2><@links.team_number_year_link team_number=participant.teamNumber year=event.year /></h2>
+                <@enums.alliance alliance=alliance.color />
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <#list participant.metrics?sort_by("key") as metric>
+                        <tr>
+                            <td>${metric.key}</td>
+                            <td>${metric.value}</td>
+                        </tr>
+                    </#list>
+                    </tbody>
+                </table>
+            </section>
+            <hr/>
+        </#list>
     </#list>
 </@layout.header>
