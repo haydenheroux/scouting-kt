@@ -158,26 +158,6 @@ fun Route.api() {
             call.respond(participant)
         }
 
-        get("/get-metric") {
-            val metricQuery = participantMetricQueryOf(call.request.queryParameters).getOrNull()
-
-            if (metricQuery == null) {
-                call.respond(HttpStatusCode.BadRequest)
-                return@get
-            }
-
-            val metricOrError = SQLDatabase.getMetric(metricQuery)
-
-            if (metricOrError is Error) {
-                call.respond(metricOrError.error.getHttpStatusCode())
-                return@get
-            }
-
-            val metric = (metricOrError as Success).value
-
-            call.respond(metric)
-        }
-
         post("/new-team") {
             val team = call.receive<Team>()
 
@@ -256,7 +236,8 @@ fun Route.api() {
         post("/new-match") {
             val match = call.receive<Match>()
 
-            assert(match.participants.isEmpty())
+            // TODO
+            assert(match.alliances.isEmpty())
 
             val eventQuery = eventQueryOf(call.request.queryParameters).getOrNull()
 
@@ -276,14 +257,14 @@ fun Route.api() {
         post("/new-participant") {
             val participant = call.receive<Participant>()
 
-            val matchQuery = matchQueryOf(call.request.queryParameters).getOrNull()
+            val allianceQuery = allianceQueryOf(call.request.queryParameters).getOrNull()
 
-            if (matchQuery == null) {
+            if (allianceQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)
                 return@post
             }
 
-            val httpStatusCode = when (val result = SQLDatabase.insertParticipant(participant, matchQuery)) {
+            val httpStatusCode = when (val result = SQLDatabase.insertParticipant(participant, allianceQuery)) {
                 is Success -> HttpStatusCode.Created
                 is Error -> result.error.getHttpStatusCode()
             }

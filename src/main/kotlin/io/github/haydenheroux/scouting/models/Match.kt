@@ -10,7 +10,7 @@ data class Match(
     val set: Int,
     val number: Int,
     val type: MatchType,
-    val participants: List<Participant>
+    val alliances: List<Alliance>
 )
 
 data class MatchQuery(val set: Int, val number: Int, val type: MatchType, val event: EventQuery)

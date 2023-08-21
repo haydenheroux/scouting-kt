@@ -1,13 +1,12 @@
 package io.github.haydenheroux.scouting.models
 
-import io.github.haydenheroux.scouting.models.enums.AllianceColor
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Participant(val allianceColor: AllianceColor, val teamNumber: Int, val metrics: List<Metric>)
+data class Participant(val teamNumber: Int, val metrics: List<Metric>)
 
-data class ParticipantQuery(val teamQuery: TeamQuery, val matchQuery: MatchQuery)
+data class ParticipantQuery(val teamQuery: TeamQuery, val allianceQuery: AllianceQuery)
 
 fun participantQueryOf(parameters: Parameters): Result<ParticipantQuery> {
     val teamQuery = teamQueryOf(parameters)
@@ -16,11 +15,11 @@ fun participantQueryOf(parameters: Parameters): Result<ParticipantQuery> {
         return Result.failure(teamQuery.exceptionOrNull()!!)
     }
 
-    val matchQuery = matchQueryOf(parameters)
+    val allianceQuery = allianceQueryOf(parameters)
 
-    if (matchQuery.isFailure) {
-        return Result.failure(matchQuery.exceptionOrNull()!!)
+    if (allianceQuery.isFailure) {
+        return Result.failure(allianceQuery.exceptionOrNull()!!)
     }
 
-    return Result.success(ParticipantQuery(teamQuery.getOrNull()!!, matchQuery.getOrNull()!!))
+    return Result.success(ParticipantQuery(teamQuery.getOrNull()!!, allianceQuery.getOrNull()!!))
 }

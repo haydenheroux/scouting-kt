@@ -383,6 +383,26 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
+    suspend fun insertAlliance(alliance: Alliance, matchId: Int): Either<Unit, DatabaseError> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun insertAlliance(alliance: Alliance, matchQuery: MatchQuery): Either<Unit, DatabaseError> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun allianceExists(allianceQuery: AllianceQuery): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun allianceExists(alliance: Alliance, match: Match, event: Event): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getAlliance(allianceQuery: AllianceQuery): Either<Alliance, DatabaseError> {
+        TODO("Not yet implemented")
+    }
+
     suspend fun getMatchById(matchId: Int): Either<MatchNode, DatabaseError> {
         val result = runCatching {
             val matchRow = getMatchRow(matchId)!!
@@ -450,23 +470,51 @@ object SQLDatabase : DatabaseInterface {
         return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    suspend fun getParticipantsByMatch(matchData: MatchNode): Either<List<ParticipantNode>, DatabaseError> {
+    suspend fun getAlliancesByMatch(matchData: MatchNode): Either<List<AllianceNode>, DatabaseError> {
         val result = runCatching {
             query {
-                ParticipantTable.select { ParticipantTable.matchId eq matchData.id }
-                    .map { participantRow -> ParticipantNode.from(participantRow) }
+                AllianceTable.select { AllianceTable.matchId eq matchData.id }
+                    .map { allianceRow -> AllianceNode.from(allianceRow) }
             }
         }
 
         return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    private suspend fun getParticipantRow(participantQuery: ParticipantQuery): ResultRow? {
-        val teamQuery = participantQuery.teamQuery
-        val matchId = getMatchId(participantQuery.matchQuery)
+    private suspend fun getAllianceRow(allianceId: Int): ResultRow? {
+        return query {
+            AllianceTable.select { AllianceTable.id eq allianceId }.singleOrNull()
+        }
+    }
+
+    private suspend fun getAllianceRow(allianceQuery: AllianceQuery): ResultRow? {
+        val matchId = getMatchId(allianceQuery.matchQuery)
 
         return query {
-            ParticipantTable.select { (ParticipantTable.teamNumber eq teamQuery.teamNumber) and (ParticipantTable.matchId eq matchId) }
+            AllianceTable.select { (AllianceTable.matchId eq matchId) and (AllianceTable.color eq allianceQuery.color) }
+                .singleOrNull()
+        }
+    }
+
+    suspend fun getAllianceById(allianceId: Int): Either<AllianceNode, DatabaseError> {
+        val result = runCatching {
+            val allianceNode = getAllianceRow(allianceId)!!
+            AllianceNode.from(allianceNode)
+        }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
+    }
+
+    private suspend fun getAllianceId(allianceQuery: AllianceQuery): Int {
+        return getAllianceRow(allianceQuery)!![AllianceTable.id].value
+    }
+
+    private suspend fun getParticipantRow(participantQuery: ParticipantQuery): ResultRow? {
+        val teamQuery = participantQuery.teamQuery
+        val allianceId = getAllianceId(participantQuery.allianceQuery)
+
+        return query {
+            ParticipantTable.select { (ParticipantTable.teamNumber eq teamQuery.teamNumber) and (ParticipantTable.allianceId eq allianceId) }
                 .singleOrNull()
         }
     }
@@ -518,11 +566,11 @@ object SQLDatabase : DatabaseInterface {
         return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    private suspend fun getMetricId(metricQuery: ParticipantMetricQuery): Int {
+    private suspend fun getMetricId(metricQuery: MetricQuery): Int {
         return getMetricRow(metricQuery)!![ParticipantTable.id].value
     }
 
-    override suspend fun metricExists(metricQuery: ParticipantMetricQuery): Boolean {
+    override suspend fun metricExists(metricQuery: MetricQuery): Boolean {
         return getMetricRow(metricQuery)?.let { true } ?: false
     }
 
@@ -532,7 +580,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    private suspend fun getMetricRow(metricQuery: ParticipantMetricQuery): ResultRow? {
+    private suspend fun getMetricRow(metricQuery: MetricQuery): ResultRow? {
         val participantId = getParticipantId(metricQuery.participantQuery)
 
         return query {
@@ -546,7 +594,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    private suspend fun getMetricNode(metricQuery: ParticipantMetricQuery): Either<MetricNode, DatabaseError> {
+    private suspend fun getMetricNode(metricQuery: MetricQuery): Either<MetricNode, DatabaseError> {
         val result = runCatching {
             val metricRow = getMetricRow(metricQuery)!!
             MetricNode.from(metricRow)
@@ -555,7 +603,7 @@ object SQLDatabase : DatabaseInterface {
         return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    override suspend fun getMetric(metricQuery: ParticipantMetricQuery): Either<Metric, DatabaseError> {
+    override suspend fun getMetric(metricQuery: MetricQuery): Either<Metric, DatabaseError> {
         return when (val metricNodeOrError = getMetricNode(metricQuery)) {
             is Success -> Success(metricNodeOrError.value.leaf())
             is Error -> metricNodeOrError
@@ -608,10 +656,6 @@ object SQLDatabase : DatabaseInterface {
         val teamId = getTeamId(teamQuery)
 
         return insertSeason(season, teamId)
-    }
-
-    override suspend fun seasonExists(season: Season, team: Team): Boolean {
-        return seasonExists(seasonQueryOf(season, team))
     }
 
     private suspend fun insertSeasonEvent(seasonId: Int, eventId: Int): Either<Unit, DatabaseError> {
@@ -672,10 +716,6 @@ object SQLDatabase : DatabaseInterface {
         return insertRobot(robot, seasonId)
     }
 
-    override suspend fun robotExists(robot: Robot, season: Season, team: Team): Boolean {
-        return robotExists(robotQueryOf(robot, season, team))
-    }
-
     override suspend fun insertEvent(event: Event): Either<Unit, DatabaseError> {
         if (eventExists(event)) return Error(DatabaseThingExists("event"))
 
@@ -706,8 +746,8 @@ object SQLDatabase : DatabaseInterface {
             }.value
         }
 
-        for (participant in match.participants) {
-            insertParticipant(participant, matchId)
+        for (participant in match.alliances) {
+            insertAlliance(participant, matchId)
         }
 
         return Success(Unit)
@@ -723,16 +763,11 @@ object SQLDatabase : DatabaseInterface {
         return insertMatch(match, eventId)
     }
 
-    override suspend fun matchExists(match: Match, event: Event): Boolean {
-        return matchExists(matchQueryOf(match, event))
-    }
-
-    private suspend fun insertParticipant(participant: Participant, matchId: Int): Either<Unit, DatabaseError> {
+    private suspend fun insertParticipant(participant: Participant, allianceId: Int): Either<Unit, DatabaseError> {
         val participantId = query {
             ParticipantTable.insertAndGetId {
-                it[this.matchId] = matchId
+                it[this.allianceId] = allianceId
                 it[teamNumber] = participant.teamNumber
-                it[allianceColor] = participant.allianceColor
             }.value
         }
 
@@ -745,25 +780,16 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun insertParticipant(
         participant: Participant,
-        matchQuery: MatchQuery,
+        allianceQuery: AllianceQuery
     ): Either<Unit, DatabaseError> {
         val teamQuery = TeamQuery(participant.teamNumber)
-        val participantQuery = ParticipantQuery(teamQuery, matchQuery)
+        val participantQuery = ParticipantQuery(teamQuery, allianceQuery)
 
         if (participantExists(participantQuery)) return Error(DatabaseThingExists("participant"))
 
-        val matchId = getMatchId(matchQuery)
+        val allianceId = getAllianceId(allianceQuery)
 
-        return insertParticipant(participant, matchId)
-    }
-
-    override suspend fun participantExists(participant: Participant, match: Match, event: Event): Boolean {
-        return participantExists(
-            ParticipantQuery(
-                TeamQuery(participant.teamNumber),
-                matchQueryOf(match, event)
-            )
-        )
+        return insertParticipant(participant, allianceId)
     }
 
     private suspend fun insertMetric(metric: Metric, participantId: Int): Either<Unit, DatabaseError> {
@@ -785,7 +811,7 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Either<Unit, DatabaseError> {
         if (metricExists(
-                ParticipantMetricQuery(
+                MetricQuery(
                     metric.key,
                     participantQuery
                 )
@@ -795,9 +821,5 @@ object SQLDatabase : DatabaseInterface {
         val participantId = getParticipantId(participantQuery)
 
         return insertMetric(metric, participantId)
-    }
-
-    override suspend fun metricExists(metric: Metric, participant: Participant, match: Match, event: Event): Boolean {
-        return metricExists(participantMetricQueryOf(metric, participant, match, event))
     }
 }

@@ -28,8 +28,6 @@ interface DatabaseInterface {
 
     suspend fun seasonExists(seasonQuery: SeasonQuery): Boolean
 
-    suspend fun seasonExists(season: Season, team: Team): Boolean
-
     suspend fun seasonEventExists(eventQuery: EventQuery, seasonQuery: SeasonQuery): Boolean
 
     suspend fun getSeason(seasonQuery: SeasonQuery): Either<Season, DatabaseError>
@@ -42,8 +40,6 @@ interface DatabaseInterface {
     suspend fun insertRobot(robot: Robot, seasonQuery: SeasonQuery): Either<Unit, DatabaseError>
 
     suspend fun robotExists(robotQuery: RobotQuery): Boolean
-
-    suspend fun robotExists(robot: Robot, season: Season, team: Team): Boolean
 
     suspend fun getRobot(robotQuery: RobotQuery): Either<Robot, DatabaseError>
 
@@ -69,27 +65,30 @@ interface DatabaseInterface {
 
     suspend fun matchExists(matchQuery: MatchQuery): Boolean
 
-    suspend fun matchExists(match: Match, event: Event): Boolean
-
     suspend fun getMatch(matchQuery: MatchQuery): Either<Match, DatabaseError>
 
     suspend fun getMatchWithMetricsAndEvent(matchQuery: MatchQuery): Either<Pair<Match, Event>, DatabaseError>
 
 
-    suspend fun insertParticipant(participant: Participant, matchQuery: MatchQuery): Either<Unit, DatabaseError>
+    suspend fun insertAlliance(alliance: Alliance, matchQuery: MatchQuery): Either<Unit, DatabaseError>
+
+    suspend fun allianceExists(allianceQuery: AllianceQuery): Boolean
+
+    suspend fun allianceExists(alliance: Alliance, match: Match, event: Event): Boolean
+
+    suspend fun getAlliance(allianceQuery: AllianceQuery): Either<Alliance, DatabaseError>
+
+
+    suspend fun insertParticipant(participant: Participant, allianceQuery: AllianceQuery): Either<Unit, DatabaseError>
 
     suspend fun participantExists(participantQuery: ParticipantQuery): Boolean
-
-    suspend fun participantExists(participant: Participant, match: Match, event: Event): Boolean
 
     suspend fun getParticipant(participantQuery: ParticipantQuery): Either<Participant, DatabaseError>
 
 
     suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Either<Unit, DatabaseError>
 
-    suspend fun metricExists(metricQuery: ParticipantMetricQuery): Boolean
+    suspend fun metricExists(metricQuery: MetricQuery): Boolean
 
-    suspend fun metricExists(metric: Metric, participant: Participant, match: Match, event: Event): Boolean
-
-    suspend fun getMetric(metricQuery: ParticipantMetricQuery): Either<Metric, DatabaseError>
+    suspend fun getMetric(metricQuery: MetricQuery): Either<Metric, DatabaseError>
 }

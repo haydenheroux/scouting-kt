@@ -6,10 +6,8 @@ import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.errors.Error
 import io.github.haydenheroux.scouting.errors.Success
+import io.github.haydenheroux.scouting.models.Alliance
 import io.github.haydenheroux.scouting.models.Match
-import io.github.haydenheroux.scouting.models.Metric
-import io.github.haydenheroux.scouting.models.Participant
-import io.github.haydenheroux.scouting.models.enums.AllianceColor
 import io.github.haydenheroux.scouting.models.enums.MatchType
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -37,63 +35,56 @@ data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: In
 
     override suspend fun tree(parent: Boolean): MatchTree {
         val eventOrError = if (parent) SQLDatabase.getEventById(eventId) else Success(null)
-        val participantsOrError = SQLDatabase.getParticipantsByMatch(this)
+        val alliancesOrError = SQLDatabase.getAlliancesByMatch(this)
 
         val event = when (eventOrError) {
             is Success -> eventOrError.value
             is Error -> null
         }
 
-        val participants = when (participantsOrError) {
-            is Success -> participantsOrError.value
+        val alliances = when (alliancesOrError) {
+            is Success -> alliancesOrError.value
             is Error -> null
         }
 
-        return MatchTree(this, event, participants!!)
+        return MatchTree(this, event, alliances!!)
     }
 
     override fun leaf(): Match {
-        return createMatch(this, emptyMap(), emptyList())
+        return createMatch(this, emptyList())
     }
 }
 
-data class MatchTree(val match: MatchNode, val event: EventNode?, val participants: List<ParticipantNode>) :
+data class MatchTree(val match: MatchNode, val event: EventNode?, val alliances: List<AllianceNode>) :
     Tree<Match> {
     override suspend fun leaves(): Match {
-        val allianceColorMetrics = emptyMap<AllianceColor, List<Metric>>()
-        val participants = participants.map { participant -> participant.leaf() }
+        val alliances = alliances.map { alliance -> alliance.leaf() }
 
-        return createMatch(match, allianceColorMetrics, participants)
+        return createMatch(match, alliances)
     }
 
     override suspend fun subtree(): Match {
-        val allianceColorMetrics = emptyMap<AllianceColor, List<Metric>>()
-        val participants = participants.map { participant -> participant.tree(false).subtree() }
+        val alliances = alliances.map { alliance -> alliance.tree(false).subtree() }
 
-        return createMatch(match, allianceColorMetrics, participants)
+        return createMatch(match, alliances)
     }
 
     override suspend fun subtree(depth: Int, excludes: List<Exclude>): Match {
         if (depth == 0) return match.leaf()
         if (depth == 1) return leaves()
 
-        // TODO
-        val allianceColorMetrics =
-            if (Exclude.MATCH_ALLIANCE_METRICS in excludes) emptyMap<AllianceColor, List<Metric>>() else emptyMap()
-
-        val participants =
-            if (Exclude.MATCH_PARTICIPANTS in excludes) emptyList() else participants.map { participant ->
-                participant.tree(false).subtree(depth - 1, excludes)
+        val alliances =
+            if (Exclude.MATCH_ALLIANCES in excludes) emptyList() else alliances.map { alliance ->
+                alliance.tree(false).subtree(depth - 1, excludes)
             }
 
-        return createMatch(match, allianceColorMetrics, participants)
+        return createMatch(match, alliances)
     }
 }
 
 fun createMatch(
     match: MatchNode,
-    allianceColorMetrics: Map<AllianceColor, List<Metric>>,
-    participants: List<Participant>
+    alliances: List<Alliance>,
 ): Match {
-    return Match(match.set, match.number, match.type, participants)
+    return Match(match.set, match.number, match.type, alliances)
 }
