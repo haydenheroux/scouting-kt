@@ -6,17 +6,22 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Metric(val key: String, val value: String)
 
-data class MetricQuery(val key: String, val participantQuery: ParticipantQuery)
+data class ParticipantMetricQuery(val key: String, val participantQuery: ParticipantQuery)
 
-fun metricQueryOf(metric: Metric, participant: Participant, match: Match, event: Event): MetricQuery {
+fun participantMetricQueryOf(
+    metric: Metric,
+    participant: Participant,
+    match: Match,
+    event: Event
+): ParticipantMetricQuery {
     val teamQuery = TeamQuery(participant.teamNumber)
     val matchQuery = matchQueryOf(match, event)
     val participantQuery = ParticipantQuery(teamQuery, matchQuery)
 
-    return MetricQuery(metric.key, participantQuery)
+    return ParticipantMetricQuery(metric.key, participantQuery)
 }
 
-fun metricQueryOf(parameters: Parameters): Result<MetricQuery> {
+fun participantMetricQueryOf(parameters: Parameters): Result<ParticipantMetricQuery> {
     val key = parameters["key"] ?: return Result.failure(Exception("Missing `key` in parameters"))
 
     val participantQuery = participantQueryOf(parameters)
@@ -25,5 +30,5 @@ fun metricQueryOf(parameters: Parameters): Result<MetricQuery> {
         return Result.failure(participantQuery.exceptionOrNull()!!)
     }
 
-    return Result.success(MetricQuery(key, participantQuery.getOrNull()!!))
+    return Result.success(ParticipantMetricQuery(key, participantQuery.getOrNull()!!))
 }

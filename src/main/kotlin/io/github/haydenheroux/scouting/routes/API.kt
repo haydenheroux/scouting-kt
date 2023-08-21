@@ -159,7 +159,7 @@ fun Route.api() {
         }
 
         get("/get-metric") {
-            val metricQuery = metricQueryOf(call.request.queryParameters).getOrNull()
+            val metricQuery = participantMetricQueryOf(call.request.queryParameters).getOrNull()
 
             if (metricQuery == null) {
                 call.respond(HttpStatusCode.BadRequest)

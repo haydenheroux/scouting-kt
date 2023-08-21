@@ -19,6 +19,7 @@ object SQLDatabase : DatabaseInterface {
                 SeasonTable,
                 RobotTable,
                 ParticipantTable,
+                ParticipantMetricTable,
                 MetricTable,
                 MatchTable,
                 EventTable,
@@ -487,32 +488,65 @@ object SQLDatabase : DatabaseInterface {
     suspend fun getMetricsByParticipant(participantData: ParticipantNode): Either<List<MetricNode>, DatabaseError> {
         val result = runCatching {
             query {
-                MetricTable.select { MetricTable.participantId eq participantData.id }
-                    .map { metricRow -> MetricNode.from(metricRow) }
+                ParticipantMetricTable.select { ParticipantMetricTable.participantId eq participantData.id }
             }
+        }
+
+        val participantMetricRows = result.getOrNull() ?: return Error(DatabaseUnknownError)
+
+        val metricOrErrors = query {
+            participantMetricRows.map { participantMetricRow ->
+                val metricId = participantMetricRow[ParticipantMetricTable.metricId].value
+
+                getMetricById(metricId)
+            }
+        }
+
+        return if (metricOrErrors.all { it is Success }) {
+            Success(metricOrErrors.map { (it as Success).value })
+        } else {
+            metricOrErrors.first { it is Error } as Error
+        }
+    }
+
+    suspend fun getMetricById(metricId: Int): Either<MetricNode, DatabaseError> {
+        val result = runCatching {
+            val metricRow = getMetricRow(metricId)!!
+            MetricNode.from(metricRow)
         }
 
         return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    private suspend fun getMetricId(metricQuery: MetricQuery): Int {
+    private suspend fun getMetricId(metricQuery: ParticipantMetricQuery): Int {
         return getMetricRow(metricQuery)!![ParticipantTable.id].value
     }
 
-    override suspend fun metricExists(metricQuery: MetricQuery): Boolean {
+    override suspend fun metricExists(metricQuery: ParticipantMetricQuery): Boolean {
         return getMetricRow(metricQuery)?.let { true } ?: false
     }
 
-    private suspend fun getMetricRow(metricQuery: MetricQuery): ResultRow? {
-        val participantId = getParticipantId(metricQuery.participantQuery)
-
+    private suspend fun getMetricRow(metricId: Int): ResultRow? {
         return query {
-            MetricTable.select { (MetricTable.key eq metricQuery.key) and (MetricTable.participantId eq participantId) }
-                .singleOrNull()
+            MetricTable.select { MetricTable.id eq metricId }.singleOrNull()
         }
     }
 
-    private suspend fun getMetricNode(metricQuery: MetricQuery): Either<MetricNode, DatabaseError> {
+    private suspend fun getMetricRow(metricQuery: ParticipantMetricQuery): ResultRow? {
+        val participantId = getParticipantId(metricQuery.participantQuery)
+
+        return query {
+            val participantMetricRow =
+                ParticipantMetricTable.select { ParticipantMetricTable.participantId eq participantId }.singleOrNull()
+
+            val metricId: Int =
+                participantMetricRow?.let { it[ParticipantMetricTable.metricId].value } ?: return@query null
+
+            getMetricRow(metricId)
+        }
+    }
+
+    private suspend fun getMetricNode(metricQuery: ParticipantMetricQuery): Either<MetricNode, DatabaseError> {
         val result = runCatching {
             val metricRow = getMetricRow(metricQuery)!!
             MetricNode.from(metricRow)
@@ -521,7 +555,7 @@ object SQLDatabase : DatabaseInterface {
         return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
     }
 
-    override suspend fun getMetric(metricQuery: MetricQuery): Either<Metric, DatabaseError> {
+    override suspend fun getMetric(metricQuery: ParticipantMetricQuery): Either<Metric, DatabaseError> {
         return when (val metricNodeOrError = getMetricNode(metricQuery)) {
             is Success -> Success(metricNodeOrError.value.leaf())
             is Error -> metricNodeOrError
@@ -734,18 +768,29 @@ object SQLDatabase : DatabaseInterface {
 
     private suspend fun insertMetric(metric: Metric, participantId: Int): Either<Unit, DatabaseError> {
         query {
-            MetricTable.insert {
-                it[MetricTable.participantId] = participantId
+            val metricId = MetricTable.insertAndGetId {
                 it[key] = metric.key
                 it[value] = metric.value
             }
+
+            ParticipantMetricTable.insert {
+                it[ParticipantMetricTable.participantId] = participantId
+                it[ParticipantMetricTable.metricId] = metricId
+            }
+
         }
 
         return Success(Unit)
     }
 
     override suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Either<Unit, DatabaseError> {
-        if (metricExists(MetricQuery(metric.key, participantQuery))) return Error(DatabaseThingExists("metric"))
+        if (metricExists(
+                ParticipantMetricQuery(
+                    metric.key,
+                    participantQuery
+                )
+            )
+        ) return Error(DatabaseThingExists("metric"))
 
         val participantId = getParticipantId(participantQuery)
 
@@ -753,6 +798,6 @@ object SQLDatabase : DatabaseInterface {
     }
 
     override suspend fun metricExists(metric: Metric, participant: Participant, match: Match, event: Event): Boolean {
-        return metricExists(metricQueryOf(metric, participant, match, event))
+        return metricExists(participantMetricQueryOf(metric, participant, match, event))
     }
 }

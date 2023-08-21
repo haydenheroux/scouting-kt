@@ -95,5 +95,5 @@ fun createMatch(
     allianceMetrics: Map<Alliance, List<Metric>>,
     participants: List<Participant>
 ): Match {
-    return Match(match.set, match.number, match.type, allianceMetrics, participants)
+    return Match(match.set, match.number, match.type, participants)
 }

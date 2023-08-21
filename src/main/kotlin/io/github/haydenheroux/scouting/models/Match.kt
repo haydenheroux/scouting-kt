@@ -1,6 +1,5 @@
 package io.github.haydenheroux.scouting.models
 
-import io.github.haydenheroux.scouting.models.enums.Alliance
 import io.github.haydenheroux.scouting.models.enums.MatchType
 import io.github.haydenheroux.scouting.models.enums.matchTypeOf
 import io.ktor.http.*
@@ -11,7 +10,6 @@ data class Match(
     val set: Int,
     val number: Int,
     val type: MatchType,
-    val allianceMetrics: Map<Alliance, List<Metric>>,
     val participants: List<Participant>
 )
 

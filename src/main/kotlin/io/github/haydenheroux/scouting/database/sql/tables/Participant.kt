@@ -11,11 +11,19 @@ import io.github.haydenheroux.scouting.models.Participant
 import io.github.haydenheroux.scouting.models.enums.Alliance
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.Table
 
 object ParticipantTable : IntIdTable() {
     val matchId = reference("matchId", MatchTable)
     val alliance = enumerationByName<Alliance>("alliance", 255)
     val teamNumber = integer("teamNumber")
+}
+
+object ParticipantMetricTable : Table() {
+    val participantId = reference("participantId", ParticipantTable)
+    val metricId = reference("metricId", MetricTable)
+
+    override val primaryKey = PrimaryKey(participantId, metricId)
 }
 
 data class ParticipantNode(val id: Int, val matchId: Int, val alliance: Alliance, val teamNumber: Int) :

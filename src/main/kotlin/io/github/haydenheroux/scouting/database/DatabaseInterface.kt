@@ -87,9 +87,9 @@ interface DatabaseInterface {
 
     suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Either<Unit, DatabaseError>
 
-    suspend fun metricExists(metricQuery: MetricQuery): Boolean
+    suspend fun metricExists(metricQuery: ParticipantMetricQuery): Boolean
 
     suspend fun metricExists(metric: Metric, participant: Participant, match: Match, event: Event): Boolean
 
-    suspend fun getMetric(metricQuery: MetricQuery): Either<Metric, DatabaseError>
+    suspend fun getMetric(metricQuery: ParticipantMetricQuery): Either<Metric, DatabaseError>
 }
