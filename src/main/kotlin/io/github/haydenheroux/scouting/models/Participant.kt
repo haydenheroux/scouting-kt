@@ -1,11 +1,11 @@
 package io.github.haydenheroux.scouting.models
 
-import io.github.haydenheroux.scouting.models.enums.Alliance
+import io.github.haydenheroux.scouting.models.enums.AllianceColor
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Participant(val alliance: Alliance, val teamNumber: Int, val metrics: List<Metric>)
+data class Participant(val allianceColor: AllianceColor, val teamNumber: Int, val metrics: List<Metric>)
 
 data class ParticipantQuery(val teamQuery: TeamQuery, val matchQuery: MatchQuery)
 

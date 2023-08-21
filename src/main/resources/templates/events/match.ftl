@@ -10,7 +10,7 @@
     <#list match.participants as participant>
         <section>
             <h2><@links.team_number_year_link team_number=participant.teamNumber year=event.year /></h2>
-            <@enums.alliance alliance=participant.alliance />
+            <@enums.alliance alliance=participant.allianceColor />
             <table>
                 <thead>
                     <tr>

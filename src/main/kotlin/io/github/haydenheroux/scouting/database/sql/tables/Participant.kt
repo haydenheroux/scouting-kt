@@ -8,14 +8,14 @@ import io.github.haydenheroux.scouting.errors.Error
 import io.github.haydenheroux.scouting.errors.Success
 import io.github.haydenheroux.scouting.models.Metric
 import io.github.haydenheroux.scouting.models.Participant
-import io.github.haydenheroux.scouting.models.enums.Alliance
+import io.github.haydenheroux.scouting.models.enums.AllianceColor
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 
 object ParticipantTable : IntIdTable() {
     val matchId = reference("matchId", MatchTable)
-    val alliance = enumerationByName<Alliance>("alliance", 255)
+    val allianceColor = enumerationByName<AllianceColor>("alliance", 255)
     val teamNumber = integer("teamNumber")
 }
 
@@ -26,7 +26,7 @@ object ParticipantMetricTable : Table() {
     override val primaryKey = PrimaryKey(participantId, metricId)
 }
 
-data class ParticipantNode(val id: Int, val matchId: Int, val alliance: Alliance, val teamNumber: Int) :
+data class ParticipantNode(val id: Int, val matchId: Int, val allianceColor: AllianceColor, val teamNumber: Int) :
     Node<Tree<Participant>, Participant> {
 
     companion object {
@@ -34,7 +34,7 @@ data class ParticipantNode(val id: Int, val matchId: Int, val alliance: Alliance
             return ParticipantNode(
                 participantRow[ParticipantTable.id].value,
                 participantRow[ParticipantTable.matchId].value,
-                participantRow[ParticipantTable.alliance],
+                participantRow[ParticipantTable.allianceColor],
                 participantRow[ParticipantTable.teamNumber]
             )
         }
@@ -93,5 +93,5 @@ data class ParticipantTree(
 }
 
 fun createParticipant(participant: ParticipantNode, metrics: List<Metric>): Participant {
-    return Participant(participant.alliance, participant.teamNumber, metrics)
+    return Participant(participant.allianceColor, participant.teamNumber, metrics)
 }

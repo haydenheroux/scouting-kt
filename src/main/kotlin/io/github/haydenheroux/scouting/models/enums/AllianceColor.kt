@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  * matches.
  */
 @Serializable
-enum class Alliance {
+enum class AllianceColor {
     @SerialName("red")
     RED,
 
@@ -19,7 +19,7 @@ enum class Alliance {
     BLUE,
 }
 
-val allianceOf = mapOf(
-    "red" to Alliance.RED,
-    "blue" to Alliance.BLUE
+val allianceColorOf = mapOf(
+    "red" to AllianceColor.RED,
+    "blue" to AllianceColor.BLUE
 )

@@ -732,7 +732,7 @@ object SQLDatabase : DatabaseInterface {
             ParticipantTable.insertAndGetId {
                 it[this.matchId] = matchId
                 it[teamNumber] = participant.teamNumber
-                it[alliance] = participant.alliance
+                it[allianceColor] = participant.allianceColor
             }.value
         }
 

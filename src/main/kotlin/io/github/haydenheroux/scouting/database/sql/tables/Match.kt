@@ -9,7 +9,7 @@ import io.github.haydenheroux.scouting.errors.Success
 import io.github.haydenheroux.scouting.models.Match
 import io.github.haydenheroux.scouting.models.Metric
 import io.github.haydenheroux.scouting.models.Participant
-import io.github.haydenheroux.scouting.models.enums.Alliance
+import io.github.haydenheroux.scouting.models.enums.AllianceColor
 import io.github.haydenheroux.scouting.models.enums.MatchType
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -60,17 +60,17 @@ data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: In
 data class MatchTree(val match: MatchNode, val event: EventNode?, val participants: List<ParticipantNode>) :
     Tree<Match> {
     override suspend fun leaves(): Match {
-        val allianceMetrics = emptyMap<Alliance, List<Metric>>()
+        val allianceColorMetrics = emptyMap<AllianceColor, List<Metric>>()
         val participants = participants.map { participant -> participant.leaf() }
 
-        return createMatch(match, allianceMetrics, participants)
+        return createMatch(match, allianceColorMetrics, participants)
     }
 
     override suspend fun subtree(): Match {
-        val allianceMetrics = emptyMap<Alliance, List<Metric>>()
+        val allianceColorMetrics = emptyMap<AllianceColor, List<Metric>>()
         val participants = participants.map { participant -> participant.tree(false).subtree() }
 
-        return createMatch(match, allianceMetrics, participants)
+        return createMatch(match, allianceColorMetrics, participants)
     }
 
     override suspend fun subtree(depth: Int, excludes: List<Exclude>): Match {
@@ -78,21 +78,21 @@ data class MatchTree(val match: MatchNode, val event: EventNode?, val participan
         if (depth == 1) return leaves()
 
         // TODO
-        val allianceMetrics =
-            if (Exclude.MATCH_ALLIANCE_METRICS in excludes) emptyMap<Alliance, List<Metric>>() else emptyMap()
+        val allianceColorMetrics =
+            if (Exclude.MATCH_ALLIANCE_METRICS in excludes) emptyMap<AllianceColor, List<Metric>>() else emptyMap()
 
         val participants =
             if (Exclude.MATCH_PARTICIPANTS in excludes) emptyList() else participants.map { participant ->
                 participant.tree(false).subtree(depth - 1, excludes)
             }
 
-        return createMatch(match, allianceMetrics, participants)
+        return createMatch(match, allianceColorMetrics, participants)
     }
 }
 
 fun createMatch(
     match: MatchNode,
-    allianceMetrics: Map<Alliance, List<Metric>>,
+    allianceColorMetrics: Map<AllianceColor, List<Metric>>,
     participants: List<Participant>
 ): Match {
     return Match(match.set, match.number, match.type, participants)
