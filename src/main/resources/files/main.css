@@ -184,6 +184,10 @@ main > section {
     padding: var(--section-padding);
 }
 
+table {
+    width: 100%;
+}
+
 th, tr td {
     padding-block: var(--table-padding);
 }
