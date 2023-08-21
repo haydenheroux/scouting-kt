@@ -1,7 +1,6 @@
 package io.github.haydenheroux.scouting.database.sql
 
 import io.github.haydenheroux.scouting.database.DatabaseInterface
-import io.github.haydenheroux.scouting.database.sql.excludes.Exclude
 import io.github.haydenheroux.scouting.database.sql.tables.*
 import io.github.haydenheroux.scouting.errors.*
 import io.github.haydenheroux.scouting.models.*
@@ -154,7 +153,7 @@ object SQLDatabase : DatabaseInterface {
         return when (val seasonNodeOrError = getSeasonNode(seasonQuery)) {
             is Success -> {
                 val seasonTree = seasonNodeOrError.value.tree(true)
-                val season = seasonTree.subtree(4, listOf(Exclude.ALLIANCE_METRICS))
+                val season = seasonTree.subtree(4, emptyList())
                 val team = seasonTree.team!!.leaf()
                 Success(Pair(season, team))
             }
@@ -294,7 +293,7 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getEventWithTeamNumbers(eventQuery: EventQuery): Either<Event, DatabaseError> {
         return when (val eventNodeOrError = getEventNode(eventQuery)) {
-            is Success -> Success(eventNodeOrError.value.tree(false).subtree(3, listOf(Exclude.ALLIANCE_METRICS)))
+            is Success -> Success(eventNodeOrError.value.tree(false).subtree(3, emptyList()))
             is Error -> eventNodeOrError
         }
     }
