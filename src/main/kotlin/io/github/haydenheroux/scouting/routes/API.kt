@@ -254,6 +254,24 @@ fun Route.api() {
             call.respond(httpStatusCode)
         }
 
+        post("/new-alliance") {
+            val alliance = call.receive<Alliance>()
+
+            val matchQuery = matchQueryOf(call.request.queryParameters).getOrNull()
+
+            if (matchQuery == null) {
+                call.respond(HttpStatusCode.BadRequest)
+                return@post
+            }
+
+            val httpStatusCode = when (val result = SQLDatabase.insertAlliance(alliance, matchQuery)) {
+                is Success -> HttpStatusCode.Created
+                is Error -> result.error.getHttpStatusCode()
+            }
+
+            call.respond(httpStatusCode)
+        }
+
         post("/new-participant") {
             val participant = call.receive<Participant>()
 
