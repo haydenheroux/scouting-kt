@@ -74,8 +74,6 @@ interface DatabaseInterface {
 
     suspend fun allianceExists(allianceQuery: AllianceQuery): Boolean
 
-    suspend fun allianceExists(alliance: Alliance, match: Match, event: Event): Boolean
-
     suspend fun getAlliance(allianceQuery: AllianceQuery): Either<Alliance, DatabaseError>
 
 
@@ -86,9 +84,7 @@ interface DatabaseInterface {
     suspend fun getParticipant(participantQuery: ParticipantQuery): Either<Participant, DatabaseError>
 
 
-    suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Either<Unit, DatabaseError>
+    suspend fun insertAllianceMetric(metric: Metric, allianceQuery: AllianceQuery): Either<Unit, DatabaseError>
 
-    suspend fun metricExists(metricQuery: MetricQuery): Boolean
-
-    suspend fun getMetric(metricQuery: MetricQuery): Either<Metric, DatabaseError>
+    suspend fun insertParticipantMetric(metric: Metric, participantQuery: ParticipantQuery): Either<Unit, DatabaseError>
 }

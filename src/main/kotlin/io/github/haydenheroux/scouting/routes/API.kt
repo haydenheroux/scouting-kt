@@ -285,7 +285,7 @@ fun Route.api() {
             var error: DatabaseError? = null
 
             for (metric in metrics) {
-                val result = SQLDatabase.insertMetric(metric, participantQuery)
+                val result = SQLDatabase.insertParticipantMetric(metric, participantQuery)
 
                 if (result is Error) {
                     error = result.error

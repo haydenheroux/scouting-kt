@@ -23,7 +23,9 @@ object SQLDatabase : DatabaseInterface {
                 MetricTable,
                 MatchTable,
                 EventTable,
-                SeasonEventTable
+                SeasonEventTable,
+                AllianceMetricTable,
+                AllianceTable
             )
         }
     }
@@ -383,24 +385,42 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun insertAlliance(alliance: Alliance, matchId: Int): Either<Unit, DatabaseError> {
-        TODO("Not yet implemented")
+    private suspend fun insertAlliance(alliance: Alliance, matchId: Int): Either<Unit, DatabaseError> {
+        val allianceId = query {
+            AllianceTable.insertAndGetId {
+                it[this.matchId] = matchId
+                it[color] = alliance.color
+            }.value
+        }
+
+        for (metric in alliance.metrics) {
+            insertAllianceMetric(metric, allianceId)
+        }
+
+        for (participant in alliance.participants) {
+            insertParticipant(participant, allianceId)
+        }
+
+        return Success(Unit)
     }
 
     override suspend fun insertAlliance(alliance: Alliance, matchQuery: MatchQuery): Either<Unit, DatabaseError> {
-        TODO("Not yet implemented")
+        if (allianceExists(AllianceQuery(matchQuery, alliance.color))) return Error(DatabaseThingExists("alliance"))
+
+        val matchId = getMatchId(matchQuery)
+
+        return insertAlliance(alliance, matchId)
     }
 
     override suspend fun allianceExists(allianceQuery: AllianceQuery): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun allianceExists(alliance: Alliance, match: Match, event: Event): Boolean {
-        TODO("Not yet implemented")
+        return getAllianceRow(allianceQuery)?.let { true } ?: false
     }
 
     override suspend fun getAlliance(allianceQuery: AllianceQuery): Either<Alliance, DatabaseError> {
-        TODO("Not yet implemented")
+        return when (val allianceNodeOrError = getAllianceNode(allianceQuery)) {
+            is Success -> Success(allianceNodeOrError.value.tree(false).subtree())
+            is Error -> allianceNodeOrError
+        }
     }
 
     suspend fun getMatchById(matchId: Int): Either<MatchNode, DatabaseError> {
@@ -410,6 +430,41 @@ object SQLDatabase : DatabaseInterface {
         }
 
         return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
+    }
+
+    suspend fun getParticipantsByAlliance(alliance: AllianceNode): Either<List<ParticipantNode>, DatabaseError> {
+        val result = runCatching {
+            query {
+                ParticipantTable.select { ParticipantTable.allianceId eq alliance.id }
+                    .map { participantRow -> ParticipantNode.from(participantRow) }
+            }
+        }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
+    }
+
+    suspend fun getMetricsByAlliance(alliance: AllianceNode): Either<List<MetricNode>, DatabaseError> {
+        val result = runCatching {
+            query {
+                AllianceMetricTable.select { AllianceMetricTable.allianceId eq alliance.id }
+            }
+        }
+
+        val allianceMetricRows = result.getOrNull() ?: return Error(DatabaseUnknownError)
+
+        val allianceMetricNodeOrErrors = query {
+            allianceMetricRows.map { allianceMetricRow ->
+                val metricId = allianceMetricRow[AllianceMetricTable.metricId].value
+
+                getMetricById(metricId)
+            }
+        }
+
+        return if (allianceMetricNodeOrErrors.all { it is Success }) {
+            Success(allianceMetricNodeOrErrors.map { (it as Success).value })
+        } else {
+            allianceMetricNodeOrErrors.first { it is Error } as Error
+        }
     }
 
     suspend fun getMatchesByEvent(eventData: EventNode): Either<List<MatchNode>, DatabaseError> {
@@ -496,6 +551,15 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
+    private suspend fun getAllianceNode(allianceQuery: AllianceQuery): Either<AllianceNode, DatabaseError> {
+        val result = runCatching {
+            val allianceNode = getAllianceRow(allianceQuery)!!
+            AllianceNode.from(allianceNode)
+        }
+
+        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
+    }
+
     suspend fun getAllianceById(allianceId: Int): Either<AllianceNode, DatabaseError> {
         val result = runCatching {
             val allianceNode = getAllianceRow(allianceId)!!
@@ -557,7 +621,7 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun getMetricById(metricId: Int): Either<MetricNode, DatabaseError> {
+    private suspend fun getMetricById(metricId: Int): Either<MetricNode, DatabaseError> {
         val result = runCatching {
             val metricRow = getMetricRow(metricId)!!
             MetricNode.from(metricRow)
@@ -570,7 +634,7 @@ object SQLDatabase : DatabaseInterface {
         return getMetricRow(metricQuery)!![ParticipantTable.id].value
     }
 
-    override suspend fun metricExists(metricQuery: MetricQuery): Boolean {
+    private suspend fun metricExists(metricQuery: MetricQuery): Boolean {
         return getMetricRow(metricQuery)?.let { true } ?: false
     }
 
@@ -601,13 +665,6 @@ object SQLDatabase : DatabaseInterface {
         }
 
         return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
-    }
-
-    override suspend fun getMetric(metricQuery: MetricQuery): Either<Metric, DatabaseError> {
-        return when (val metricNodeOrError = getMetricNode(metricQuery)) {
-            is Success -> Success(metricNodeOrError.value.leaf())
-            is Error -> metricNodeOrError
-        }
     }
 
     override suspend fun insertTeam(team: Team): Either<Unit, DatabaseError> {
@@ -772,7 +829,7 @@ object SQLDatabase : DatabaseInterface {
         }
 
         for (metric in participant.metrics) {
-            insertMetric(metric, participantId)
+            insertParticipantMetric(metric, participantId)
         }
 
         return Success(Unit)
@@ -792,7 +849,24 @@ object SQLDatabase : DatabaseInterface {
         return insertParticipant(participant, allianceId)
     }
 
-    private suspend fun insertMetric(metric: Metric, participantId: Int): Either<Unit, DatabaseError> {
+    private suspend fun insertAllianceMetric(metric: Metric, allianceId: Int): Either<Unit, DatabaseError> {
+        query {
+            val metricId = MetricTable.insertAndGetId {
+                it[key] = metric.key
+                it[value] = metric.value
+            }
+
+            AllianceMetricTable.insert {
+                it[AllianceMetricTable.allianceId] = allianceId
+                it[AllianceMetricTable.metricId] = metricId
+            }
+
+        }
+
+        return Success(Unit)
+    }
+
+    private suspend fun insertParticipantMetric(metric: Metric, participantId: Int): Either<Unit, DatabaseError> {
         query {
             val metricId = MetricTable.insertAndGetId {
                 it[key] = metric.key
@@ -809,17 +883,21 @@ object SQLDatabase : DatabaseInterface {
         return Success(Unit)
     }
 
-    override suspend fun insertMetric(metric: Metric, participantQuery: ParticipantQuery): Either<Unit, DatabaseError> {
-        if (metricExists(
-                MetricQuery(
-                    metric.key,
-                    participantQuery
-                )
-            )
-        ) return Error(DatabaseThingExists("metric"))
-
+    override suspend fun insertParticipantMetric(
+        metric: Metric,
+        participantQuery: ParticipantQuery
+    ): Either<Unit, DatabaseError> {
         val participantId = getParticipantId(participantQuery)
 
-        return insertMetric(metric, participantId)
+        return insertParticipantMetric(metric, participantId)
+    }
+
+    override suspend fun insertAllianceMetric(
+        metric: Metric,
+        allianceQuery: AllianceQuery
+    ): Either<Unit, DatabaseError> {
+        val allianceId = getAllianceId(allianceQuery)
+
+        return insertAllianceMetric(metric, allianceId)
     }
 }
