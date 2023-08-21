@@ -7,10 +7,10 @@
 <@layout.header title="${_match.match_to_text_short(match)} - ${event.name}">
     <h1>${_match.match_to_text_short(match)} - <@links.event_link event=event /></h1>
     <hr/>
-    <#list match.participants as participant>
+    <#list match.alliances as alliance>
+    <#list alliance.participants as participant>
         <section>
             <h2><@links.team_number_year_link team_number=participant.teamNumber year=event.year /></h2>
-            <@enums.alliance alliance=participant.allianceColor />
             <table>
                 <thead>
                     <tr>
@@ -29,5 +29,6 @@
             </table>
         </section>
         <hr/>
+    </#list>
     </#list>
 </@layout.header>

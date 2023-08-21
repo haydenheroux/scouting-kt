@@ -49,8 +49,10 @@
         <#list sorted_matches as match>
             <tr>
                 <td><@links.match_link match=match event=event /></td>
-                <#list match.participants as participant>
-                <td><@links.team_number_link team_number=participant.teamNumber /></td>
+                <#list match.alliances as alliance>
+                    <#list alliance.participants as participant>
+                        <td><@links.team_number_link team_number=participant.teamNumber /></td>
+                    </#list>
                 </#list>
             </tr>
         </#list>
