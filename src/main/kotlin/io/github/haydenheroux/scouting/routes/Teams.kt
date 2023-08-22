@@ -54,7 +54,6 @@ fun Route.teams() {
                 return@get
             }
 
-            // perf: SQLDatabase.getSeasonWithEventsAndTeam(seasonQuery)
             val seasonAndTeamOrError = SQLDatabase.getSeasonWithMatchesAndTeam(seasonQuery)
 
             if (seasonAndTeamOrError is Error) {

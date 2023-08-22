@@ -42,10 +42,14 @@ data class AllianceNode(
         }
     }
 
-    override suspend fun tree(parent: Boolean): Tree<Alliance> {
+    override suspend fun tree(parent: Boolean, excludes: List<Exclude>): Tree<Alliance> {
         val matchOrError = if (parent) SQLDatabase.getMatchById(matchId) else Success(null)
-        val metricsOrError = SQLDatabase.getMetricsByAlliance(this)
-        val participantsOrError = SQLDatabase.getParticipantsByAlliance(this)
+        val metricsOrError =
+            if (Exclude.ALLIANCE_METRICS in excludes) Success(emptyList()) else SQLDatabase.getMetricsByAlliance(this)
+        val participantsOrError =
+            if (Exclude.ALLIANCE_PARTICIPANTS in excludes) Success(emptyList()) else SQLDatabase.getParticipantsByAlliance(
+                this
+            )
 
         val match = when (matchOrError) {
             is Success -> matchOrError.value
@@ -79,8 +83,8 @@ data class AllianceTree(
 ) : Tree<Alliance> {
 
     override suspend fun subtree(): Alliance {
-        val metrics = metrics.map { metric -> metric.tree(false).subtree() }
-        val participants = participants.map { participant -> participant.tree(false).subtree() }
+        val metrics = metrics.map { metric -> metric.tree(false, emptyList()).subtree() }
+        val participants = participants.map { participant -> participant.tree(false, emptyList()).subtree() }
 
         return createAlliance(alliance, metrics, participants)
     }
@@ -89,11 +93,11 @@ data class AllianceTree(
         if (depth == 0) return alliance.leaf()
 
         val metrics = if (Exclude.ALLIANCE_METRICS in excludes) emptyList() else metrics.map { metric ->
-            metric.tree(false).subtree(depth - 1, excludes)
+            metric.tree(false, excludes).subtree(depth - 1, excludes)
         }
         val participants =
             if (Exclude.ALLIANCE_PARTICIPANTS in excludes) emptyList() else participants.map { participant ->
-                participant.tree(false).subtree(depth - 1, excludes)
+                participant.tree(false, excludes).subtree(depth - 1, excludes)
             }
 
         return createAlliance(alliance, metrics, participants)

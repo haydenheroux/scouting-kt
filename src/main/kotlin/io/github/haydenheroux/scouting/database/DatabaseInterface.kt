@@ -19,8 +19,6 @@ interface DatabaseInterface {
 
     suspend fun getTeamWithEvents(teamQuery: TeamQuery): Either<Team, DatabaseError>
 
-    suspend fun getTeamWithMatches(teamQuery: TeamQuery): Either<Team, DatabaseError>
-
 
     suspend fun insertSeason(season: Season, teamQuery: TeamQuery): Either<Unit, DatabaseError>
 

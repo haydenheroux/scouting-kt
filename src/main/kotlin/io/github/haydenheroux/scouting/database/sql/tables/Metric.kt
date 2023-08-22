@@ -25,7 +25,7 @@ data class MetricNode(val id: Int, val key: String, val value: String) :
         }
     }
 
-    override suspend fun tree(parent: Boolean): Tree<Metric> {
+    override suspend fun tree(parent: Boolean, excludes: List<Exclude>): Tree<Metric> {
         return MetricTree(this)
     }
 

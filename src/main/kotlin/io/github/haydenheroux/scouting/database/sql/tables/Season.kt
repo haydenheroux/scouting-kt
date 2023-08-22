@@ -37,10 +37,12 @@ data class SeasonNode(val id: Int, val teamId: Int, val year: Int) : Node<Tree<S
         }
     }
 
-    override suspend fun tree(parent: Boolean): SeasonTree {
+    override suspend fun tree(parent: Boolean, excludes: List<Exclude>): SeasonTree {
         val teamOrError = if (parent) SQLDatabase.getTeamById(teamId) else Success(null)
-        val robotsOrError = SQLDatabase.getRobotsBySeason(this)
-        val eventsOrError = SQLDatabase.getEventsBySeason(this)
+        val robotsOrError =
+            if (Exclude.SEASON_ROBOTS in excludes) Success(emptyList()) else SQLDatabase.getRobotsBySeason(this)
+        val eventsOrError =
+            if (Exclude.SEASON_EVENTS in excludes) Success(emptyList()) else SQLDatabase.getEventsBySeason(this)
 
         val team = when (teamOrError) {
             is Success -> teamOrError.value
@@ -72,8 +74,8 @@ data class SeasonTree(
     val events: List<EventNode>
 ) : Tree<Season> {
     override suspend fun subtree(): Season {
-        val robots = robots.map { robot -> robot.tree(false).subtree() }
-        val events = events.map { event -> event.tree(false).subtree() }
+        val robots = robots.map { robot -> robot.tree(false, emptyList()).subtree() }
+        val events = events.map { event -> event.tree(false, emptyList()).subtree() }
 
         return createSeason(season, robots, events)
     }
@@ -82,10 +84,10 @@ data class SeasonTree(
         if (depth == 0) return season.leaf()
 
         val robots = if (Exclude.SEASON_ROBOTS in excludes) emptyList() else robots.map { robot ->
-            robot.tree(false).subtree(depth - 1, excludes)
+            robot.tree(false, excludes).subtree(depth - 1, excludes)
         }
         val events = if (Exclude.SEASON_EVENTS in excludes) emptyList() else events.map { event ->
-            event.tree(false).subtree(depth - 1, excludes)
+            event.tree(false, excludes).subtree(depth - 1, excludes)
         }
 
         return createSeason(season, robots, events)

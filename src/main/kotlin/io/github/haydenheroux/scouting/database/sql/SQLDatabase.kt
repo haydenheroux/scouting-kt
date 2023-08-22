@@ -1,6 +1,7 @@
 package io.github.haydenheroux.scouting.database.sql
 
 import io.github.haydenheroux.scouting.database.DatabaseInterface
+import io.github.haydenheroux.scouting.database.sql.excludes.Exclude
 import io.github.haydenheroux.scouting.database.sql.tables.*
 import io.github.haydenheroux.scouting.errors.*
 import io.github.haydenheroux.scouting.models.*
@@ -45,7 +46,10 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getTeams(): Either<List<Team>, DatabaseError> {
         return when (val teamNodesOrError = getTeamNodes()) {
-            is Success -> Success(teamNodesOrError.value.map { teamNode -> teamNode.tree(false).subtree() })
+            is Success -> Success(teamNodesOrError.value.map { teamNode ->
+                teamNode.tree(false, emptyList()).subtree()
+            })
+
             is Error -> teamNodesOrError
         }
     }
@@ -68,21 +72,18 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getTeam(teamQuery: TeamQuery): Either<Team, DatabaseError> {
         return when (val teamNodeOrError = getTeamNode(teamQuery)) {
-            is Success -> Success(teamNodeOrError.value.tree(false).subtree())
+            is Success -> Success(teamNodeOrError.value.tree(false, emptyList()).subtree())
             is Error -> teamNodeOrError
         }
     }
 
     override suspend fun getTeamWithEvents(teamQuery: TeamQuery): Either<Team, DatabaseError> {
         return when (val teamNodeOrError = getTeamNode(teamQuery)) {
-            is Success -> Success(teamNodeOrError.value.tree(false).subtree(2, emptyList()))
-            is Error -> teamNodeOrError
-        }
-    }
+            is Success -> Success(
+                teamNodeOrError.value.tree(false, emptyList())
+                    .subtree(2, listOf(Exclude.SEASON_ROBOTS, Exclude.EVENT_MATCHES))
+            )
 
-    override suspend fun getTeamWithMatches(teamQuery: TeamQuery): Either<Team, DatabaseError> {
-        return when (val teamNodeOrError = getTeamNode(teamQuery)) {
-            is Success -> Success(teamNodeOrError.value.tree(false).subtree(4, emptyList()))
             is Error -> teamNodeOrError
         }
     }
@@ -131,7 +132,7 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getSeason(seasonQuery: SeasonQuery): Either<Season, DatabaseError> {
         return when (val seasonNodeOrError = getSeasonNode(seasonQuery)) {
-            is Success -> Success(seasonNodeOrError.value.tree(false).subtree())
+            is Success -> Success(seasonNodeOrError.value.tree(false, emptyList()).subtree())
             is Error -> seasonNodeOrError
         }
     }
@@ -139,7 +140,7 @@ object SQLDatabase : DatabaseInterface {
     override suspend fun getSeasonWithEventsAndTeam(seasonQuery: SeasonQuery): Either<Pair<Season, Team>, DatabaseError> {
         return when (val seasonNodeOrError = getSeasonNode(seasonQuery)) {
             is Success -> {
-                val seasonTree = seasonNodeOrError.value.tree(true)
+                val seasonTree = seasonNodeOrError.value.tree(true, emptyList())
                 val season = seasonTree.subtree(1, emptyList())
                 val team = seasonTree.team!!.leaf()
                 Success(Pair(season, team))
@@ -152,8 +153,8 @@ object SQLDatabase : DatabaseInterface {
     override suspend fun getSeasonWithMatchesAndTeam(seasonQuery: SeasonQuery): Either<Pair<Season, Team>, DatabaseError> {
         return when (val seasonNodeOrError = getSeasonNode(seasonQuery)) {
             is Success -> {
-                val seasonTree = seasonNodeOrError.value.tree(true)
-                val season = seasonTree.subtree(4, emptyList())
+                val seasonTree = seasonNodeOrError.value.tree(true, emptyList())
+                val season = seasonTree.subtree(4, listOf(Exclude.ALLIANCE_METRICS, Exclude.PARTICIPANT_METRICS))
                 val team = seasonTree.team!!.leaf()
                 Success(Pair(season, team))
             }
@@ -226,7 +227,7 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getRobot(robotQuery: RobotQuery): Either<Robot, DatabaseError> {
         return when (val robotNodeOrError = getRobotNode(robotQuery)) {
-            is Success -> Success(robotNodeOrError.value.tree(false).subtree())
+            is Success -> Success(robotNodeOrError.value.tree(false, emptyList()).subtree())
             is Error -> robotNodeOrError
         }
     }
@@ -256,7 +257,10 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getEvents(): Either<List<Event>, DatabaseError> {
         return when (val eventNodesOrError = getEventNodes()) {
-            is Success -> Success(eventNodesOrError.value.map { eventNode -> eventNode.tree(false).subtree() })
+            is Success -> Success(eventNodesOrError.value.map { eventNode ->
+                eventNode.tree(false, emptyList()).subtree()
+            })
+
             is Error -> eventNodesOrError
         }
     }
@@ -279,21 +283,25 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getEvent(eventQuery: EventQuery): Either<Event, DatabaseError> {
         return when (val eventNodeOrError = getEventNode(eventQuery)) {
-            is Success -> Success(eventNodeOrError.value.tree(false).subtree())
+            is Success -> Success(eventNodeOrError.value.tree(false, emptyList()).subtree())
             is Error -> eventNodeOrError
         }
     }
 
     override suspend fun getEventWithMatches(eventQuery: EventQuery): Either<Event, DatabaseError> {
         return when (val eventNodeOrError = getEventNode(eventQuery)) {
-            is Success -> Success(eventNodeOrError.value.tree(false).subtree(1, emptyList()))
+            is Success -> Success(eventNodeOrError.value.tree(false, emptyList()).subtree(1, emptyList()))
             is Error -> eventNodeOrError
         }
     }
 
     override suspend fun getEventWithTeamNumbers(eventQuery: EventQuery): Either<Event, DatabaseError> {
         return when (val eventNodeOrError = getEventNode(eventQuery)) {
-            is Success -> Success(eventNodeOrError.value.tree(false).subtree(3, emptyList()))
+            is Success -> Success(
+                eventNodeOrError.value.tree(false, emptyList())
+                    .subtree(3, listOf(Exclude.ALLIANCE_METRICS, Exclude.PARTICIPANT_METRICS))
+            )
+
             is Error -> eventNodeOrError
         }
     }
@@ -366,7 +374,7 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getMatch(matchQuery: MatchQuery): Either<Match, DatabaseError> {
         return when (val matchNodeOrError = getMatchNode(matchQuery)) {
-            is Success -> Success(matchNodeOrError.value.tree(false).subtree())
+            is Success -> Success(matchNodeOrError.value.tree(false, emptyList()).subtree())
             is Error -> matchNodeOrError
         }
     }
@@ -374,7 +382,7 @@ object SQLDatabase : DatabaseInterface {
     override suspend fun getMatchWithMetricsAndEvent(matchQuery: MatchQuery): Either<Pair<Match, Event>, DatabaseError> {
         return when (val matchNodeOrError = getMatchNode(matchQuery)) {
             is Success -> {
-                val matchTree = matchNodeOrError.value.tree(true)
+                val matchTree = matchNodeOrError.value.tree(true, emptyList())
                 val match = matchTree.subtree(3, emptyList())
                 val event = matchTree.event!!.leaf()
 
@@ -418,7 +426,7 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getAlliance(allianceQuery: AllianceQuery): Either<Alliance, DatabaseError> {
         return when (val allianceNodeOrError = getAllianceNode(allianceQuery)) {
-            is Success -> Success(allianceNodeOrError.value.tree(false).subtree())
+            is Success -> Success(allianceNodeOrError.value.tree(false, emptyList()).subtree())
             is Error -> allianceNodeOrError
         }
     }
@@ -511,7 +519,7 @@ object SQLDatabase : DatabaseInterface {
 
     override suspend fun getParticipant(participantQuery: ParticipantQuery): Either<Participant, DatabaseError> {
         return when (val participantNodeOrError = getParticipantNode(participantQuery)) {
-            is Success -> Success(participantNodeOrError.value.tree(false).subtree())
+            is Success -> Success(participantNodeOrError.value.tree(false, emptyList()).subtree())
             is Error -> participantNodeOrError
         }
     }

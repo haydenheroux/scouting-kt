@@ -33,9 +33,10 @@ data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: In
         }
     }
 
-    override suspend fun tree(parent: Boolean): MatchTree {
+    override suspend fun tree(parent: Boolean, excludes: List<Exclude>): MatchTree {
         val eventOrError = if (parent) SQLDatabase.getEventById(eventId) else Success(null)
-        val alliancesOrError = SQLDatabase.getAlliancesByMatch(this)
+        val alliancesOrError =
+            if (Exclude.MATCH_ALLIANCES in excludes) Success(emptyList()) else SQLDatabase.getAlliancesByMatch(this)
 
         val event = when (eventOrError) {
             is Success -> eventOrError.value
@@ -59,7 +60,7 @@ data class MatchTree(val match: MatchNode, val event: EventNode?, val alliances:
     Tree<Match> {
 
     override suspend fun subtree(): Match {
-        val alliances = alliances.map { alliance -> alliance.tree(false).subtree() }
+        val alliances = alliances.map { alliance -> alliance.tree(false, emptyList()).subtree() }
 
         return createMatch(match, alliances)
     }
@@ -69,7 +70,7 @@ data class MatchTree(val match: MatchNode, val event: EventNode?, val alliances:
 
         val alliances =
             if (Exclude.MATCH_ALLIANCES in excludes) emptyList() else alliances.map { alliance ->
-                alliance.tree(false).subtree(depth - 1, excludes)
+                alliance.tree(false, excludes).subtree(depth - 1, excludes)
             }
 
         return createMatch(match, alliances)

@@ -43,8 +43,9 @@ data class EventNode(
         }
     }
 
-    override suspend fun tree(parent: Boolean): Tree<Event> {
-        val matchesOrError = SQLDatabase.getMatchesByEvent(this)
+    override suspend fun tree(parent: Boolean, excludes: List<Exclude>): Tree<Event> {
+        val matchesOrError =
+            if (Exclude.EVENT_MATCHES in excludes) Success(emptyList()) else SQLDatabase.getMatchesByEvent(this)
 
         val matches = when (matchesOrError) {
             is Success -> matchesOrError.value
@@ -62,7 +63,7 @@ data class EventNode(
 data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<Event> {
 
     override suspend fun subtree(): Event {
-        val matches = matches.map { match -> match.tree(false).subtree() }
+        val matches = matches.map { match -> match.tree(false, emptyList()).subtree() }
 
         return createEvent(event, matches)
     }
@@ -71,7 +72,7 @@ data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<
         if (depth == 0) return event.leaf()
 
         val matches = if (Exclude.EVENT_MATCHES in excludes) emptyList() else matches.map { match ->
-            match.tree(false).subtree(depth - 1, excludes)
+            match.tree(false, excludes).subtree(depth - 1, excludes)
         }
 
         return createEvent(event, matches)

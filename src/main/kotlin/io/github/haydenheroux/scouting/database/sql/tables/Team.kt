@@ -31,8 +31,9 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
         }
     }
 
-    override suspend fun tree(parent: Boolean): Tree<Team> {
-        val seasonsOrError = SQLDatabase.getSeasonsByTeam(this)
+    override suspend fun tree(parent: Boolean, excludes: List<Exclude>): Tree<Team> {
+        val seasonsOrError =
+            if (Exclude.TEAM_SEASONS in excludes) Success(emptyList()) else SQLDatabase.getSeasonsByTeam(this)
 
         val seasons = when (seasonsOrError) {
             is Success -> seasonsOrError.value
@@ -50,7 +51,7 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
 data class TeamTree(val team: TeamNode, val seasons: List<SeasonNode>) : Tree<Team> {
 
     override suspend fun subtree(): Team {
-        val seasons = seasons.map { season -> season.tree(false).subtree() }
+        val seasons = seasons.map { season -> season.tree(false, emptyList()).subtree() }
 
         return createTeam(team, seasons)
     }
@@ -59,7 +60,7 @@ data class TeamTree(val team: TeamNode, val seasons: List<SeasonNode>) : Tree<Te
         if (depth == 0) return team.leaf()
 
         val seasons = if (Exclude.TEAM_SEASONS in excludes) emptyList() else seasons.map { season ->
-            season.tree(false).subtree(depth - 1, excludes)
+            season.tree(false, excludes).subtree(depth - 1, excludes)
         }
 
         return createTeam(team, seasons)

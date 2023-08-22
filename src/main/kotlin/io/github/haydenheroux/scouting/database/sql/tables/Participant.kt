@@ -37,9 +37,12 @@ data class ParticipantNode(val id: Int, val allianceId: Int, val teamNumber: Int
         }
     }
 
-    override suspend fun tree(parent: Boolean): Tree<Participant> {
+    override suspend fun tree(parent: Boolean, excludes: List<Exclude>): Tree<Participant> {
         val allianceOrError = if (parent) SQLDatabase.getAllianceById(allianceId) else Success(null)
-        val metricsOrError = SQLDatabase.getMetricsByParticipant(this)
+        val metricsOrError =
+            if (Exclude.PARTICIPANT_METRICS in excludes) Success(emptyList()) else SQLDatabase.getMetricsByParticipant(
+                this
+            )
 
         val alliance = when (allianceOrError) {
             is Success -> allianceOrError.value
@@ -66,7 +69,7 @@ data class ParticipantTree(
 ) :
     Tree<Participant> {
     override suspend fun subtree(): Participant {
-        val metrics = metrics.map { metric -> metric.tree(false).subtree() }
+        val metrics = metrics.map { metric -> metric.tree(false, emptyList()).subtree() }
 
         return createParticipant(participant, metrics)
     }
@@ -75,7 +78,7 @@ data class ParticipantTree(
         if (depth == 0) return participant.leaf()
 
         val metrics = if (Exclude.PARTICIPANT_METRICS in excludes) emptyList() else metrics.map { metric ->
-            metric.tree(false).subtree(depth - 1, excludes)
+            metric.tree(false, excludes).subtree(depth - 1, excludes)
         }
 
         return createParticipant(participant, metrics)
