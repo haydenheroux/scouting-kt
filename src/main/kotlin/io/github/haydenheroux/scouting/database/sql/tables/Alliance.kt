@@ -78,13 +78,6 @@ data class AllianceTree(
     val participants: List<ParticipantNode>
 ) : Tree<Alliance> {
 
-    override suspend fun leaves(): Alliance {
-        val metrics = metrics.map { metric -> metric.leaf() }
-        val participants = participants.map { participant -> participant.leaf() }
-
-        return createAlliance(alliance, metrics, participants)
-    }
-
     override suspend fun subtree(): Alliance {
         val metrics = metrics.map { metric -> metric.tree(false).subtree() }
         val participants = participants.map { participant -> participant.tree(false).subtree() }
@@ -94,7 +87,6 @@ data class AllianceTree(
 
     override suspend fun subtree(depth: Int, excludes: List<Exclude>): Alliance {
         if (depth == 0) return alliance.leaf()
-        if (depth == 1) return leaves()
 
         val metrics = if (Exclude.ALLIANCE_METRICS in excludes) emptyList() else metrics.map { metric ->
             metric.tree(false).subtree(depth - 1, excludes)

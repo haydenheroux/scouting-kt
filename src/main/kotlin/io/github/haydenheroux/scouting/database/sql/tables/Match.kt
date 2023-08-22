@@ -57,11 +57,6 @@ data class MatchNode(val id: Int, val eventId: Int, val set: Int, val number: In
 
 data class MatchTree(val match: MatchNode, val event: EventNode?, val alliances: List<AllianceNode>) :
     Tree<Match> {
-    override suspend fun leaves(): Match {
-        val alliances = alliances.map { alliance -> alliance.leaf() }
-
-        return createMatch(match, alliances)
-    }
 
     override suspend fun subtree(): Match {
         val alliances = alliances.map { alliance -> alliance.tree(false).subtree() }
@@ -71,7 +66,6 @@ data class MatchTree(val match: MatchNode, val event: EventNode?, val alliances:
 
     override suspend fun subtree(depth: Int, excludes: List<Exclude>): Match {
         if (depth == 0) return match.leaf()
-        if (depth == 1) return leaves()
 
         val alliances =
             if (Exclude.MATCH_ALLIANCES in excludes) emptyList() else alliances.map { alliance ->

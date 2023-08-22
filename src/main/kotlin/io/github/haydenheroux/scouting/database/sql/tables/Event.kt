@@ -60,11 +60,6 @@ data class EventNode(
 }
 
 data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<Event> {
-    override suspend fun leaves(): Event {
-        val matches = matches.map { match -> match.leaf() }
-
-        return createEvent(event, matches)
-    }
 
     override suspend fun subtree(): Event {
         val matches = matches.map { match -> match.tree(false).subtree() }
@@ -74,7 +69,6 @@ data class EventTree(val event: EventNode, val matches: List<MatchNode>) : Tree<
 
     override suspend fun subtree(depth: Int, excludes: List<Exclude>): Event {
         if (depth == 0) return event.leaf()
-        if (depth == 1) return leaves()
 
         val matches = if (Exclude.EVENT_MATCHES in excludes) emptyList() else matches.map { match ->
             match.tree(false).subtree(depth - 1, excludes)

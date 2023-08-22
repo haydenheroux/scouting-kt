@@ -48,11 +48,6 @@ data class TeamNode(val id: Int, val number: Int, val name: String, val region: 
 }
 
 data class TeamTree(val team: TeamNode, val seasons: List<SeasonNode>) : Tree<Team> {
-    override suspend fun leaves(): Team {
-        val seasons = seasons.map { season -> season.leaf() }
-
-        return createTeam(team, seasons)
-    }
 
     override suspend fun subtree(): Team {
         val seasons = seasons.map { season -> season.tree(false).subtree() }
@@ -62,7 +57,6 @@ data class TeamTree(val team: TeamNode, val seasons: List<SeasonNode>) : Tree<Te
 
     override suspend fun subtree(depth: Int, excludes: List<Exclude>): Team {
         if (depth == 0) return team.leaf()
-        if (depth == 1) return leaves()
 
         val seasons = if (Exclude.TEAM_SEASONS in excludes) emptyList() else seasons.map { season ->
             season.tree(false).subtree(depth - 1, excludes)

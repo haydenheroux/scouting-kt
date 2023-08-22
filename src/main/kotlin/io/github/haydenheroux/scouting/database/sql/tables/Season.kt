@@ -71,13 +71,6 @@ data class SeasonTree(
     val robots: List<RobotNode>,
     val events: List<EventNode>
 ) : Tree<Season> {
-    override suspend fun leaves(): Season {
-        val robots = robots.map { robot -> robot.leaf() }
-        val events = events.map { event -> event.leaf() }
-
-        return createSeason(season, robots, events)
-    }
-
     override suspend fun subtree(): Season {
         val robots = robots.map { robot -> robot.tree(false).subtree() }
         val events = events.map { event -> event.tree(false).subtree() }
@@ -87,7 +80,6 @@ data class SeasonTree(
 
     override suspend fun subtree(depth: Int, excludes: List<Exclude>): Season {
         if (depth == 0) return season.leaf()
-        if (depth == 1) return leaves()
 
         val robots = if (Exclude.SEASON_ROBOTS in excludes) emptyList() else robots.map { robot ->
             robot.tree(false).subtree(depth - 1, excludes)

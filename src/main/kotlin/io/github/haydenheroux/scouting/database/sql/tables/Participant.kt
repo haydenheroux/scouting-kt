@@ -65,12 +65,6 @@ data class ParticipantTree(
     val metrics: List<MetricNode>
 ) :
     Tree<Participant> {
-    override suspend fun leaves(): Participant {
-        val metrics = metrics.map { metric -> metric.leaf() }
-
-        return createParticipant(participant, metrics)
-    }
-
     override suspend fun subtree(): Participant {
         val metrics = metrics.map { metric -> metric.tree(false).subtree() }
 
@@ -79,7 +73,6 @@ data class ParticipantTree(
 
     override suspend fun subtree(depth: Int, excludes: List<Exclude>): Participant {
         if (depth == 0) return participant.leaf()
-        if (depth == 1) return leaves()
 
         val metrics = if (Exclude.PARTICIPANT_METRICS in excludes) emptyList() else metrics.map { metric ->
             metric.tree(false).subtree(depth - 1, excludes)

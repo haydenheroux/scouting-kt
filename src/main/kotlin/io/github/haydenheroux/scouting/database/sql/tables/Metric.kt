@@ -35,9 +35,6 @@ data class MetricNode(val id: Int, val key: String, val value: String) :
 }
 
 data class MetricTree(val metric: MetricNode) : Tree<Metric> {
-    override suspend fun leaves(): Metric {
-        return metric.leaf()
-    }
 
     override suspend fun subtree(): Metric {
         return metric.leaf()
