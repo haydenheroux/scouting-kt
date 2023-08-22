@@ -176,11 +176,13 @@ main {
     gap: var(--main-gap);
 }
 
-main > section {
+main section {
     display: flex;
     flex-direction: column;
     gap: var(--section-gap);
+}
 
+main > section {
     padding: var(--section-padding);
 }
 
