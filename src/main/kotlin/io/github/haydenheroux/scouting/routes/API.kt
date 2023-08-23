@@ -291,7 +291,7 @@ fun Route.api() {
         }
 
         post("/add-metrics") {
-            val metrics = call.receive<List<Metric>>()
+            val metrics = call.receive<Map<String, String>>()
 
             val participantQuery = participantQueryOf(call.request.queryParameters).getOrNull()
 
@@ -302,12 +302,10 @@ fun Route.api() {
 
             var error: DatabaseError? = null
 
-            for (metric in metrics) {
-                val result = SQLDatabase.insertParticipantMetric(metric, participantQuery)
+            val result = SQLDatabase.insertParticipantMetrics(metrics, participantQuery)
 
-                if (result is Error) {
-                    error = result.error
-                }
+            if (result is Error) {
+                error = result.error
             }
 
             if (error != null) {

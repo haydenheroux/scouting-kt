@@ -3,7 +3,6 @@ package io.github.haydenheroux.scouting.database.sql.tables
 import io.github.haydenheroux.scouting.database.sql.excludes.Exclude
 import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
-import io.github.haydenheroux.scouting.models.Metric
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 
@@ -13,7 +12,7 @@ object MetricTable : IntIdTable() {
 }
 
 data class MetricNode(val id: Int, val key: String, val value: String) :
-    Node<Tree<Metric>, Metric> {
+    Node<Tree<Pair<String, String>>, Pair<String, String>> {
 
     companion object {
         fun from(metricRow: ResultRow): MetricNode {
@@ -25,26 +24,26 @@ data class MetricNode(val id: Int, val key: String, val value: String) :
         }
     }
 
-    override suspend fun tree(parent: Boolean, excludes: List<Exclude>): Tree<Metric> {
+    override suspend fun tree(parent: Boolean, excludes: List<Exclude>): Tree<Pair<String, String>> {
         return MetricTree(this)
     }
 
-    override fun leaf(): Metric {
+    override fun leaf(): Pair<String, String> {
         return createMetric(this)
     }
 }
 
-data class MetricTree(val metric: MetricNode) : Tree<Metric> {
+data class MetricTree(val metric: MetricNode) : Tree<Pair<String, String>> {
 
-    override suspend fun subtree(): Metric {
+    override suspend fun subtree(): Pair<String, String> {
         return metric.leaf()
     }
 
-    override suspend fun subtree(depth: Int, excludes: List<Exclude>): Metric {
+    override suspend fun subtree(depth: Int, excludes: List<Exclude>): Pair<String, String> {
         return metric.leaf()
     }
 }
 
-fun createMetric(metric: MetricNode): Metric {
-    return Metric(metric.key, metric.value)
+fun createMetric(metric: MetricNode): Pair<String, String> {
+    return Pair(metric.key, metric.value)
 }

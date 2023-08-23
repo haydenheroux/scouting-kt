@@ -6,7 +6,6 @@ import io.github.haydenheroux.scouting.database.sql.tree.Node
 import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.errors.Error
 import io.github.haydenheroux.scouting.errors.Success
-import io.github.haydenheroux.scouting.models.Metric
 import io.github.haydenheroux.scouting.models.Participant
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -58,7 +57,7 @@ data class ParticipantNode(val id: Int, val allianceId: Int, val teamNumber: Int
     }
 
     override fun leaf(): Participant {
-        return createParticipant(this, emptyList())
+        return createParticipant(this, emptyMap())
     }
 }
 
@@ -71,20 +70,20 @@ data class ParticipantTree(
     override suspend fun subtree(): Participant {
         val metrics = metrics.map { metric -> metric.tree(false, emptyList()).subtree() }
 
-        return createParticipant(participant, metrics)
+        return createParticipant(participant, metrics.associate { it })
     }
 
     override suspend fun subtree(depth: Int, excludes: List<Exclude>): Participant {
         if (depth == 0) return participant.leaf()
 
-        val metrics = if (Exclude.PARTICIPANT_METRICS in excludes) emptyList() else metrics.map { metric ->
+        val metrics = if (Exclude.PARTICIPANT_METRICS in excludes) emptyMap() else metrics.map { metric ->
             metric.tree(false, excludes).subtree(depth - 1, excludes)
-        }
+        }.associate { it }
 
         return createParticipant(participant, metrics)
     }
 }
 
-fun createParticipant(participant: ParticipantNode, metrics: List<Metric>): Participant {
+fun createParticipant(participant: ParticipantNode, metrics: Map<String, String>): Participant {
     return Participant(participant.teamNumber, metrics)
 }

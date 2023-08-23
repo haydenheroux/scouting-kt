@@ -18,10 +18,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                <#list alliance.metrics?sort_by("key") as metric>
+                <#list alliance.metrics as key, value>
                     <tr>
-                        <td>${metric.key}</td>
-                        <td>${metric.value}</td>
+                        <td>${key}</td>
+                        <td>${value}</td>
                     </tr>
                 </#list>
                 </tbody>
@@ -39,10 +39,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                    <#list participant.metrics?sort_by("key") as metric>
+                    <#list participant.metrics as key, value>
                         <tr>
-                            <td>${metric.key}</td>
-                            <td>${metric.value}</td>
+                            <td>${key}</td>
+                            <td>${value}</td>
                         </tr>
                     </#list>
                     </tbody>

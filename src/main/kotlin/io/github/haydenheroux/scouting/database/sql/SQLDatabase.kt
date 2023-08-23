@@ -401,9 +401,7 @@ object SQLDatabase : DatabaseInterface {
             }.value
         }
 
-        for (metric in alliance.metrics) {
-            insertAllianceMetric(metric, allianceId)
-        }
+        insertAllianceMetrics(alliance.metrics, allianceId)
 
         for (participant in alliance.participants) {
             insertParticipant(participant, allianceId)
@@ -524,15 +522,6 @@ object SQLDatabase : DatabaseInterface {
         }
     }
 
-    suspend fun getParticipantById(participantId: Int): Either<ParticipantNode, DatabaseError> {
-        val result = runCatching {
-            val participantRow = getParticipantRow(participantId)!!
-            ParticipantNode.from(participantRow)
-        }
-
-        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
-    }
-
     suspend fun getAlliancesByMatch(matchData: MatchNode): Either<List<AllianceNode>, DatabaseError> {
         val result = runCatching {
             query {
@@ -631,48 +620,12 @@ object SQLDatabase : DatabaseInterface {
 
     private suspend fun getMetricById(metricId: Int): Either<MetricNode, DatabaseError> {
         val result = runCatching {
-            val metricRow = getMetricRow(metricId)!!
-            MetricNode.from(metricRow)
+            query {
+                MetricTable.select { MetricTable.id eq metricId }.single()
+            }
         }
 
-        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
-    }
-
-    private suspend fun getMetricId(metricQuery: MetricQuery): Int {
-        return getMetricRow(metricQuery)!![ParticipantTable.id].value
-    }
-
-    private suspend fun metricExists(metricQuery: MetricQuery): Boolean {
-        return getMetricRow(metricQuery)?.let { true } ?: false
-    }
-
-    private suspend fun getMetricRow(metricId: Int): ResultRow? {
-        return query {
-            MetricTable.select { MetricTable.id eq metricId }.singleOrNull()
-        }
-    }
-
-    private suspend fun getMetricRow(metricQuery: MetricQuery): ResultRow? {
-        val participantId = getParticipantId(metricQuery.participantQuery)
-
-        return query {
-            val participantMetricRow =
-                ParticipantMetricTable.select { ParticipantMetricTable.participantId eq participantId }.singleOrNull()
-
-            val metricId: Int =
-                participantMetricRow?.let { it[ParticipantMetricTable.metricId].value } ?: return@query null
-
-            getMetricRow(metricId)
-        }
-    }
-
-    private suspend fun getMetricNode(metricQuery: MetricQuery): Either<MetricNode, DatabaseError> {
-        val result = runCatching {
-            val metricRow = getMetricRow(metricQuery)!!
-            MetricNode.from(metricRow)
-        }
-
-        return result.getOrNull()?.let { Success(it) } ?: Error(DatabaseUnknownError)
+        return result.getOrNull()?.let { Success(MetricNode.from(it)) } ?: Error(DatabaseUnknownError)
     }
 
     override suspend fun insertTeam(team: Team): Either<Unit, DatabaseError> {
@@ -836,9 +789,7 @@ object SQLDatabase : DatabaseInterface {
             }.value
         }
 
-        for (metric in participant.metrics) {
-            insertParticipantMetric(metric, participantId)
-        }
+        insertParticipantMetrics(participant.metrics, participantId)
 
         return Success(Unit)
     }
@@ -857,55 +808,63 @@ object SQLDatabase : DatabaseInterface {
         return insertParticipant(participant, allianceId)
     }
 
-    private suspend fun insertAllianceMetric(metric: Metric, allianceId: Int): Either<Unit, DatabaseError> {
+    private suspend fun insertAllianceMetrics(
+        metrics: Map<String, String>,
+        allianceId: Int
+    ): Either<Unit, DatabaseError> {
         query {
-            val metricId = MetricTable.insertAndGetId {
-                it[key] = metric.key
-                it[value] = metric.value
-            }
+            metrics.forEach { (key, value) ->
+                val metricId = MetricTable.insertAndGetId {
+                    it[MetricTable.key] = key
+                    it[MetricTable.value] = value
+                }
 
-            AllianceMetricTable.insert {
-                it[AllianceMetricTable.allianceId] = allianceId
-                it[AllianceMetricTable.metricId] = metricId
+                AllianceMetricTable.insert {
+                    it[AllianceMetricTable.allianceId] = allianceId
+                    it[AllianceMetricTable.metricId] = metricId
+                }
             }
-
         }
 
         return Success(Unit)
     }
 
-    private suspend fun insertParticipantMetric(metric: Metric, participantId: Int): Either<Unit, DatabaseError> {
+    private suspend fun insertParticipantMetrics(
+        metrics: Map<String, String>,
+        participantId: Int
+    ): Either<Unit, DatabaseError> {
         query {
-            val metricId = MetricTable.insertAndGetId {
-                it[key] = metric.key
-                it[value] = metric.value
-            }
+            metrics.forEach { (key, value) ->
+                val metricId = MetricTable.insertAndGetId {
+                    it[MetricTable.key] = key
+                    it[MetricTable.value] = value
+                }
 
-            ParticipantMetricTable.insert {
-                it[ParticipantMetricTable.participantId] = participantId
-                it[ParticipantMetricTable.metricId] = metricId
+                ParticipantMetricTable.insert {
+                    it[ParticipantMetricTable.participantId] = participantId
+                    it[ParticipantMetricTable.metricId] = metricId
+                }
             }
-
         }
 
         return Success(Unit)
     }
 
-    override suspend fun insertParticipantMetric(
-        metric: Metric,
+    override suspend fun insertParticipantMetrics(
+        metrics: Map<String, String>,
         participantQuery: ParticipantQuery
     ): Either<Unit, DatabaseError> {
         val participantId = getParticipantId(participantQuery)
 
-        return insertParticipantMetric(metric, participantId)
+        return insertParticipantMetrics(metrics, participantId)
     }
 
-    override suspend fun insertAllianceMetric(
-        metric: Metric,
+    override suspend fun insertAllianceMetrics(
+        metrics: Map<String, String>,
         allianceQuery: AllianceQuery
     ): Either<Unit, DatabaseError> {
         val allianceId = getAllianceId(allianceQuery)
 
-        return insertAllianceMetric(metric, allianceId)
+        return insertAllianceMetrics(metrics, allianceId)
     }
 }

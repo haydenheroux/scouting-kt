@@ -7,7 +7,6 @@ import io.github.haydenheroux.scouting.database.sql.tree.Tree
 import io.github.haydenheroux.scouting.errors.Error
 import io.github.haydenheroux.scouting.errors.Success
 import io.github.haydenheroux.scouting.models.Alliance
-import io.github.haydenheroux.scouting.models.Metric
 import io.github.haydenheroux.scouting.models.Participant
 import io.github.haydenheroux.scouting.models.enums.AllianceColor
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -70,7 +69,7 @@ data class AllianceNode(
     }
 
     override fun leaf(): Alliance {
-        return createAlliance(this, emptyList(), emptyList())
+        return createAlliance(this, emptyMap(), emptyList())
     }
 
 }
@@ -86,15 +85,15 @@ data class AllianceTree(
         val metrics = metrics.map { metric -> metric.tree(false, emptyList()).subtree() }
         val participants = participants.map { participant -> participant.tree(false, emptyList()).subtree() }
 
-        return createAlliance(alliance, metrics, participants)
+        return createAlliance(alliance, metrics.associate { it }, participants)
     }
 
     override suspend fun subtree(depth: Int, excludes: List<Exclude>): Alliance {
         if (depth == 0) return alliance.leaf()
 
-        val metrics = if (Exclude.ALLIANCE_METRICS in excludes) emptyList() else metrics.map { metric ->
+        val metrics = if (Exclude.ALLIANCE_METRICS in excludes) emptyMap() else metrics.map { metric ->
             metric.tree(false, excludes).subtree(depth - 1, excludes)
-        }
+        }.associate { it }
         val participants =
             if (Exclude.ALLIANCE_PARTICIPANTS in excludes) emptyList() else participants.map { participant ->
                 participant.tree(false, excludes).subtree(depth - 1, excludes)
@@ -105,6 +104,6 @@ data class AllianceTree(
 
 }
 
-fun createAlliance(alliance: AllianceNode, metrics: List<Metric>, participants: List<Participant>): Alliance {
+fun createAlliance(alliance: AllianceNode, metrics: Map<String, String>, participants: List<Participant>): Alliance {
     return Alliance(alliance.color, metrics, participants)
 }

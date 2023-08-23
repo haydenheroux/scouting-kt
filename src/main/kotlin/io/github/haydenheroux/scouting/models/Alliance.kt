@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Alliance(
     val color: AllianceColor,
-    val metrics: List<Metric>,
+    val metrics: Map<String, String>,
     val participants: List<Participant>
 )
 

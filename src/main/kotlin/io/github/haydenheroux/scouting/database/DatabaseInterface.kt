@@ -82,7 +82,13 @@ interface DatabaseInterface {
     suspend fun getParticipant(participantQuery: ParticipantQuery): Either<Participant, DatabaseError>
 
 
-    suspend fun insertAllianceMetric(metric: Metric, allianceQuery: AllianceQuery): Either<Unit, DatabaseError>
+    suspend fun insertAllianceMetrics(
+        metrics: Map<String, String>,
+        allianceQuery: AllianceQuery
+    ): Either<Unit, DatabaseError>
 
-    suspend fun insertParticipantMetric(metric: Metric, participantQuery: ParticipantQuery): Either<Unit, DatabaseError>
+    suspend fun insertParticipantMetrics(
+        metrics: Map<String, String>,
+        participantQuery: ParticipantQuery
+    ): Either<Unit, DatabaseError>
 }

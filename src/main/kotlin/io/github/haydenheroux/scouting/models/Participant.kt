@@ -4,7 +4,7 @@ import io.ktor.http.*
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Participant(val teamNumber: Int, val metrics: List<Metric>)
+data class Participant(val teamNumber: Int, val metrics: Map<String, String>)
 
 data class ParticipantQuery(val teamQuery: TeamQuery, val allianceQuery: AllianceQuery)
 
